@@ -26,9 +26,9 @@ class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 
 ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
+  console.log(`Received: ${arg}`);
+  event.reply('ipc-example', 'pong');
+  console.log('Sent pong!');
 });
 
 if (process.env.NODE_ENV === 'production') {

@@ -12,9 +12,9 @@
   },
   "aliases": {
     "components": "@/renderer/components",
-    "utils": "@/renderer/utils/tailwind-utils",
+    "utils": "@/renderer/utils/utils",
     "ui": "@/renderer/components/ui",
-    "lib": "@/renderer/lib",
+    "lib": "@/renderer/utils",
     "hooks": "@/renderer/hooks"
   },
   "iconLibrary": "lucide"
