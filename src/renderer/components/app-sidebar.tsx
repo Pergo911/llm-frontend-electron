@@ -16,46 +16,40 @@ import {
 } from '@/renderer/components/sidebar-content';
 import { ChatEntry, PromptEntry } from '@/common/types';
 import { Settings } from 'lucide-react';
+import { toast } from 'sonner';
+import { useCallback } from 'react';
 import { SidebarToggle } from './sidebar-toggle';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import { SettingsModal } from './settings-modal';
 
-// This is sample data.
-const chatData: ChatEntry[] = [
-  { title: 'Example chat 1', id: '0' },
-  { title: 'Example chat 2', id: '1' },
-];
-
-const promptData: PromptEntry[] = [
-  {
-    title: 'Background Descriptions',
-    id: '0',
-    items: [
-      { title: 'Prompt 1', id: '0', type: 'user' },
-      { title: 'Prompt 2', id: '1', type: 'user' },
-    ],
-  },
-  {
-    title: 'Instructions',
-    id: '1',
-    items: [
-      { title: 'Prompt 3', id: '2', type: 'user' },
-      { title: 'Prompt 4', id: '3', type: 'user' },
-    ],
-  },
-  {
-    title: 'System Prompts',
-    id: '2',
-    items: [
-      { title: 'Prompt 5', id: '4', type: 'system' },
-      { title: 'Prompt 6', id: '5', type: 'system' },
-    ],
-  },
-];
-
 export const AppSidebar = React.memo(
   ({ ...props }: React.ComponentProps<typeof Sidebar>) => {
     const [page, setPage] = React.useState<'chat' | 'prompt'>('chat');
+    const [chatData, setChatData] = React.useState<ChatEntry[]>([]);
+    const [promptData, setPromptData] = React.useState<PromptEntry[]>([]);
+    const [loading, setLoading] = React.useState(true);
+
+    React.useEffect(() => {
+      const loadEntries = async () => {
+        const { chatEntries, promptEntries, error } =
+          await window.electron.fileOperations.getEntries();
+        setChatData(chatEntries);
+        setPromptData(promptEntries);
+        setLoading(false);
+
+        if (error) {
+          toast.error(`Error loading entries: ${error}`);
+        }
+      };
+
+      if (loading) {
+        loadEntries();
+      }
+    }, [loading]);
+
+    const handleRefresh = useCallback(() => {
+      setLoading(true);
+    }, []);
 
     return (
       <Sidebar {...props}>
@@ -79,7 +73,7 @@ export const AppSidebar = React.memo(
                     </SidebarMenuButton>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
-                    <SettingsModal />
+                    <SettingsModal triggerRefresh={handleRefresh} />
                   </DialogContent>
                 </Dialog>
               </SidebarMenuItem>

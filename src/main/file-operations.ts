@@ -1,6 +1,7 @@
-import { ConfigSchema, Config } from '@/common/types';
+import { ConfigSchema, Config, SaveFile } from '@/common/types';
 import { ipcMain } from 'electron';
 import Store from 'electron-store';
+import { readFile } from 'fs/promises';
 
 const store = new Store({ schema: ConfigSchema });
 
@@ -27,8 +28,30 @@ function setConfigValue(key: keyof Config, value: Config[keyof Config]) {
     store.set(key, value);
     return true;
   } catch (e) {
-    console.error(e);
     return false;
+  }
+}
+
+async function getEntries() {
+  // @ts-ignore
+  const path = store.get('saveFilePath') as string;
+
+  try {
+    const saveFileContents = await readFile(path, 'utf-8');
+    const saveFile: SaveFile = JSON.parse(saveFileContents);
+
+    return {
+      chatEntries: saveFile.chatEntries,
+      promptEntries: saveFile.promptEntries,
+      error: null as string | null,
+    };
+  } catch (e) {
+    console.error(e);
+    return {
+      chatEntries: [],
+      promptEntries: [],
+      error: (e as Error).message,
+    };
   }
 }
 
@@ -43,4 +66,8 @@ export const registerFileOperations = () => {
       return setConfigValue(key, value);
     },
   );
+
+  ipcMain.handle('get-entries', () => {
+    return getEntries();
+  });
 };

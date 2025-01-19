@@ -33,6 +33,9 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
         {/* <SidebarGroupLabel>All chats</SidebarGroupLabel> */}
         <SidebarGroupContent>
           <SidebarMenu>
+            {data.length === 0 && (
+              <div className="text-sm text-gray-500 text-center">No chats.</div>
+            )}
             {data.map((item) => (
               <SidebarMenuItem key={item.id}>
                 {/* TODO: Add active state */}
@@ -54,6 +57,9 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
     <SidebarContent>
       <SidebarGroup>
         <SidebarMenu>
+          {data.length === 0 && (
+            <div className="text-sm text-gray-500 text-center">No prompts.</div>
+          )}
           {data.map((item) => (
             <Collapsible key={item.title} className="group/collapsible">
               <SidebarMenuItem>
@@ -67,6 +73,11 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
+                    {item.items.length === 0 && (
+                      <div className="text-sm text-gray-500 text-center">
+                        Empty group.
+                      </div>
+                    )}
                     {item.items.map((item) => (
                       <SidebarMenuSubItem key={item.id}>
                         {/* TODO: Add active state */}
