@@ -19,39 +19,24 @@ import {
   SquareTerminal,
   FolderCog,
 } from 'lucide-react';
+import { ChatEntry, PromptEntry } from '@/common/types';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from './ui/collapsible';
 
-export type ChatsSidebarContent = Array<{
-  title: string;
-  id: string;
-  isActive: boolean;
-}>;
-
-export type PromptsSidebarContent = Array<{
-  folderName: string;
-  isSystemFolder: boolean;
-  items: Array<{
-    title: string;
-    id: string;
-    isActive: boolean;
-    type: 'user' | 'system';
-  }>;
-}>;
-
-export function ChatsSidebarContent({ data }: { data: ChatsSidebarContent }) {
+export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
   return (
     <SidebarContent>
       <SidebarGroup>
-        <SidebarGroupLabel>All chats</SidebarGroupLabel>
+        {/* <SidebarGroupLabel>All chats</SidebarGroupLabel> */}
         <SidebarGroupContent>
           <SidebarMenu>
             {data.map((item) => (
               <SidebarMenuItem key={item.id}>
-                <SidebarMenuButton isActive={item.isActive}>
+                {/* TODO: Add active state */}
+                <SidebarMenuButton isActive={false}>
                   <MessageCircle className="mr-2" />
                   {item.title}
                 </SidebarMenuButton>
@@ -64,26 +49,18 @@ export function ChatsSidebarContent({ data }: { data: ChatsSidebarContent }) {
   );
 }
 
-export function PromptsSidebarContent({
-  data,
-}: {
-  data: PromptsSidebarContent;
-}) {
+export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
   return (
     <SidebarContent>
       <SidebarGroup>
         <SidebarMenu>
           {data.map((item) => (
-            <Collapsible key={item.folderName} className="group/collapsible">
+            <Collapsible key={item.title} className="group/collapsible">
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton>
-                    {item.isSystemFolder ? (
-                      <FolderCog className="mr-2" />
-                    ) : (
-                      <Folder className="mr-2" />
-                    )}
-                    {item.folderName}
+                    <Folder className="mr-2" />
+                    {item.title}
                     <Plus className="ml-auto group-data-[state=open]/collapsible:hidden" />
                     <Minus className="ml-auto group-data-[state=closed]/collapsible:hidden" />
                   </SidebarMenuButton>
@@ -92,7 +69,8 @@ export function PromptsSidebarContent({
                   <SidebarMenuSub>
                     {item.items.map((item) => (
                       <SidebarMenuSubItem key={item.id}>
-                        <SidebarMenuSubButton isActive={item.isActive}>
+                        {/* TODO: Add active state */}
+                        <SidebarMenuSubButton isActive={false}>
                           {item.type === 'user' ? (
                             <Notebook className="mr-2" />
                           ) : (
