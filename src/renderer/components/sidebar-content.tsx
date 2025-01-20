@@ -20,6 +20,7 @@ import {
   FolderCog,
 } from 'lucide-react';
 import { ChatEntry, PromptEntry } from '@/common/types';
+import { NavLink } from 'react-router-dom';
 import {
   Collapsible,
   CollapsibleContent,
@@ -38,11 +39,16 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
             )}
             {data.map((item) => (
               <SidebarMenuItem key={item.id}>
-                {/* TODO: Add active state */}
-                <SidebarMenuButton isActive={false}>
-                  <MessageCircle className="mr-2" />
-                  {item.title}
-                </SidebarMenuButton>
+                <NavLink to={`/c/${item.id}`}>
+                  {({ isActive }) => {
+                    return (
+                      <SidebarMenuButton isActive={isActive}>
+                        <MessageCircle className="mr-2" />
+                        {item.title}
+                      </SidebarMenuButton>
+                    );
+                  }}
+                </NavLink>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -79,17 +85,22 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                       </div>
                     )}
                     {item.items.map((item) => (
-                      <SidebarMenuSubItem key={item.id}>
-                        {/* TODO: Add active state */}
-                        <SidebarMenuSubButton isActive={false}>
-                          {item.type === 'user' ? (
-                            <Notebook className="mr-2" />
-                          ) : (
-                            <SquareTerminal className="mr-2" />
-                          )}
-                          {item.title}
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
+                      <NavLink key={item.id} to={`/p/${item.id}`}>
+                        {({ isActive }) => {
+                          return (
+                            <SidebarMenuSubItem>
+                              <SidebarMenuSubButton isActive={isActive}>
+                                {item.type === 'user' ? (
+                                  <Notebook className="mr-2" />
+                                ) : (
+                                  <SquareTerminal className="mr-2" />
+                                )}
+                                {item.title}
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          );
+                        }}
+                      </NavLink>
                     ))}
                   </SidebarMenuSub>
                 </CollapsibleContent>

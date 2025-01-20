@@ -46,19 +46,38 @@ export const SettingsModal = memo(
     }, []);
 
     const handleSave = useCallback(async () => {
-      const success =
-        (await window.electron.fileOperations.setConfig('theme', theme)) &&
-        (await window.electron.fileOperations.setConfig('baseUrl', baseUrl)) &&
-        (await window.electron.fileOperations.setConfig('apiKey', apiKey)) &&
-        (await window.electron.fileOperations.setConfig(
-          'saveFilePath',
-          saveFilePath,
-        ));
+      const e: Array<string | null> = [];
 
-      if (success) {
+      e.push(
+        (await window.electron.fileOperations.setConfig('theme', theme)).error,
+      );
+
+      e.push(
+        (await window.electron.fileOperations.setConfig('baseUrl', baseUrl))
+          .error,
+      );
+
+      e.push(
+        (await window.electron.fileOperations.setConfig('apiKey', apiKey))
+          .error,
+      );
+
+      e.push(
+        (
+          await window.electron.fileOperations.setConfig(
+            'saveFilePath',
+            saveFilePath,
+          )
+        ).error,
+      );
+
+      // remove successful saves and duplicates
+      const error = [...new Set(e.filter((a) => a != null))];
+
+      if (error.length === 0) {
         toast.success('Saved.');
       } else {
-        toast.error('Failed to save settings.');
+        toast.error(`Failed to save settings: ${error.toString()}`);
         setAppTheme(themeFailed.current);
       }
     }, [theme, baseUrl, apiKey, saveFilePath, setAppTheme]);

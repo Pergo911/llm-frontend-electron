@@ -1,9 +1,42 @@
-import { ConfigSchema, Config, SaveFile } from '@/common/types';
+import {
+  ConfigSchema,
+  Config,
+  SaveFile,
+  ChatEntry,
+  PromptEntry,
+} from '@/common/types';
 import { ipcMain } from 'electron';
 import Store from 'electron-store';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
+import { existsSync } from 'fs';
 
 const store = new Store({ schema: ConfigSchema });
+
+async function getSaveFile(): Promise<{
+  saveFile: SaveFile | null;
+  error: string | null;
+}> {
+  // @ts-ignore
+  const path = store.get('saveFilePath') as string;
+
+  try {
+    if (!existsSync(path)) {
+      const emptySaveFile: SaveFile = {
+        chats: [],
+        prompts: [],
+        folders: [],
+      };
+      await writeFile(path, JSON.stringify(emptySaveFile, null, 2), 'utf-8');
+      return { saveFile: emptySaveFile, error: null };
+    }
+
+    const saveFileContents = await readFile(path, 'utf-8');
+    const saveFile: SaveFile = JSON.parse(saveFileContents);
+    return { saveFile, error: null };
+  } catch (e) {
+    return { saveFile: null, error: (e as Error).message };
+  }
+}
 
 function getConfig(): Config {
   const config: Config = {
@@ -26,33 +59,70 @@ function setConfigValue(key: keyof Config, value: Config[keyof Config]) {
   try {
     // @ts-ignore
     store.set(key, value);
-    return true;
+    return { error: null as string | null };
   } catch (e) {
-    return false;
+    return { error: (e as Error).message };
   }
 }
 
 async function getEntries() {
-  // @ts-ignore
-  const path = store.get('saveFilePath') as string;
+  const { saveFile, error } = await getSaveFile();
 
-  try {
-    const saveFileContents = await readFile(path, 'utf-8');
-    const saveFile: SaveFile = JSON.parse(saveFileContents);
-
-    return {
-      chatEntries: saveFile.chatEntries,
-      promptEntries: saveFile.promptEntries,
-      error: null as string | null,
-    };
-  } catch (e) {
-    console.error(e);
+  if (error || !saveFile) {
     return {
       chatEntries: [],
       promptEntries: [],
-      error: (e as Error).message,
+      error,
     };
   }
+
+  const chatEntries = saveFile.chats.map((i) => {
+    return { id: i.id, title: i.title } as ChatEntry;
+  });
+
+  const promptEntries = saveFile.folders.map((f) => {
+    return {
+      id: f.id,
+      title: f.title,
+      items: saveFile.prompts.filter((i) => i.folderId === f.id),
+    } as PromptEntry;
+  });
+
+  return {
+    chatEntries,
+    promptEntries,
+    error: null as string | null,
+  };
+}
+
+async function getChatById(id: string) {
+  const { saveFile, error } = await getSaveFile();
+
+  if (error || !saveFile) {
+    return { chat: null, error };
+  }
+
+  const chat = saveFile.chats.find((c) => c.id === id);
+
+  return {
+    chat: chat || null,
+    error: null as string | null,
+  };
+}
+
+async function getPromptById(id: string) {
+  const { saveFile, error } = await getSaveFile();
+
+  if (error || !saveFile) {
+    return { prompt: null, error };
+  }
+
+  const prompt = saveFile.prompts.find((p) => p.id === id);
+
+  return {
+    prompt: prompt || null,
+    error: null as string | null,
+  };
 }
 
 export const registerFileOperations = () => {
@@ -69,5 +139,13 @@ export const registerFileOperations = () => {
 
   ipcMain.handle('get-entries', () => {
     return getEntries();
+  });
+
+  ipcMain.handle('get-chat-by-id', (event, id: string) => {
+    return getChatById(id);
+  });
+
+  ipcMain.handle('get-prompt-by-id', (event, id: string) => {
+    return getPromptById(id);
   });
 };

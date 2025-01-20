@@ -64,14 +64,19 @@ export type Chat = {
 export type Prompt = {
   id: string;
   title: string;
-  content: string;
+  folderId: string;
   type: 'user' | 'system';
   timestamp: number;
+  content: string;
+};
+
+export type Folder = {
+  id: string;
+  title: string;
 };
 
 export type SaveFile = {
-  chatEntries: ChatEntry[];
-  promptEntries: PromptEntry[];
   chats: Chat[];
   prompts: Prompt[];
+  folders: Folder[];
 };
