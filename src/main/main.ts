@@ -9,12 +9,30 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell } from 'electron';
-import MenuBuilder from './menu';
+import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { resolveHtmlPath } from './util';
 import { registerFileOperations } from './file-operations';
 
 let mainWindow: BrowserWindow | null = null;
+
+let titleBarColors = {
+  background: 'hsla(240, 5.9%, 10%, 1)',
+  symbol: 'hsla(0, 0%, 95%, 1)',
+};
+
+ipcMain.on(
+  'update-titlebar-colors',
+  (_event, colors: { background: string; symbol: string }) => {
+    titleBarColors = colors;
+    if (mainWindow) {
+      mainWindow.setTitleBarOverlay({
+        color: titleBarColors.background,
+        symbolColor: titleBarColors.symbol,
+        height: 59,
+      });
+    }
+  },
+);
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -60,9 +78,16 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
-    minWidth: 728,
-    minHeight: 512,
+    minWidth: 800,
+    minHeight: 600,
     icon: getAssetPath('icon.png'),
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: titleBarColors.background,
+      symbolColor: titleBarColors.symbol,
+      height: 59,
+    },
+    autoHideMenuBar: true,
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
@@ -86,9 +111,6 @@ const createWindow = async () => {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
 
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {

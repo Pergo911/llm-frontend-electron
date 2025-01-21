@@ -1,5 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { ChatEntry, Config, PromptEntry, Chat, Prompt } from '@/common/types';
+import {
+  ChatEntry,
+  Config,
+  PromptEntry,
+  Chat,
+  Prompt,
+  Folder,
+} from '@/common/types';
 
 const electronHandler = {
   fileOperations: {
@@ -22,8 +29,21 @@ const electronHandler = {
     getPromptById: (id: string) =>
       ipcRenderer.invoke('get-prompt-by-id', id) as Promise<{
         prompt: Prompt | null;
+        folder: Folder | null;
         error: string | null;
       }>,
+  },
+  windowStyle: {
+    setWindowControlsTheme: (theme: 'dark' | 'light') => {
+      ipcRenderer.send('update-titlebar-colors', {
+        background:
+          theme === 'dark' ? 'hsla(240, 5.9%, 10%, 1)' : 'hsla(0, 0%, 98%, 1)',
+        symbol:
+          theme === 'dark'
+            ? 'hsla(240, 4.8%, 95.9%, 1)'
+            : 'hsla(240, 5.3%, 26.1%, 1)',
+      });
+    },
   },
 };
 

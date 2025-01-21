@@ -48,10 +48,12 @@ export function ThemeProvider({
         ? 'dark'
         : 'light';
 
+      window.electron.windowStyle.setWindowControlsTheme(systemTheme);
       root.classList.add(systemTheme);
       return;
     }
 
+    window.electron.windowStyle.setWindowControlsTheme(theme);
     root.classList.add(theme);
   }, [theme]);
 

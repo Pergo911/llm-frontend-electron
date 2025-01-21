@@ -114,13 +114,16 @@ async function getPromptById(id: string) {
   const { saveFile, error } = await getSaveFile();
 
   if (error || !saveFile) {
-    return { prompt: null, error };
+    return { prompt: null, folder: null, error };
   }
 
   const prompt = saveFile.prompts.find((p) => p.id === id);
+  const folder =
+    saveFile.folders.find((f) => f.id === prompt?.folderId) ?? null;
 
   return {
     prompt: prompt || null,
+    folder,
     error: null as string | null,
   };
 }

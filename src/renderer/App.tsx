@@ -15,7 +15,7 @@ export default function App() {
       <ThemeProvider>
         <SidebarProvider>
           <AppSidebar />
-          <SidebarInset>
+          <SidebarInset className="bg-sidebar">
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/c">
