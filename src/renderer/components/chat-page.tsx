@@ -4,6 +4,7 @@ import { Chat } from '@/common/types';
 import { MessageCircle } from 'lucide-react';
 import TitleBar from './ui/title-bar';
 import { Breadcrumb, BreadcrumbList, BreadcrumbItem } from './ui/breadcrumb';
+import ChatInputBar from './chat-input-bar';
 
 export default function ChatPage() {
   const { id } = useParams();
@@ -12,7 +13,10 @@ export default function ChatPage() {
 
   useEffect(() => {
     const getChat = async () => {
-      if (!id) return;
+      if (!id) {
+        setError('Getting id route param failed.');
+        return;
+      }
 
       const { chat, error } =
         await window.electron.fileOperations.getChatById(id);
@@ -36,9 +40,9 @@ export default function ChatPage() {
           </BreadcrumbList>
         </Breadcrumb>
       </TitleBar>
-      <div className="p-4 rounded-lg bg-background flex flex-col gap-4 items-center justify-center h-full">
-        {error ? <div>ERROR: {error}</div> : null}
-        {chat ? <div>CHAT:{JSON.stringify(chat, null, 2)}</div> : null}
+      <div className="p-4 rounded-lg bg-background h-full">
+        {/* <Messages /> */}
+        <ChatInputBar onSend={() => {}} onAddPrompt={() => {}} />
       </div>
     </>
   );
