@@ -16,7 +16,7 @@ export default function HomePage() {
           </BreadcrumbList>
         </Breadcrumb>
       </TitleBar>
-      <div className="p-4 rounded-lg flex flex-col gap-4 items-center justify-center h-full bg-background">
+      <div className="p-4 rounded-xl flex flex-col gap-4 items-center justify-center h-full bg-background">
         <div className="text-3xl font-bold">Welcome!</div>
         <div className="flex flex-col gap-2 w-44">
           <Button className="rounded-md">New Chat</Button>

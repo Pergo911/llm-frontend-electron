@@ -47,18 +47,28 @@ export type Chat = {
   id: string;
   timestamp: number;
   messages: Array<{
-    messageType:
-      | 'user'
-      | 'assistant'
-      | 'system'
-      | 'user-prompt'
-      | 'system-prompt';
+    messageType: 'user' | 'assistant' | 'user-prompt' | 'system-prompt';
     choices?: Array<{
       content: string;
       timestamp: number;
     }>;
     promptId?: string;
   }>;
+};
+
+export type Message = {
+  content: string;
+  timestamp: number;
+};
+
+export type MultipleChoiceMessage = {
+  choices: Message[];
+};
+
+export type PromptMessage = {
+  type: 'user' | 'system';
+  title: string;
+  content: string;
 };
 
 export type Prompt = {

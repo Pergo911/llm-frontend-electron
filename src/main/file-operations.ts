@@ -118,6 +118,11 @@ async function getPromptById(id: string) {
   }
 
   const prompt = saveFile.prompts.find((p) => p.id === id);
+
+  if (!prompt) {
+    return { prompt: null, folder: null, error: 'Prompt not found' };
+  }
+
   const folder =
     saveFile.folders.find((f) => f.id === prompt?.folderId) ?? null;
 

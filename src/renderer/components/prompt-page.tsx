@@ -52,7 +52,7 @@ export default function PromptPage() {
           </BreadcrumbList>
         </Breadcrumb>
       </TitleBar>
-      <div className="p-4 rounded-lg bg-background flex flex-col gap-4 items-center justify-center h-full">
+      <div className="p-4 rounded-xl bg-background flex flex-col gap-4 items-center justify-center h-full">
         {error ? <div>ERROR: {error}</div> : null}
         {prompt ? <div>PROMPT:{JSON.stringify(prompt, null, 2)}</div> : null}
       </div>

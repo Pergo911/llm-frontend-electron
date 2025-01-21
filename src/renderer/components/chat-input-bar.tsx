@@ -23,6 +23,24 @@ const ChatInputBar = ({
     taStyle.height = `${textareaRef.current.scrollHeight}px`;
   }
 
+  const handleSend = React.useCallback(() => {
+    if (canSend) {
+      onSend(value);
+      setValue('');
+      autoHeight();
+    }
+  }, [canSend, onSend, value]);
+
+  const handleKeyDown = React.useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    },
+    [handleSend],
+  );
+
   React.useEffect(() => {
     setCanSend(value !== ''); // false if textbox is empty
   }, [value]);
@@ -35,11 +53,13 @@ const ChatInputBar = ({
         <Textarea
           className="border-none focus:outline-none focus-visible:ring-0 resize-none pt-4 pb-0 shadow-none h-auto"
           placeholder="Message here..."
+          spellCheck="false"
           value={value}
           onChange={(e) => {
             setValue(e.target.value);
             autoHeight();
           }}
+          onKeyDown={handleKeyDown}
           ref={textareaRef}
         />
         <div className="w-full flex justify-between p-2">
@@ -56,11 +76,7 @@ const ChatInputBar = ({
             size="icon"
             className="rounded-full"
             disabled={!canSend}
-            onClick={() => {
-              onSend(value);
-              setValue('');
-              autoHeight();
-            }}
+            onClick={handleSend}
           >
             <SendIcon className="w-4 h-4" />
           </Button>
