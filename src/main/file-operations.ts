@@ -4,6 +4,7 @@ import {
   SaveFile,
   ChatEntry,
   PromptEntry,
+  Chat,
 } from '@/common/types';
 import { ipcMain } from 'electron';
 import Store from 'electron-store';
@@ -133,6 +134,34 @@ async function getPromptById(id: string) {
   };
 }
 
+async function writeChat(chat: Chat) {
+  const { saveFile, error } = await getSaveFile();
+
+  if (error || !saveFile) {
+    return { error };
+  }
+
+  const chatIndex = saveFile.chats.findIndex((c) => c.id === chat.id);
+
+  if (chatIndex === -1) {
+    return { error: 'Chat not found' };
+  }
+
+  saveFile.chats[chatIndex] = chat;
+
+  try {
+    await writeFile(
+      // @ts-ignore
+      store.get('saveFilePath') as string,
+      JSON.stringify(saveFile, null, 2),
+      'utf-8',
+    );
+    return { error: null as string | null };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
 export const registerFileOperations = () => {
   ipcMain.handle('get-config', () => {
     return getConfig();
@@ -155,5 +184,9 @@ export const registerFileOperations = () => {
 
   ipcMain.handle('get-prompt-by-id', (event, id: string) => {
     return getPromptById(id);
+  });
+
+  ipcMain.handle('write-chat', (event, chat: Chat) => {
+    return writeChat(chat);
   });
 };

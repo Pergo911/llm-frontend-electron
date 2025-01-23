@@ -32,6 +32,10 @@ const electronHandler = {
         folder: Folder | null;
         error: string | null;
       }>,
+    writeChat: (chat: Chat) =>
+      ipcRenderer.invoke('write-chat', chat) as Promise<{
+        error: string | null;
+      }>,
   },
   windowStyle: {
     setWindowControlsTheme: (theme: 'dark' | 'light') => {

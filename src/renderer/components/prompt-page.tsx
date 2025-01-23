@@ -9,12 +9,19 @@ import {
   BreadcrumbSeparator,
   BreadcrumbItem,
 } from './ui/breadcrumb';
+import { setWindowTitle } from '../utils/utils';
 
 export default function PromptPage() {
   const { id } = useParams();
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [folderName, setFolderName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (prompt) {
+      setWindowTitle(prompt.title);
+    }
+  }, [prompt]);
 
   useEffect(() => {
     const getPrompt = async () => {
@@ -32,9 +39,9 @@ export default function PromptPage() {
   }, [id]);
 
   return (
-    <>
+    <div className="flex h-screen flex-col">
       <TitleBar>
-        <Breadcrumb className="h-full flex items-center">
+        <Breadcrumb className="flex h-full items-center">
           <BreadcrumbList>
             <BreadcrumbItem>
               <Folder className="h-4 w-4" />
@@ -52,10 +59,10 @@ export default function PromptPage() {
           </BreadcrumbList>
         </Breadcrumb>
       </TitleBar>
-      <div className="p-4 rounded-xl bg-background flex flex-col gap-4 items-center justify-center h-full">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-t-xl bg-background p-4">
         {error ? <div>ERROR: {error}</div> : null}
         {prompt ? <div>PROMPT:{JSON.stringify(prompt, null, 2)}</div> : null}
       </div>
-    </>
+    </div>
   );
 }

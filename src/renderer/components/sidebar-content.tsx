@@ -2,7 +2,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -17,7 +16,6 @@ import {
   Notebook,
   Folder,
   SquareTerminal,
-  FolderCog,
 } from 'lucide-react';
 import { ChatEntry, PromptEntry } from '@/common/types';
 import { NavLink } from 'react-router-dom';
@@ -35,16 +33,18 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
         <SidebarGroupContent>
           <SidebarMenu>
             {data.length === 0 && (
-              <div className="text-sm text-gray-500 text-center">No chats.</div>
+              <div className="text-center text-sm text-gray-500">No chats.</div>
             )}
             {data.map((item) => (
               <SidebarMenuItem key={item.id}>
                 <NavLink to={`/c/${item.id}`}>
                   {({ isActive }) => {
                     return (
-                      <SidebarMenuButton isActive={isActive}>
-                        <MessageCircle className="mr-2" />
-                        {item.title}
+                      <SidebarMenuButton isActive={isActive} asChild>
+                        <div className="flex">
+                          <MessageCircle className="h-4 w-4" />
+                          {item.title}
+                        </div>
                       </SidebarMenuButton>
                     );
                   }}
@@ -64,7 +64,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
       <SidebarGroup>
         <SidebarMenu>
           {data.length === 0 && (
-            <div className="text-sm text-gray-500 text-center">No prompts.</div>
+            <div className="text-center text-sm text-gray-500">No prompts.</div>
           )}
           {data.map((item) => (
             <Collapsible key={item.title} className="group/collapsible">
@@ -80,7 +80,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items.length === 0 && (
-                      <div className="text-sm text-gray-500 text-center">
+                      <div className="text-center text-sm text-gray-500">
                         Empty group.
                       </div>
                     )}

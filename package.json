@@ -1,38 +1,29 @@
 {
-  "name": "electron-react-boilerplate",
-  "description": "A foundation for scalable desktop apps",
+  "name": "chat-app",
+  "description": "A frontend for chat completions with injectable prompt templates, using an arbitrary OpenAI compatible API",
   "keywords": [
     "electron",
-    "boilerplate",
     "react",
     "typescript",
     "ts",
-    "sass",
+    "tailwindcss",
+    "shadcn/ui",
     "webpack",
     "hot",
     "reload"
   ],
-  "homepage": "https://github.com/electron-react-boilerplate/electron-react-boilerplate#readme",
-  "bugs": {
-    "url": "https://github.com/electron-react-boilerplate/electron-react-boilerplate/issues"
-  },
+  "homepage": "https://github.com/Pergo911",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/electron-react-boilerplate/electron-react-boilerplate.git"
+    "url": "git+https://github.com/Pergo911/llm-frontend-electron.git"
   },
   "license": "MIT",
   "author": {
-    "name": "Electron React Boilerplate Maintainers",
-    "email": "electronreactboilerplate@gmail.com",
-    "url": "https://electron-react-boilerplate.js.org"
+    "name": "Pergo911",
+    "email": "probsztgeri@gmail.com",
+    "url": "https://github.com/Pergo911"
   },
-  "contributors": [
-    {
-      "name": "Amila Welihinda",
-      "email": "amilajack@gmail.com",
-      "url": "https://github.com/amilajack"
-    }
-  ],
+  "contributors": [],
   "main": "./.erb/dll/main.bundle.dev.js",
   "scripts": {
     "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
@@ -56,16 +47,20 @@
   ],
   "prettier": {
     "singleQuote": true,
-    "overrides": [
-      {
-        "files": [
-          ".prettierrc",
-          ".eslintrc"
-        ],
-        "options": {
-          "parser": "json"
-        }
-      }
+    "tailwindStylesheet": "./src/renderer/App.global.css",
+    "tailwindConfig": "./tailwind.config.js",
+    "tailwindFunctions": [
+      "clsx",
+      "tw"
+    ],
+    "tailwindAttributes": [
+      "className",
+      "class"
+    ],
+    "tailwindPreserveWhitespace": false,
+    "tailwindPreserveDuplicates": false,
+    "plugins": [
+      "prettier-plugin-tailwindcss"
     ]
   },
   "jest": {
@@ -176,7 +171,8 @@
     "mini-css-extract-plugin": "^2.7.6",
     "postcss": "^8.4.49",
     "postcss-loader": "^8.1.1",
-    "prettier": "^3.0.3",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.10",
     "react-refresh": "^0.14.0",
     "react-test-renderer": "^18.2.0",
     "rimraf": "^5.0.1",

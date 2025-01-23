@@ -88,6 +88,7 @@
 
   ::-webkit-scrollbar-track {
     background-color: hsl(var(--muted));
+    border-radius: 0.25rem;
   }
 
   ::-webkit-scrollbar-thumb {
@@ -107,5 +108,13 @@
   .non-draggable {
     app-region: no-drag;
     -webkit-app-region: no-drag;
+  }
+
+  .display-linebreak {
+    white-space: pre-line;
+  }
+
+  .markdown > * {
+    all: revert;
   }
 }

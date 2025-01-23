@@ -28,7 +28,7 @@ ipcMain.on(
       mainWindow.setTitleBarOverlay({
         color: titleBarColors.background,
         symbolColor: titleBarColors.symbol,
-        height: 59,
+        height: 64,
       });
     }
   },
@@ -85,7 +85,7 @@ const createWindow = async () => {
     titleBarOverlay: {
       color: titleBarColors.background,
       symbolColor: titleBarColors.symbol,
-      height: 59,
+      height: 64,
     },
     autoHideMenuBar: true,
     webPreferences: {

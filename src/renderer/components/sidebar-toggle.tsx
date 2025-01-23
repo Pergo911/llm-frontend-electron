@@ -33,13 +33,7 @@ export function SidebarToggle({
           <div className="grid flex-1 text-left text-lg font-bold leading-tight">
             {page === 'chat' ? 'Chats' : 'Prompts'}
           </div>
-          <ArrowRightLeft
-            className="ml-auto text-muted-foreground
-            group-hover/button:text-secondary-foreground
-            group-hover/button:-translate-x-1
-            group-active/button:translate-x-1
-            transition-transform duration-100 ease-in-out"
-          />
+          <ArrowRightLeft className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:-translate-x-1 group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground group-active/button:translate-x-1" />
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>

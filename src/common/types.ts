@@ -48,6 +48,8 @@ export type Chat = {
   timestamp: number;
   messages: Array<{
     messageType: 'user' | 'assistant' | 'user-prompt' | 'system-prompt';
+    id: string;
+    activeChoice?: number;
     choices?: Array<{
       content: string;
       timestamp: number;
@@ -57,19 +59,29 @@ export type Chat = {
 };
 
 export type Message = {
+  id: string;
   content: string;
   timestamp: number;
 };
 
 export type MultipleChoiceMessage = {
+  id: string;
+  activeChoice: number;
   choices: Message[];
 };
 
 export type PromptMessage = {
+  id: string;
+  promptId: string;
   type: 'user' | 'system';
   title: string;
   content: string;
 };
+
+export interface DisplayMessage {
+  type: 'user' | 'assistant' | 'prompt';
+  item: Message | MultipleChoiceMessage | PromptMessage;
+}
 
 export type Prompt = {
   id: string;
