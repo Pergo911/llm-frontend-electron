@@ -14,9 +14,18 @@ import { formatTimestamp, setWindowTitle } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
 import { ConfirmDeleteRequest, ConfirmDeleteRequestRef } from './modal-delete';
 import { EditMessageModal, EditMessageModalRef } from './modal-edit';
+import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
 
 const EmptyChatTitle = memo(
-  ({ title, onInputFocus }: { title: string; onInputFocus: () => void }) => {
+  ({
+    title,
+    onInputFocus,
+    onPromptAdd,
+  }: {
+    title: string;
+    onInputFocus: () => void;
+    onPromptAdd: () => void;
+  }) => {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-0.5 p-4">
         <MessageCircle className="h-16 w-16" />
@@ -29,7 +38,10 @@ const EmptyChatTitle = memo(
             Start typing
           </button>{' '}
           <span> or </span>
-          <button className="font-bold hover:underline active:font-normal active:no-underline">
+          <button
+            className="font-bold hover:underline active:font-normal active:no-underline"
+            onClick={onPromptAdd}
+          >
             add a prompt
           </button>
         </p>
@@ -61,6 +73,7 @@ export default function ChatPage() {
   const chatInputBarActionRef = useRef<ChatInputBarActions>(null);
   const deleteDialogRef = useRef<ConfirmDeleteRequestRef>(null);
   const editMessageModalRef = useRef<EditMessageModalRef>(null);
+  const promptSelectModalRef = useRef<PromptSelectModalRef>(null);
 
   useEffect(() => {
     const getChat = async () => {
@@ -186,6 +199,34 @@ export default function ChatPage() {
     [chat],
   );
 
+  const handleOnAddPrompt = useCallback(async () => {
+    if (!chat) return;
+
+    if (!promptSelectModalRef.current) {
+      setError("Couldn't get the prompt selector dialog.");
+      return;
+    }
+
+    const result = await promptSelectModalRef.current.promptUser();
+
+    if (!result) return;
+
+    const { id, type } = result;
+
+    const { newChat, error } = await ChatOperations.insertMessage(
+      chat,
+      type === 'user' ? 'user-prompt' : 'system-prompt',
+      id,
+    );
+
+    if (error || !newChat) {
+      setError(error);
+      return;
+    }
+
+    setChat(newChat);
+  }, [chat]);
+
   const handleInputFocus = useCallback(() => {
     chatInputBarActionRef.current?.focus();
   }, []);
@@ -209,6 +250,7 @@ export default function ChatPage() {
               <EmptyChatTitle
                 title={chat.title}
                 onInputFocus={handleInputFocus}
+                onPromptAdd={handleOnAddPrompt}
               />
             ) : (
               <>
@@ -226,11 +268,12 @@ export default function ChatPage() {
         </div>
         <ChatInputBar
           onSend={handleSend}
-          onAddPrompt={() => {}}
+          onAddPrompt={handleOnAddPrompt}
           actionRef={chatInputBarActionRef}
         />
         <ConfirmDeleteRequest ref={deleteDialogRef} />
         <EditMessageModal ref={editMessageModalRef} />
+        <PromptSelectModal ref={promptSelectModalRef} />
       </div>
     </div>
   );
