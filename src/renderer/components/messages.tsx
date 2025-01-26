@@ -4,46 +4,73 @@ import {
   MultipleChoiceMessage,
   PromptMessage,
   DisplayMessage,
+  Chat,
 } from '@/common/types';
 import {
   ChevronLeft,
   ChevronRight,
   Edit,
-  Edit2,
   Edit3,
   Notebook,
   RefreshCw,
   SquareTerminal,
   Trash2,
 } from 'lucide-react';
-import React, { act } from 'react';
+import React, { act, useEffect, useImperativeHandle } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
+import { ChatOperations } from '../utils/chat-operations';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from './ui/alert-dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from './ui/dialog';
+import { Textarea } from './ui/textarea';
 
 const UserMessageComponent = React.memo(
   React.forwardRef<
     HTMLDivElement,
     {
       m: Message;
-      onMessageEdit: (id: string) => {};
+      onMessageEdit: (toEdit: string, id: string) => {};
       onMessageDelete: (id: string) => {};
+      needsAnimate?: boolean;
     }
-  >(({ m, onMessageEdit, onMessageDelete }, ref) => {
+  >(({ m, onMessageEdit, onMessageDelete, needsAnimate }, ref) => {
     const handleDelete = React.useCallback(() => {
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
 
     const handleEdit = React.useCallback(() => {
-      onMessageEdit(m.id);
-    }, [m.id, onMessageEdit]);
+      onMessageEdit(m.content, m.id);
+    }, [m.content, m.id, onMessageEdit]);
 
     return (
       <div className="group/textbox flex w-full justify-end">
         <div
           ref={ref}
-          className="flex max-w-[700px] flex-col gap-0.5 self-end animate-in fade-in slide-in-from-bottom-3"
+          className={cn(
+            needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
+            'flex max-w-[700px] flex-col gap-0.5 self-end',
+          )}
         >
           <div className="pr-4 text-right text-xs text-muted-foreground">
             {formatTimestamp(m.timestamp)}
@@ -59,6 +86,7 @@ const UserMessageComponent = React.memo(
                 size="icon"
                 className="opacity-0 transition-opacity hover:text-red-500 group-hover/textbox:opacity-100"
                 onClick={handleDelete}
+                title="Delete message"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -67,6 +95,7 @@ const UserMessageComponent = React.memo(
                 size="icon"
                 className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
                 onClick={handleEdit}
+                title="Edit message"
               >
                 <Edit3 className="h-4 w-4" />
               </Button>
@@ -84,7 +113,7 @@ const AssistantMessageComponent = React.memo(
     HTMLDivElement,
     {
       m: MultipleChoiceMessage;
-      onMessageEdit: (id: string, choice?: number) => {};
+      onMessageEdit: (toEdit: string, id: string, choice: number) => {};
       onMessageDelete: (id: string) => {};
       onMessageRegen: (id: string) => {};
       onSetActiveChoice: (id: string, choice: number) => {};
@@ -102,13 +131,13 @@ const AssistantMessageComponent = React.memo(
         onSetActiveChoice(m.id, m.activeChoice + 1);
       }, [m.id, m.activeChoice, onSetActiveChoice]);
 
+      const handleEdit = React.useCallback(() => {
+        onMessageEdit(m.choices[m.activeChoice].content, m.id, m.activeChoice);
+      }, [m.activeChoice, m.choices, m.id, onMessageEdit]);
+
       const handleRegen = React.useCallback(() => {
         onMessageRegen(m.id);
       }, [m.id, onMessageRegen]);
-
-      const handleEdit = React.useCallback(() => {
-        onMessageEdit(m.id, m.activeChoice);
-      }, [m.id, m.activeChoice, onMessageEdit]);
 
       const handleDelete = React.useCallback(() => {
         onMessageDelete(m.id);
@@ -131,7 +160,7 @@ const AssistantMessageComponent = React.memo(
           <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
             <div
               className={cn(
-                'flex items-center',
+                'flex select-none items-center',
                 m.choices.length === 1 && 'hidden',
               )}
             >
@@ -140,6 +169,7 @@ const AssistantMessageComponent = React.memo(
                 size="icon"
                 disabled={m.activeChoice === 0}
                 onClick={handlePrevChoice}
+                title="Previous response"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -149,6 +179,7 @@ const AssistantMessageComponent = React.memo(
                 size="icon"
                 disabled={m.activeChoice === m.choices.length - 1}
                 onClick={handleNextChoice}
+                title="Next response"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -159,6 +190,7 @@ const AssistantMessageComponent = React.memo(
                 size="icon"
                 className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
                 onClick={handleRegen}
+                title="Regenerate response"
               >
                 <RefreshCw className="h-4 w-4" />
               </Button>
@@ -167,6 +199,7 @@ const AssistantMessageComponent = React.memo(
                 size="icon"
                 className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
                 onClick={handleEdit}
+                title="Edit message"
               >
                 <Edit3 className="h-4 w-4" />
               </Button>
@@ -175,6 +208,7 @@ const AssistantMessageComponent = React.memo(
                 size="icon"
                 className="opacity-0 transition-opacity hover:text-red-500 group-hover/textbox:opacity-100"
                 onClick={handleDelete}
+                title="Delete message"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -193,8 +227,9 @@ const PromptMessageComponent = React.memo(
     {
       m: PromptMessage;
       onMessageDelete: (id: string) => {};
+      needsAnimate?: boolean;
     }
-  >(({ m, onMessageDelete }, ref) => {
+  >(({ m, onMessageDelete, needsAnimate }, ref) => {
     const handleDelete = React.useCallback(() => {
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
@@ -203,7 +238,10 @@ const PromptMessageComponent = React.memo(
       <div className="group/textbox flex w-full justify-end">
         <div
           ref={ref}
-          className="group/textbox flex w-fit max-w-[400px] flex-col gap-0.5 self-end animate-in fade-in slide-in-from-bottom-3"
+          className={cn(
+            needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
+            'group/textbox flex w-fit max-w-[400px] flex-col gap-0.5 self-end',
+          )}
         >
           <div className="pr-4 text-right text-xs text-muted-foreground">
             Added prompt
@@ -238,6 +276,7 @@ const PromptMessageComponent = React.memo(
                 size="icon"
                 className="opacity-0 transition-opacity hover:text-red-500 group-hover/textbox:opacity-100"
                 onClick={handleDelete}
+                title="Delete prompt"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -257,24 +296,58 @@ const Messages = React.memo(
     onSetActiveChoice,
     onMessageRegen,
   }: {
-    messages: Array<DisplayMessage>;
-    onMessageEdit: (id: string, choice?: number) => {};
+    messages: Chat['messages'];
+    onMessageEdit: (toEdit: string, id: string, choice?: number) => {};
     onMessageDelete: (id: string) => {};
     onSetActiveChoice: (id: string, choice: number) => {};
     onMessageRegen: (id: string) => {};
   }) => {
-    const lastMessageRef = React.useRef<HTMLDivElement>(null);
+    const [displayMessages, setDisplayMessages] = React.useState<
+      Array<DisplayMessage>
+    >([]);
+    const scrollRef = React.useRef<HTMLDivElement>(null);
+    const needsScroll = React.useRef<boolean>(false);
+    const needsAnimate = React.useRef<boolean>(false);
 
-    React.useEffect(() => {
-      if (lastMessageRef.current) {
-        lastMessageRef.current.scrollIntoView({ behavior: 'instant' });
-      }
+    useEffect(() => {
+      const resolveMessages = async () => {
+        const resolvedMessages =
+          await ChatOperations.buildDisplayMessages(messages);
+
+        // If new messages are added, scroll to the bottom
+        if (displayMessages.length < resolvedMessages.length)
+          needsScroll.current = true;
+
+        // Animates new messages
+        if (
+          displayMessages.length !== 0 &&
+          displayMessages.length < resolvedMessages.length
+        ) {
+          needsAnimate.current = true;
+        }
+        setDisplayMessages(resolvedMessages);
+      };
+
+      resolveMessages();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [messages]);
+
+    useEffect(() => {
+      if (needsScroll.current && scrollRef.current) {
+        requestAnimationFrame(() => {
+          scrollRef.current?.scrollIntoView({
+            behavior: 'instant',
+          });
+        });
+
+        needsScroll.current = false;
+      }
+    }, [displayMessages]);
 
     return (
       <div className="mx-auto flex max-w-[800px] flex-col gap-4 p-4">
-        {messages.map((m, i) => {
-          const ref = i === messages.length - 1 ? lastMessageRef : undefined;
+        {displayMessages.map((m, i) => {
+          const ref = i === displayMessages.length - 1 ? scrollRef : undefined;
 
           if (m.type === 'user') {
             return (
@@ -284,6 +357,7 @@ const Messages = React.memo(
                 ref={ref}
                 onMessageEdit={onMessageEdit}
                 onMessageDelete={onMessageDelete}
+                needsAnimate={needsAnimate.current}
               />
             );
           }
@@ -309,6 +383,7 @@ const Messages = React.memo(
                 m={m.item as PromptMessage}
                 ref={ref}
                 onMessageDelete={onMessageDelete}
+                needsAnimate={needsAnimate.current}
               />
             );
           }

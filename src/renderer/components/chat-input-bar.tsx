@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bot, Plus, SendIcon, User2 } from 'lucide-react';
+import { ChatInputBarActions } from '@/common/types';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { cn } from '../utils/utils';
@@ -8,9 +9,11 @@ const ChatInputBar = React.memo(
   ({
     onSend,
     onAddPrompt,
+    actionRef,
   }: {
     onSend: (t: string, as: 'user' | 'assistant') => void;
     onAddPrompt: () => void;
+    actionRef: React.Ref<ChatInputBarActions>;
   }) => {
     const [value, setValue] = React.useState('');
     const [canSend, setCanSend] = React.useState(false);
@@ -21,6 +24,14 @@ const ChatInputBar = React.memo(
     );
 
     const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+    React.useImperativeHandle(actionRef, () => ({
+      focus: () => {
+        if (textareaRef.current !== null) {
+          textareaRef.current.focus();
+        }
+      },
+    }));
 
     function autoHeight() {
       if (textareaRef.current === null) return;

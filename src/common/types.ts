@@ -102,3 +102,7 @@ export type SaveFile = {
   prompts: Prompt[];
   folders: Folder[];
 };
+
+export type ChatInputBarActions = {
+  focus: () => void;
+};

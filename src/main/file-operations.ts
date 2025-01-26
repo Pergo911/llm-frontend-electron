@@ -6,7 +6,7 @@ import {
   PromptEntry,
   Chat,
 } from '@/common/types';
-import { ipcMain } from 'electron';
+import { BrowserWindow, dialog, ipcMain } from 'electron';
 import Store from 'electron-store';
 import { readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
@@ -37,6 +37,18 @@ async function getSaveFile(): Promise<{
   } catch (e) {
     return { saveFile: null, error: (e as Error).message };
   }
+}
+
+async function openSaveFilePickerModal(window: BrowserWindow) {
+  const { canceled, filePath } = await dialog.showSaveDialog(window, {
+    title: 'Open or create savefile',
+    defaultPath: 'savefile.json',
+    buttonLabel: 'Open / Create',
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['createDirectory', 'dontAddToRecent'],
+  });
+
+  return { canceled, filePath };
 }
 
 function getConfig(): Config {
@@ -173,6 +185,16 @@ export const registerFileOperations = () => {
       return setConfigValue(key, value);
     },
   );
+
+  ipcMain.handle('open-savefile-picker-modal', (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender);
+
+    if (!window) {
+      return Promise.resolve({ canceled: true, filePath: '' });
+    }
+
+    return openSaveFilePickerModal(window);
+  });
 
   ipcMain.handle('get-entries', () => {
     return getEntries();

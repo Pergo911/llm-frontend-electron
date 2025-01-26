@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { Config } from '@/common/types';
 import { toast } from 'sonner';
-import { SettingsIcon } from 'lucide-react';
+import { File, FileJson, SettingsIcon } from 'lucide-react';
 import {
   DialogClose,
   DialogContent,
@@ -140,21 +140,30 @@ export const SettingsModal = memo(
           </div>
           <div className="flex flex-col gap-2">
             <Label>Savefile path</Label>
-            <Input
-              placeholder="(w/ backslashes, no quotes)"
-              value={saveFilePath}
-              onChange={(e) => setSaveFilePath(e.target.value)}
-            />
+            <div className="flex gap-2">
+              <div className="flex h-9 w-full flex-[4] items-center rounded-md border border-input bg-transparent px-3 py-1 shadow-sm transition-colors md:text-sm">
+                <FileJson className="mr-2 h-4 w-4" />
+                {saveFilePath}
+              </div>
+              <Button
+                className="flex-[1]"
+                variant="outline"
+                onClick={async () => {
+                  const { canceled, filePath } =
+                    await window.electron.fileOperations.openSaveFilePickerModal();
+
+                  if (!canceled && filePath) {
+                    setSaveFilePath(filePath);
+                  }
+                }}
+              >
+                Browse
+              </Button>
+            </div>
           </div>
           <DialogFooter>
             <DialogClose asChild>
-              <Button
-                className="w-fit"
-                variant="secondary"
-                onClick={() => {
-                  setAppTheme(themeFailed.current);
-                }}
-              >
+              <Button className="w-fit" variant="secondary">
                 Cancel
               </Button>
             </DialogClose>

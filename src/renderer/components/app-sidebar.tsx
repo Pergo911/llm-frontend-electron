@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { useCallback } from 'react';
 import { SidebarToggle } from './sidebar-toggle';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
-import { SettingsModal } from './settings-modal';
+import { SettingsModal } from './modal-settings';
 
 export const AppSidebar = React.memo(
   ({ ...props }: React.ComponentProps<typeof Sidebar>) => {

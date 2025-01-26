@@ -15,6 +15,11 @@ const electronHandler = {
       ipcRenderer.invoke('set-config', key, value) as Promise<{
         error: string | null;
       }>,
+    openSaveFilePickerModal: () =>
+      ipcRenderer.invoke('open-savefile-picker-modal') as Promise<{
+        canceled: boolean;
+        filePath: string;
+      }>,
     getEntries: () =>
       ipcRenderer.invoke('get-entries') as Promise<{
         chatEntries: ChatEntry[];
@@ -47,6 +52,9 @@ const electronHandler = {
             ? 'hsla(240, 4.8%, 95.9%, 1)'
             : 'hsla(240, 5.3%, 26.1%, 1)',
       });
+    },
+    setNativeTheme: (theme: 'system' | 'light' | 'dark') => {
+      ipcRenderer.send('update-native-theme', theme);
     },
   },
 };

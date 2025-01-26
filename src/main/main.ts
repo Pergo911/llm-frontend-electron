@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, nativeTheme } from 'electron';
 import { resolveHtmlPath } from './util';
 import { registerFileOperations } from './file-operations';
 
@@ -31,6 +31,13 @@ ipcMain.on(
         height: 64,
       });
     }
+  },
+);
+
+ipcMain.on(
+  'update-native-theme',
+  (_event, theme: 'system' | 'light' | 'dark') => {
+    nativeTheme.themeSource = theme;
   },
 );
 

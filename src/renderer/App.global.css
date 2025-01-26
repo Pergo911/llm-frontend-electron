@@ -87,7 +87,7 @@
   }
 
   ::-webkit-scrollbar-track {
-    background-color: hsl(var(--muted));
+    background-color: transparent;
     border-radius: 0.25rem;
   }
 

@@ -5,11 +5,11 @@ import {
   PromptMessage,
   DisplayMessage,
 } from '@/common/types';
-import { v4 as uuidv4 } from 'uuid';
+import { generateUUID } from '@/common/uuid';
 
 /**
  * Converts a chat's messages into a display-friendly format
- * @param chat The chat containing messages to convert
+ * @param messageData Array of messages from a chat
  * @returns Promise<DisplayMessage[]> Array of display-ready messages with proper typing
  * @example
  * const chat = {
@@ -21,10 +21,10 @@ import { v4 as uuidv4 } from 'uuid';
  * const displayMessages = await convertChatToDisplayMessages(chat);
  */
 const buildDisplayMessages = async (
-  chatData: Chat,
+  messageData: Chat['messages'],
 ): Promise<DisplayMessage[]> => {
   const messages = await Promise.all(
-    chatData.messages.map(async (m): Promise<DisplayMessage | null> => {
+    messageData.map(async (m): Promise<DisplayMessage | null> => {
       if (m.messageType === 'user') {
         if (!m.choices) return null;
 
@@ -90,142 +90,146 @@ type ChatMessage = {
   promptId?: string;
 };
 
-/**
- * Updates or inserts a message into a chat
- * @param chat The chat to modify
- * @param messageType Type of message ('user'|'assistant'|'user-prompt'|'system-prompt')
- * @param content Content of the message
- * @param choiceToEdit Optional index of choice to edit (for multiple choice messages)
- * @param id Optional ID of existing message to update
- * @returns Object containing the updated chat and any error message
- * @example
- * // Add new message
- * const { newChat, error } = await upsertMessage(chat, 'user', 'Hello');
- *
- * // Edit existing message
- * const { newChat, error } = await upsertMessage(chat, 'assistant', 'Updated response', 0, 'msg-123');
- *
- * // Add new choice to message
- * const { newChat, error }= await upsertMessage(chat, 'assistant', 'Alternative response', undefined, 'msg-123');
- */
-const upsertMessage = async (
+const insertMessage = async (
   chat: Chat,
-  messageType: 'user' | 'assistant' | 'user-prompt' | 'system-prompt',
+  messageType: ChatMessage['messageType'],
   content: string,
-  choiceToEdit?: number,
-  id?: string,
-) => {
-  let oldMessageIndex: number = -1;
+): Promise<{ newChat: Chat | null; error: string | null }> => {
+  const isPromptMessage =
+    messageType === 'user-prompt' || messageType === 'system-prompt';
 
-  // If updating existing message, find its index
-  if (id) {
-    oldMessageIndex = chat.messages.findIndex((m) => m.id === id);
-
-    if (oldMessageIndex === -1)
-      return {
-        newChat: null as Chat | null,
-        error: 'upsertMessage: Message not found' as string | null,
-      };
-  }
-
-  // Helper functions to determine message properties
-  const isUserOrAssistant = (type: string) =>
-    type === 'user' || type === 'assistant';
-
-  const isPromptMessage = (type: string) =>
-    type === 'user-prompt' || type === 'system-prompt';
-
-  // Calculate active choice for user/assistant messages
-  // - Return undefined for prompt messages
-  // - For new messages, start at choice 0
-  // - For edited messages, use provided choice index
-  // - For new choices, increment the last active choice
-  const getActiveChoice = () => {
-    if (!isUserOrAssistant(messageType)) {
-      return undefined;
-    }
-    if (!id) {
-      return 0;
-    }
-    if (typeof choiceToEdit === 'number') {
-      return choiceToEdit;
-    }
-    const existingChoices = chat.messages[oldMessageIndex].choices ?? [];
-    return existingChoices.length;
-  };
-
-  // Build choices array for user/assistant messages
-  // - Return undefined for prompt messages
-  // - For new messages, create array with single choice
-  // - For edited messages with choice index, update that choice
-  // - For new choices, append to existing choices array
-  type ChoicesResult = {
-    choices?: Array<{ content: string; timestamp: number }>;
-    error?: string;
-  };
-
-  const getChoices = (): ChoicesResult => {
-    if (!isUserOrAssistant(messageType)) {
-      return { choices: undefined };
-    }
-
-    const newChoice = {
-      content,
-      timestamp: Date.now(),
-    };
-
-    if (!id) {
-      return { choices: [newChoice] };
-    }
-
-    const existingChoices = chat.messages[oldMessageIndex].choices ?? [];
-    if (typeof choiceToEdit === 'number') {
-      if (choiceToEdit < 0 || choiceToEdit >= existingChoices.length) {
-        return { error: 'Invalid choice index' };
-      }
-      const newChoices = [...existingChoices];
-      newChoices[choiceToEdit] = newChoice;
-      return { choices: newChoices };
-    }
-    return { choices: [...existingChoices, newChoice] };
-  };
-
-  const choicesResult = getChoices();
-  if (choicesResult.error) {
-    return {
-      newChat: null,
-      error: choicesResult.error,
-    };
-  }
-
-  // Create new message object
-  const newMessage: ChatMessage = {
-    id: id || uuidv4(),
-    messageType,
-    activeChoice: getActiveChoice(),
-    choices: choicesResult.choices,
-    promptId: isPromptMessage(messageType) ? content : undefined,
-  };
-
-  const newChat = {
+  // Create deep copy
+  const newChat: Chat = {
     ...chat,
-    messages: [...chat.messages],
+    messages: chat.messages.map((msg) => ({
+      ...msg,
+      choices: msg.choices ? [...msg.choices] : undefined,
+    })),
   };
 
-  // Either update existing message or append new one
-  if (id) {
-    newChat.messages[oldMessageIndex] = newMessage;
-  } else {
-    newChat.messages.push(newMessage);
-  }
+  // Construct new message
+  const newMessage: ChatMessage = {
+    id: generateUUID('m'),
+    messageType,
+    activeChoice: isPromptMessage ? undefined : 0,
+    choices: isPromptMessage ? undefined : [{ timestamp: Date.now(), content }],
+    promptId: isPromptMessage ? content : undefined,
+  };
 
-  // Persist changes to disk
+  // Add message to chat
+  newChat.messages.push(newMessage);
+
+  // Write chat to file
   const { error } = await window.electron.fileOperations.writeChat(newChat);
 
-  return {
-    newChat: error ? null : newChat,
-    error,
+  if (error) {
+    return { newChat: null, error };
+  }
+
+  return { newChat, error: null };
+};
+
+const insertChoice = async (
+  chat: Chat,
+  messageId: string,
+  content: string,
+): Promise<{ newChat: Chat | null; error: string | null }> => {
+  // Find message
+  const messageIndex = chat.messages.findIndex((i) => i.id === messageId);
+  if (messageIndex === -1) {
+    return { newChat: null, error: 'insertChoice: Message not found' };
+  }
+
+  // Create deep copy of the message
+  const message = {
+    ...chat.messages[messageIndex],
+    choices: chat.messages[messageIndex].choices
+      ? [...chat.messages[messageIndex].choices]
+      : undefined,
   };
+
+  // Adding choices is only valid on assistant messages
+  if (message.messageType !== 'assistant' || message.choices === undefined) {
+    return { newChat: null, error: 'insertChoice: Invalid message type' };
+  }
+
+  // Add choice
+  message.choices.push({
+    timestamp: Date.now(),
+    content,
+  });
+
+  // Replace old message
+  const newChat: Chat = { ...chat, messages: [...chat.messages] };
+  newChat.messages[messageIndex] = message;
+
+  // Write chat to file
+  const { error } = await window.electron.fileOperations.writeChat(newChat);
+
+  if (error) {
+    return { newChat: null, error };
+  }
+
+  return { newChat, error: null };
+};
+
+const editMessage = async (
+  chat: Chat,
+  id: string,
+  content: string,
+  choice?: number,
+): Promise<{ newChat: Chat | null; error: string | null }> => {
+  // Find message
+  const messageIndex = chat.messages.findIndex((m) => m.id === id);
+  if (messageIndex === -1) {
+    return { newChat: null, error: 'editMessage: Message not found' };
+  }
+
+  // Create deep copy of the message
+  const message = {
+    ...chat.messages[messageIndex],
+    choices: chat.messages[messageIndex].choices
+      ? [...chat.messages[messageIndex].choices]
+      : undefined,
+  };
+
+  // Handle different message types
+  if (message.messageType === 'assistant') {
+    if (
+      !message.choices ||
+      choice === undefined ||
+      choice >= message.choices.length
+    ) {
+      return { newChat: null, error: 'editMessage: Invalid choice index' };
+    }
+    message.choices[choice] = {
+      timestamp: Date.now(),
+      content,
+    };
+  } else if (message.messageType === 'user') {
+    if (!message.choices) {
+      return { newChat: null, error: 'editMessage: Message has no choices' };
+    }
+    message.choices[0] = {
+      timestamp: Date.now(),
+      content,
+    };
+  } else {
+    return { newChat: null, error: 'editMessage: Invalid message type' };
+  }
+
+  // Create new chat with updated message
+  const newChat: Chat = { ...chat, messages: [...chat.messages] };
+  newChat.messages[messageIndex] = message;
+
+  // Write chat to file
+  const { error } = await window.electron.fileOperations.writeChat(newChat);
+
+  if (error) {
+    return { newChat: null, error };
+  }
+
+  return { newChat, error: null };
 };
 
 /**
@@ -308,7 +312,9 @@ const setActiveChoice = async (
 
 export const ChatOperations = {
   buildDisplayMessages,
-  upsertMessage,
+  insertMessage,
+  insertChoice,
+  editMessage,
   deleteMessages,
   setActiveChoice,
 };
