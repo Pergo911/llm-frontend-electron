@@ -51,14 +51,14 @@ async function openSaveFilePickerModal(window: BrowserWindow) {
   return { canceled, filePath };
 }
 
-function getConfig(): Config {
+export function getConfig(): Config {
   const config: Config = {
     // @ts-ignore
     baseUrl: store.get('baseUrl') as string,
     // @ts-ignore
     apiKey: store.get('apiKey') as string,
     // @ts-ignore
-    lastUsedModel: store.get('lastUsedModel') as string,
+    selectedModel: store.get('selectedModel') as string,
     // @ts-ignore
     theme: store.get('theme') as 'system' | 'light' | 'dark',
     // @ts-ignore

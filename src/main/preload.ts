@@ -6,6 +6,7 @@ import {
   Chat,
   Prompt,
   Folder,
+  RequestMessage,
 } from '@/common/types';
 
 const electronHandler = {

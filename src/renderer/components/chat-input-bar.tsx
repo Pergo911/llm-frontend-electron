@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Plus, SendIcon, User2 } from 'lucide-react';
+import { Bot, Plus, SendIcon, Square, User2 } from 'lucide-react';
 import { ChatInputBarActions } from '@/common/types';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
@@ -10,10 +10,16 @@ const ChatInputBar = React.memo(
     onSend,
     onAddPrompt,
     actionRef,
+    isStreaming,
+    onAbort,
+    overrideCanSend,
   }: {
     onSend: (t: string, as: 'user' | 'assistant') => void;
     onAddPrompt: () => void;
     actionRef: React.Ref<ChatInputBarActions>;
+    isStreaming: boolean;
+    onAbort: () => void;
+    overrideCanSend: boolean;
   }) => {
     const [value, setValue] = React.useState('');
     const [canSend, setCanSend] = React.useState(false);
@@ -51,13 +57,13 @@ const ChatInputBar = React.memo(
     }
 
     const handleSend = React.useCallback(() => {
-      if (canSend) {
-        onSend(value, sendAs);
+      if (canSend || overrideCanSend) {
+        onSend(value, overrideCanSend ? 'user' : sendAs);
         setSendAs(defaultSendAs);
         setValue('');
         resetHeight();
       }
-    }, [canSend, onSend, sendAs, value]);
+    }, [canSend, onSend, overrideCanSend, sendAs, value]);
 
     const handleKeyDown = React.useCallback(
       (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -109,6 +115,10 @@ const ChatInputBar = React.memo(
                 title={
                   sendAs === 'user' ? 'Sending as user' : 'Sending as assistant'
                 }
+                disabled={(overrideCanSend && !canSend) || isStreaming}
+                className={cn(
+                  ((overrideCanSend && !canSend) || isStreaming) && 'hidden',
+                )}
               >
                 {sendAs === 'user' ? <User2 /> : <Bot />}
               </Button>
@@ -117,10 +127,14 @@ const ChatInputBar = React.memo(
                 variant="default"
                 size="icon"
                 className="rounded-full"
-                disabled={!canSend}
-                onClick={handleSend}
+                disabled={!canSend && !isStreaming && !overrideCanSend}
+                onClick={!isStreaming ? handleSend : onAbort}
               >
-                <SendIcon className="h-4 w-4" />
+                {!isStreaming ? (
+                  <SendIcon className="h-4 w-4" />
+                ) : (
+                  <Square className="h-4 w-4 animate-pulse" />
+                )}
               </Button>
             </div>
           </div>

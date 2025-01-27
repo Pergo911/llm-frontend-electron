@@ -6,7 +6,7 @@ export const ConfigSchema = {
   apiKey: {
     type: 'string',
   },
-  lastUsedModel: {
+  selectedModel: {
     type: 'string',
   },
   theme: {
@@ -22,7 +22,7 @@ export const ConfigSchema = {
 export type Config = {
   baseUrl: string;
   apiKey: string;
-  lastUsedModel: string;
+  selectedModel: string;
   theme: 'system' | 'light' | 'dark';
   saveFilePath: string;
 };
@@ -105,4 +105,24 @@ export type SaveFile = {
 
 export type ChatInputBarActions = {
   focus: () => void;
+};
+
+export type StreamingMessageHandle = {
+  addToken: (token: string) => void;
+};
+
+export type RequestMessage = {
+  role: 'user' | 'assistant' | 'developer';
+  content: string;
+};
+
+export type ChatMessage = {
+  messageType: 'user' | 'assistant' | 'user-prompt' | 'system-prompt';
+  id: string;
+  activeChoice?: number;
+  choices?: Array<{
+    content: string;
+    timestamp: number;
+  }>;
+  promptId?: string;
 };

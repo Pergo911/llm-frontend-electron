@@ -99,7 +99,20 @@ const createWindow = async () => {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
+      webSecurity: true,
+      allowRunningInsecureContent: false,
+      navigateOnDragDrop: false,
     },
+  });
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const parsedUrl = new URL(url);
+    // Allow only your app's internal pages
+    if (!url.startsWith('file://') && !url.startsWith('http://localhost')) {
+      event.preventDefault();
+
+      shell.openExternal(url);
+    }
   });
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
@@ -121,7 +134,6 @@ const createWindow = async () => {
 
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {
-    shell.openExternal(edata.url);
     return { action: 'deny' };
   });
 };

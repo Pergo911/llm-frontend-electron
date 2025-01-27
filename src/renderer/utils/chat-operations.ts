@@ -4,8 +4,12 @@ import {
   MultipleChoiceMessage,
   PromptMessage,
   DisplayMessage,
+  RequestMessage,
+  ChatMessage,
+  Config,
 } from '@/common/types';
 import { generateUUID } from '@/common/uuid';
+import OpenAI from 'openai';
 
 /**
  * Converts a chat's messages into a display-friendly format
@@ -79,22 +83,123 @@ const buildDisplayMessages = async (
   return messages.filter((e): e is DisplayMessage => e !== null);
 };
 
-type ChatMessage = {
-  messageType: 'user' | 'assistant' | 'user-prompt' | 'system-prompt';
-  id: string;
-  activeChoice?: number;
-  choices?: Array<{
-    content: string;
-    timestamp: number;
-  }>;
-  promptId?: string;
+/**
+ * Converts chat messages into a format suitable for API requests
+ * @param messageData Array of messages from a chat
+ * @returns Promise containing either the formatted messages or an error
+ * @example
+ * const chat = {
+ *   messages: [
+ *     {
+ *       messageType: 'user',
+ *       id: 'msg1',
+ *       choices: [{ content: 'Hello', timestamp: 123 }]
+ *     },
+ *     {
+ *       messageType: 'assistant',
+ *       id: 'msg2',
+ *       choices: [{ content: 'Hi!', timestamp: 124 }]
+ *     },
+ *     {
+ *       messageType: 'user-prompt',
+ *       id: 'msg3',
+ *       promptId: 'prompt1'
+ *     }
+ *   ]
+ * };
+ *
+ * const { resultMessages, error } = await buildRequestMessages(chat.messages);
+ * // resultMessages = [
+ * //   { role: 'user', content: 'Hello' },
+ * //   { role: 'assistant', content: 'Hi!' },
+ * //   { role: 'user', content: 'Prompt content...' }
+ * // ]
+ *
+ * @throws Will return error if:
+ * - Message has no choices (for user/assistant messages)
+ * - Choice index is invalid
+ * - Message content is invalid
+ * - Prompt message has no promptId
+ * - Prompt cannot be fetched or has no content
+ */
+const buildRequestMessages = async (
+  messageData: Chat['messages'],
+): Promise<{
+  resultMessages: RequestMessage[] | null;
+  error: string | null;
+}> => {
+  try {
+    const resultMessages = await Promise.all(
+      messageData.map(async (m): Promise<RequestMessage> => {
+        const role =
+          // eslint-disable-next-line no-nested-ternary
+          m.messageType === 'user' || m.messageType === 'assistant'
+            ? m.messageType
+            : m.messageType === 'user-prompt'
+              ? 'user'
+              : 'developer';
+
+        let content: string;
+
+        if (m.messageType === 'user' || m.messageType === 'assistant') {
+          if (!m.choices?.length) {
+            throw new Error(`Message ${m.id} has no choices`);
+          }
+          const choiceIndex = m.activeChoice ?? 0;
+          if (choiceIndex >= m.choices.length) {
+            throw new Error(
+              `Invalid choice index ${choiceIndex} for message ${m.id}`,
+            );
+          }
+          content = m.choices[choiceIndex].content;
+          if (typeof content !== 'string') {
+            throw new Error(`Invalid content for message ${m.id}`);
+          }
+        } else {
+          if (!m.promptId) {
+            throw new Error(`Prompt message ${m.id} has no promptId`);
+          }
+          const { prompt, error } =
+            await window.electron.fileOperations.getPromptById(m.promptId);
+
+          if (error || !prompt) {
+            throw new Error(
+              `Failed to get prompt ${m.promptId}: ${error || 'No prompt.'}`,
+            );
+          }
+
+          content = prompt.content;
+        }
+
+        return { role, content };
+      }),
+    );
+
+    return { resultMessages, error: null };
+  } catch (e) {
+    return { resultMessages: null, error: (e as Error).message };
+  }
 };
 
+/**
+ * Inserts a new message into a chat
+ * @param chat The chat to add the message to
+ * @param messageType Type of message to insert ('user', 'assistant', 'user-prompt', or 'system-prompt')
+ * @param content Content of the message or prompt ID for prompt messages
+ * @returns Object containing the updated chat or error
+ * @example
+ * const {newChat, error} = await insertMessage(chat, 'user', 'Hello world');
+ * // Adds a new user message with content "Hello world"
+ */
 const insertMessage = async (
   chat: Chat,
   messageType: ChatMessage['messageType'],
   content: string,
 ): Promise<{ newChat: Chat | null; error: string | null }> => {
+  if (content === '') {
+    return { newChat: chat, error: null };
+  }
+
   const isPromptMessage =
     messageType === 'user-prompt' || messageType === 'system-prompt';
 
@@ -129,6 +234,16 @@ const insertMessage = async (
   return { newChat, error: null };
 };
 
+/**
+ * Adds a new choice to an assistant message
+ * @param chat The chat containing the message
+ * @param messageId ID of the message to add the choice to
+ * @param content Content of the new choice
+ * @returns Object containing the updated chat or error
+ * @example
+ * const {newChat, error} = await insertChoice(chat, "msg-123", "Alternative response");
+ * // Adds a new choice to message "msg-123" with content "Alternative response"
+ */
 const insertChoice = async (
   chat: Chat,
   messageId: string,
@@ -173,6 +288,20 @@ const insertChoice = async (
   return { newChat, error: null };
 };
 
+/**
+ * Edits the content of a message
+ * @param chat The chat containing the message
+ * @param id ID of the message to edit
+ * @param content New content for the message
+ * @param choice For assistant messages, index of the choice to edit
+ * @returns Object containing the updated chat or error
+ * @example
+ * // Edit a user message
+ * const {newChat, error} = await editMessage(chat, "msg-123", "Updated content");
+ *
+ * // Edit a specific choice in an assistant message
+ * const {newChat, error} = await editMessage(chat, "msg-456", "New response", 1);
+ */
 const editMessage = async (
   chat: Chat,
   id: string,
@@ -310,11 +439,107 @@ const setActiveChoice = async (
   };
 };
 
+let openAI: OpenAI | undefined;
+let config: Config | undefined;
+
+const streamingRequest = async (
+  messages: RequestMessage[],
+  onNewToken: (t: string) => void,
+  abortSignal?: AbortSignal,
+): Promise<{
+  finalMessage: string | null;
+  finishReason:
+    | 'stop'
+    | 'length'
+    | 'tool_calls'
+    | 'content_filter'
+    | 'function_call'
+    | 'abort'
+    | null;
+  error: string | null;
+}> => {
+  let finalMessage = '';
+  let finishReason:
+    | 'stop'
+    | 'length'
+    | 'tool_calls'
+    | 'content_filter'
+    | 'function_call'
+    | 'abort'
+    | null = null;
+
+  try {
+    const newConfig = await window.electron.fileOperations.getConfig();
+
+    // Create new OpenAI instance if it doesn't exist or if config has changed
+    if (
+      !openAI ||
+      !config ||
+      config.apiKey !== newConfig.apiKey ||
+      config.baseUrl !== newConfig.baseUrl
+    ) {
+      config = newConfig;
+      openAI = new OpenAI({
+        baseURL: config.baseUrl,
+        apiKey: config.apiKey,
+        dangerouslyAllowBrowser: true,
+      });
+    }
+
+    const onAbort = (e: Event) => {
+      finishReason = 'abort';
+    };
+
+    if (abortSignal) {
+      abortSignal.addEventListener('abort', onAbort, { once: true });
+    }
+
+    // Always use latest values from config
+    const completion = await openAI.chat.completions.create({
+      model: newConfig.selectedModel,
+      messages,
+      stream: true,
+    });
+
+    // eslint-disable-next-line no-restricted-syntax
+    for await (const chunk of completion) {
+      // @ts-ignore
+      if (finishReason === 'abort') {
+        break;
+      }
+
+      const content = chunk.choices[0]?.delta?.content;
+
+      if (content) {
+        finalMessage += content;
+        onNewToken(content);
+      }
+
+      if (chunk.choices[0]?.finish_reason) {
+        finishReason = chunk.choices[0]?.finish_reason;
+      }
+    }
+
+    if (abortSignal) {
+      abortSignal.removeEventListener('abort', onAbort);
+    }
+    return { finalMessage, finishReason, error: null };
+  } catch (e) {
+    return {
+      finalMessage: null,
+      finishReason: null,
+      error: (e as Error).message || 'An error occurred during the API request',
+    };
+  }
+};
+
 export const ChatOperations = {
   buildDisplayMessages,
+  buildRequestMessages,
   insertMessage,
   insertChoice,
   editMessage,
   deleteMessages,
   setActiveChoice,
+  streamingRequest,
 };

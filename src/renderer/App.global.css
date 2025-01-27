@@ -114,7 +114,34 @@
     white-space: pre-line;
   }
 
-  .markdown > * {
-    all: revert;
+  .markdown * {
+    @apply !my-0;
+    @apply !leading-normal;
+    @apply !tracking-normal;
+    @apply !leading-normal;
+  }
+
+  .markdown blockquote {
+    @apply !bg-background;
+    border-left: 4px solid hsl(var(--border));
+    margin: 1.5em 10px;
+    quotes: "\201C""\201D""\2018""\2019";
+  }
+  .markdown blockquote p {
+    display: inline;
+  }
+
+  .markdown code {
+    @apply !bg-card;
+    @apply !text-primary;
+    @apply !rounded-sm;
+    @apply !px-1;
+  }
+
+  .markdown pre {
+    @apply !bg-card;
+    @apply !rounded-sm;
+    @apply !p-2;
+    @apply !overflow-x-auto;
   }
 }

@@ -3,7 +3,11 @@
 /* eslint-disable no-nested-ternary */
 import { useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
-import { Chat, ChatInputBarActions } from '@/common/types';
+import {
+  Chat,
+  ChatInputBarActions,
+  StreamingMessageHandle,
+} from '@/common/types';
 import { MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import TitleBar from './ui/title-bar';
@@ -70,10 +74,14 @@ export default function ChatPage() {
   const { id } = useParams();
   const [chat, setChat] = useState<Chat | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [overrideCanSend, setOverrideCanSend] = useState(false);
   const chatInputBarActionRef = useRef<ChatInputBarActions>(null);
+  const streamHandleRef = useRef<StreamingMessageHandle>(null);
   const deleteDialogRef = useRef<ConfirmDeleteRequestRef>(null);
   const editMessageModalRef = useRef<EditMessageModalRef>(null);
   const promptSelectModalRef = useRef<PromptSelectModalRef>(null);
+  const abortRequestRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     const getChat = async () => {
@@ -104,6 +112,18 @@ export default function ChatPage() {
     }
   }, [error]);
 
+  useEffect(() => {
+    if (chat && chat.messages.length !== 0) {
+      if (chat.messages[chat.messages.length - 1].messageType !== 'assistant') {
+        setOverrideCanSend(true);
+      } else {
+        setOverrideCanSend(false);
+      }
+    } else {
+      setOverrideCanSend(false);
+    }
+  }, [chat]);
+
   const handleOnSetActiveChoice = useCallback(
     async (id: string, choice: number) => {
       if (!chat) return;
@@ -124,6 +144,14 @@ export default function ChatPage() {
     [chat],
   );
 
+  const handleAbortStreaming = useCallback(() => {
+    if (abortRequestRef.current) {
+      abortRequestRef.current.abort();
+      abortRequestRef.current = null;
+      setIsStreaming(false);
+    }
+  }, []);
+
   const handleSend = useCallback(
     async (t: string, as: 'user' | 'assistant') => {
       if (!chat) return;
@@ -135,11 +163,80 @@ export default function ChatPage() {
       );
 
       if (error || !newChat) {
-        setError(error);
+        setError(error || "Couldn't write your message.");
         return;
       }
 
       setChat(newChat);
+
+      if (as === 'assistant') return;
+
+      if (abortRequestRef.current) {
+        setError('Request already in progress.');
+        return;
+      }
+
+      const { resultMessages, error: brmError } =
+        await ChatOperations.buildRequestMessages(newChat.messages);
+
+      if (brmError || !resultMessages) {
+        setError(
+          brmError || "Couldn't convert messages to API response format.",
+        );
+        return;
+      }
+
+      setIsStreaming(true);
+
+      // eslint-disable-next-line no-promise-executor-return
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      if (!streamHandleRef.current) {
+        setError('No stream handle.');
+        setIsStreaming(false);
+        return;
+      }
+
+      const abortController = new AbortController();
+      abortRequestRef.current = abortController;
+
+      const {
+        finalMessage,
+        finishReason,
+        error: requestError,
+      } = await ChatOperations.streamingRequest(
+        resultMessages,
+        (t) => {
+          streamHandleRef.current?.addToken(t);
+        },
+        abortRequestRef.current.signal,
+      );
+
+      setIsStreaming(false);
+      abortRequestRef.current = null;
+
+      if (requestError) {
+        setError(requestError);
+      }
+
+      if (finalMessage) {
+        const { newChat: finalChat, error: finalChatError } =
+          await ChatOperations.insertMessage(
+            newChat,
+            'assistant',
+            finalMessage,
+          );
+
+        if (finalChatError || !finalChat) {
+          setError(finalChatError || "Couldn't write response.");
+        }
+
+        setChat(finalChat);
+      }
+
+      if (finishReason && finishReason !== 'stop') {
+        setError(`Unexpected finish reason: ${finishReason}`);
+      }
     },
     [chat],
   );
@@ -261,6 +358,8 @@ export default function ChatPage() {
                   onMessageDelete={handleOnMessageDelete}
                   onSetActiveChoice={handleOnSetActiveChoice}
                   onMessageRegen={(id: string) => ({})}
+                  isStreaming={isStreaming}
+                  streamHandle={streamHandleRef}
                 />
               </>
             )
@@ -270,6 +369,9 @@ export default function ChatPage() {
           onSend={handleSend}
           onAddPrompt={handleOnAddPrompt}
           actionRef={chatInputBarActionRef}
+          isStreaming={isStreaming}
+          onAbort={handleAbortStreaming}
+          overrideCanSend={overrideCanSend}
         />
         <ConfirmDeleteRequest ref={deleteDialogRef} />
         <EditMessageModal ref={editMessageModalRef} />

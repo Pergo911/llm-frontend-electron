@@ -5,6 +5,7 @@ import {
   PromptMessage,
   DisplayMessage,
   Chat,
+  StreamingMessageHandle,
 } from '@/common/types';
 import {
   ChevronLeft,
@@ -16,34 +17,13 @@ import {
   SquareTerminal,
   Trash2,
 } from 'lucide-react';
-import React, { act, useEffect, useImperativeHandle } from 'react';
+import React, { useEffect, useImperativeHandle, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
+import remarkGfm from 'remark-gfm';
 import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from './ui/alert-dialog';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from './ui/dialog';
-import { Textarea } from './ui/textarea';
 
 const UserMessageComponent = React.memo(
   React.forwardRef<
@@ -152,7 +132,10 @@ const AssistantMessageComponent = React.memo(
             {formatTimestamp(m.choices[m.activeChoice].timestamp)}
           </div>
           <div className="display-linebreak markdown px-4 py-2">
-            <ReactMarkdown className="m-0">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              className="prose prose-neutral dark:prose-invert markdown max-w-none"
+            >
               {m.choices[m.activeChoice].content}
             </ReactMarkdown>
           </div>
@@ -288,6 +271,70 @@ const PromptMessageComponent = React.memo(
   }),
 );
 
+const StreamingAssistantMessageComponent = React.memo(
+  // eslint-disable-next-line react/no-unused-prop-types
+  React.forwardRef<
+    HTMLDivElement,
+    {
+      isStreaming: boolean;
+      handle: React.MutableRefObject<StreamingMessageHandle | null>;
+    }
+  >(({ isStreaming, handle }, ref) => {
+    const [text, setText] = useState('');
+
+    useImperativeHandle(handle, () => ({
+      addToken: (token) => {
+        setText((prev) => prev + token);
+      },
+    }));
+
+    useEffect(() => {
+      if (!isStreaming) {
+        setText('');
+      }
+    }, [isStreaming]);
+
+    return (
+      <div
+        ref={ref}
+        className={cn(
+          'group/textbox hidden w-full flex-col gap-0.5 self-start',
+          isStreaming && 'flex',
+        )}
+      >
+        <div className="pl-4 text-xs text-muted-foreground">Generating...</div>
+        <div className="display-linebreak markdown px-4 py-2">{text}</div>
+        {/* Action buttons; TO KEEP SPACING THE SAME */}
+        <div className="flex items-center gap-0.5 text-xs text-muted-foreground opacity-0">
+          <div className="flex items-center">
+            <Button
+              variant="actionButton"
+              size="icon"
+              className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="actionButton"
+              size="icon"
+              className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
+            >
+              <Edit3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="actionButton"
+              size="icon"
+              className="opacity-0 transition-opacity hover:text-red-500 group-hover/textbox:opacity-100"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }),
+);
+
 const Messages = React.memo(
   ({
     messages,
@@ -295,12 +342,16 @@ const Messages = React.memo(
     onMessageDelete,
     onSetActiveChoice,
     onMessageRegen,
+    isStreaming,
+    streamHandle,
   }: {
     messages: Chat['messages'];
     onMessageEdit: (toEdit: string, id: string, choice?: number) => {};
     onMessageDelete: (id: string) => {};
     onSetActiveChoice: (id: string, choice: number) => {};
     onMessageRegen: (id: string) => {};
+    isStreaming: boolean;
+    streamHandle: React.MutableRefObject<StreamingMessageHandle | null>;
   }) => {
     const [displayMessages, setDisplayMessages] = React.useState<
       Array<DisplayMessage>
@@ -315,7 +366,7 @@ const Messages = React.memo(
           await ChatOperations.buildDisplayMessages(messages);
 
         // If new messages are added, scroll to the bottom
-        if (displayMessages.length < resolvedMessages.length)
+        if (displayMessages.length < resolvedMessages.length || streamHandle)
           needsScroll.current = true;
 
         // Animates new messages
@@ -330,7 +381,7 @@ const Messages = React.memo(
 
       resolveMessages();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [messages]);
+    }, [messages, streamHandle]);
 
     useEffect(() => {
       if (needsScroll.current && scrollRef.current) {
@@ -347,7 +398,12 @@ const Messages = React.memo(
     return (
       <div className="mx-auto flex max-w-[800px] flex-col gap-4 p-4">
         {displayMessages.map((m, i) => {
-          const ref = i === displayMessages.length - 1 ? scrollRef : undefined;
+          // eslint-disable-next-line no-nested-ternary
+          const ref = !isStreaming
+            ? i === displayMessages.length - 1
+              ? scrollRef
+              : undefined
+            : undefined;
 
           if (m.type === 'user') {
             return (
@@ -390,6 +446,12 @@ const Messages = React.memo(
 
           return null;
         })}
+
+        <StreamingAssistantMessageComponent
+          handle={streamHandle}
+          isStreaming={isStreaming}
+          ref={scrollRef}
+        />
       </div>
     );
   },
