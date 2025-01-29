@@ -44,42 +44,43 @@ const UserMessageComponent = React.memo(
     }, [m.content, m.id, onMessageEdit]);
 
     return (
-      <div className="group/textbox flex w-full justify-end">
-        <div
-          ref={ref}
-          className={cn(
-            needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
-            'flex max-w-[700px] flex-col gap-0.5 self-end',
-          )}
-        >
-          <div className="pr-4 text-right text-xs text-muted-foreground">
-            {formatTimestamp(m.timestamp)}
-          </div>
-          <div className="display-linebreak w-fit self-end rounded-3xl bg-card px-4 py-2 text-card-foreground">
-            {m.content}
-          </div>
+      <div className="group/textbox flex w-full flex-col items-end">
+        <div className="mb-2 w-full text-center text-xs text-muted-foreground">
+          {formatTimestamp(m.timestamp)}
+        </div>
+
+        <div className="flex max-w-[90%] flex-wrap-reverse justify-end gap-0.5">
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-0.5 text-xs text-muted-foreground">
-            <div className="flex items-center">
-              <Button
-                variant="actionButton"
-                size="icon"
-                className="opacity-0 transition-opacity hover:text-red-500 group-hover/textbox:opacity-100"
-                onClick={handleDelete}
-                title="Delete message"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="actionButton"
-                size="icon"
-                className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
-                onClick={handleEdit}
-                title="Edit message"
-              >
-                <Edit3 className="h-4 w-4" />
-              </Button>
-            </div>
+          <div className="flex h-fit w-fit min-w-[88px] gap-0.5 text-xs text-muted-foreground">
+            <Button
+              variant="actionButton"
+              size="icon"
+              className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+              onClick={handleDelete}
+              title="Delete message"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="actionButton"
+              size="icon"
+              className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+              onClick={handleEdit}
+              title="Edit message"
+            >
+              <Edit3 className="h-4 w-4" />
+            </Button>
+          </div>
+
+          {/* Message bubble */}
+          <div
+            ref={ref}
+            className={cn(
+              needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
+              'display-linebreak flex w-fit flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
+            )}
+          >
+            {m.content}
           </div>
         </div>
       </div>
@@ -128,13 +129,13 @@ const AssistantMessageComponent = React.memo(
           ref={ref}
           className="group/textbox flex w-full flex-col gap-0.5 self-start"
         >
-          <div className="pl-4 text-xs text-muted-foreground">
+          <div className="mb-2 w-full text-center text-xs text-muted-foreground">
             {formatTimestamp(m.choices[m.activeChoice].timestamp)}
           </div>
           <div className="display-linebreak markdown px-4 py-2">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              className="prose prose-neutral dark:prose-invert markdown max-w-none"
+              className="markdown prose prose-neutral max-w-none dark:prose-invert"
             >
               {m.choices[m.activeChoice].content}
             </ReactMarkdown>
@@ -171,7 +172,7 @@ const AssistantMessageComponent = React.memo(
               <Button
                 variant="actionButton"
                 size="icon"
-                className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
+                className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
                 onClick={handleRegen}
                 title="Regenerate response"
               >
@@ -180,7 +181,7 @@ const AssistantMessageComponent = React.memo(
               <Button
                 variant="actionButton"
                 size="icon"
-                className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
+                className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
                 onClick={handleEdit}
                 title="Edit message"
               >
@@ -189,7 +190,7 @@ const AssistantMessageComponent = React.memo(
               <Button
                 variant="actionButton"
                 size="icon"
-                className="opacity-0 transition-opacity hover:text-red-500 group-hover/textbox:opacity-100"
+                className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
                 onClick={handleDelete}
                 title="Delete message"
               >
@@ -209,25 +210,38 @@ const PromptMessageComponent = React.memo(
     HTMLDivElement,
     {
       m: PromptMessage;
+      isConcat: boolean;
       onMessageDelete: (id: string) => {};
       needsAnimate?: boolean;
     }
-  >(({ m, onMessageDelete, needsAnimate }, ref) => {
+  >(({ m, isConcat, onMessageDelete, needsAnimate }, ref) => {
     const handleDelete = React.useCallback(() => {
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
 
     return (
-      <div className="group/textbox flex w-full justify-end">
+      <div className="group/textbox flex w-full flex-col items-end">
+        {isConcat && <div className="text-muted-foreground">+</div>}
         <div
           ref={ref}
           className={cn(
             needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
-            'group/textbox flex w-fit max-w-[400px] flex-col gap-0.5 self-end',
+            'flex w-fit max-w-[400px] gap-0.5',
           )}
         >
-          <div className="pr-4 text-right text-xs text-muted-foreground">
-            Added prompt
+          {/* Action buttons */}
+          <div className="flex items-center justify-end gap-0.5 text-xs text-muted-foreground">
+            <div className="flex items-center">
+              <Button
+                variant="actionButton"
+                size="icon"
+                className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+                onClick={handleDelete}
+                title="Delete prompt"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           <Link
             to={`/p/${m.promptId}`}
@@ -251,20 +265,6 @@ const PromptMessageComponent = React.memo(
             </div>
             <Edit className="mx-2 h-4 w-4 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
           </Link>
-          {/* Action buttons */}
-          <div className="flex items-center justify-end gap-0.5 text-xs text-muted-foreground">
-            <div className="flex items-center">
-              <Button
-                variant="actionButton"
-                size="icon"
-                className="opacity-0 transition-opacity hover:text-red-500 group-hover/textbox:opacity-100"
-                onClick={handleDelete}
-                title="Delete prompt"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
         </div>
       </div>
     );
@@ -272,67 +272,56 @@ const PromptMessageComponent = React.memo(
 );
 
 const StreamingAssistantMessageComponent = React.memo(
-  // eslint-disable-next-line react/no-unused-prop-types
-  React.forwardRef<
-    HTMLDivElement,
-    {
-      isStreaming: boolean;
-      handle: React.MutableRefObject<StreamingMessageHandle | null>;
-    }
-  >(({ isStreaming, handle }, ref) => {
-    const [text, setText] = useState('');
+  React.forwardRef<StreamingMessageHandle, { isStreaming: boolean }>(
+    ({ isStreaming }, ref) => {
+      const [text, setText] = useState('');
 
-    useImperativeHandle(handle, () => ({
-      addToken: (token) => {
-        setText((prev) => prev + token);
-      },
-    }));
+      useImperativeHandle(ref, () => ({
+        addToken: (token) => {
+          setText((prev) => prev + token);
+        },
+      }));
 
-    useEffect(() => {
-      if (!isStreaming) {
-        setText('');
-      }
-    }, [isStreaming]);
+      useEffect(() => {
+        if (!isStreaming) {
+          setText('');
+        }
+      }, [isStreaming]);
 
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          'group/textbox hidden w-full flex-col gap-0.5 self-start',
-          isStreaming && 'flex',
-        )}
-      >
-        <div className="pl-4 text-xs text-muted-foreground">Generating...</div>
-        <div className="display-linebreak markdown px-4 py-2">{text}</div>
-        {/* Action buttons; TO KEEP SPACING THE SAME */}
-        <div className="flex items-center gap-0.5 text-xs text-muted-foreground opacity-0">
-          <div className="flex items-center">
-            <Button
-              variant="actionButton"
-              size="icon"
-              className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
+      return (
+        <div
+          className={cn(
+            'group/textbox hidden w-full flex-col gap-0.5 self-start',
+            isStreaming && 'flex',
+          )}
+        >
+          <div className="mb-2 w-full animate-pulse text-center text-xs text-muted-foreground duration-1000">
+            Thinking...
+          </div>
+          <div className="display-linebreak markdown px-4 py-2">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              className="markdown prose prose-neutral max-w-none dark:prose-invert"
             >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="actionButton"
-              size="icon"
-              className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
-            >
-              <Edit3 className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="actionButton"
-              size="icon"
-              className="opacity-0 transition-opacity hover:text-red-500 group-hover/textbox:opacity-100"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+              {text}
+            </ReactMarkdown>
+          </div>
+          {/* Action buttons here keep spacing the same */}
+          <div className="flex items-center gap-0.5 text-xs text-muted-foreground opacity-0">
+            <div className="flex items-center">
+              <Button
+                variant="actionButton"
+                size="icon"
+                className="opacity-0 transition-opacity group-hover/textbox:opacity-100"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    );
-  }),
+      );
+    },
+  ),
 );
 
 const Messages = React.memo(
@@ -359,6 +348,7 @@ const Messages = React.memo(
     const scrollRef = React.useRef<HTMLDivElement>(null);
     const needsScroll = React.useRef<boolean>(false);
     const needsAnimate = React.useRef<boolean>(false);
+    const prevMRef = React.useRef<PromptMessage['type'] | null>(null);
 
     useEffect(() => {
       const resolveMessages = async () => {
@@ -366,7 +356,7 @@ const Messages = React.memo(
           await ChatOperations.buildDisplayMessages(messages);
 
         // If new messages are added, scroll to the bottom
-        if (displayMessages.length < resolvedMessages.length || streamHandle)
+        if (displayMessages.length < resolvedMessages.length)
           needsScroll.current = true;
 
         // Animates new messages
@@ -380,14 +370,17 @@ const Messages = React.memo(
       };
 
       resolveMessages();
+
+      prevMRef.current = null;
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [messages, streamHandle]);
+    }, [messages]);
 
     useEffect(() => {
       if (needsScroll.current && scrollRef.current) {
         requestAnimationFrame(() => {
           scrollRef.current?.scrollIntoView({
             behavior: 'instant',
+            block: 'start',
           });
         });
 
@@ -398,14 +391,11 @@ const Messages = React.memo(
     return (
       <div className="mx-auto flex max-w-[800px] flex-col gap-4 p-4">
         {displayMessages.map((m, i) => {
-          // eslint-disable-next-line no-nested-ternary
-          const ref = !isStreaming
-            ? i === displayMessages.length - 1
-              ? scrollRef
-              : undefined
-            : undefined;
+          const ref = i === displayMessages.length - 1 ? scrollRef : undefined;
 
           if (m.type === 'user') {
+            prevMRef.current = null;
+
             return (
               <UserMessageComponent
                 key={m.item.id}
@@ -419,6 +409,8 @@ const Messages = React.memo(
           }
 
           if (m.type === 'assistant') {
+            prevMRef.current = null;
+
             return (
               <AssistantMessageComponent
                 key={m.item.id}
@@ -433,10 +425,20 @@ const Messages = React.memo(
           }
 
           if (m.type === 'prompt') {
+            const mitem = m.item as PromptMessage;
+            let isConcat = false;
+
+            if (prevMRef.current === mitem.type) {
+              isConcat = true;
+            }
+
+            prevMRef.current = mitem.type;
+
             return (
               <PromptMessageComponent
                 key={m.item.id}
-                m={m.item as PromptMessage}
+                m={mitem}
+                isConcat={isConcat}
                 ref={ref}
                 onMessageDelete={onMessageDelete}
                 needsAnimate={needsAnimate.current}
@@ -446,11 +448,9 @@ const Messages = React.memo(
 
           return null;
         })}
-
         <StreamingAssistantMessageComponent
-          handle={streamHandle}
+          ref={streamHandle}
           isStreaming={isStreaming}
-          ref={scrollRef}
         />
       </div>
     );

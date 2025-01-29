@@ -34,7 +34,6 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
     const { scrollTop } = textareaRef.current;
 
     const taStyle = textareaRef.current.style;
-    taStyle.height = 'auto';
     taStyle.height = `${textareaRef.current.scrollHeight}px`;
 
     // Restore scroll position
@@ -94,9 +93,9 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
         <DialogHeader>
           <DialogTitle>Edit message</DialogTitle>
         </DialogHeader>
-        <div className="flex max-h-[300px] overflow-auto rounded-xl bg-card text-card-foreground">
+        <div className="flex max-h-[300px] overflow-y-auto rounded-xl bg-card text-card-foreground">
           <Textarea
-            className="h-auto resize-none overflow-hidden border-none shadow-none focus:outline-none focus-visible:ring-0"
+            className="resize-none border-none shadow-none focus:outline-none focus-visible:ring-0"
             spellCheck="false"
             value={textareaValue}
             onChange={(e) => {

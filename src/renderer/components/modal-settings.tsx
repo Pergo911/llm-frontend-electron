@@ -25,6 +25,8 @@ export const SettingsModal = memo(
   ({ triggerRefresh }: { triggerRefresh: () => void }) => {
     const { setTheme: setAppTheme } = useTheme();
     const [theme, setTheme] = useState<Config['theme']>('system');
+    const [useLegacyRoleNames, setUseLegacyRoleNames] =
+      useState<Config['useLegacyRoleNames']>(false);
     const [baseUrl, setBaseUrl] = useState<Config['baseUrl']>('');
     const [apiKey, setApiKey] = useState<Config['apiKey']>('');
     const [saveFilePath, setSaveFilePath] =
@@ -38,6 +40,7 @@ export const SettingsModal = memo(
 
         setTheme(config.theme);
         themeFailed.current = config.theme;
+        setUseLegacyRoleNames(config.useLegacyRoleNames);
         setBaseUrl(config.baseUrl);
         setApiKey(config.apiKey);
         setSaveFilePath(config.saveFilePath);
@@ -50,6 +53,15 @@ export const SettingsModal = memo(
 
       e.push(
         (await window.electron.fileOperations.setConfig('theme', theme)).error,
+      );
+
+      e.push(
+        (
+          await window.electron.fileOperations.setConfig(
+            'useLegacyRoleNames',
+            useLegacyRoleNames,
+          )
+        ).error,
       );
 
       e.push(
@@ -80,7 +92,7 @@ export const SettingsModal = memo(
         toast.error(`Failed to save settings: ${error.toString()}`);
         setAppTheme(themeFailed.current);
       }
-    }, [theme, baseUrl, apiKey, saveFilePath, setAppTheme]);
+    }, [theme, useLegacyRoleNames, baseUrl, apiKey, saveFilePath, setAppTheme]);
 
     const handleSaveClick = useCallback(() => {
       handleSave()
@@ -94,14 +106,14 @@ export const SettingsModal = memo(
     }, [handleSave, triggerRefresh]);
 
     return (
-      <DialogContent className="max-h-[450px] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <SettingsIcon className="mr-2" />
             Settings
           </DialogTitle>
         </DialogHeader>
-        <div className="flex flex-col gap-4">
+        <div className="flex max-h-[400px] flex-col gap-4 overflow-y-auto pl-[1px] pr-2">
           <div className="flex flex-col gap-2">
             <Label>Theme</Label>
             <Select
@@ -111,13 +123,34 @@ export const SettingsModal = memo(
                 setAppTheme(value as Config['theme']);
               }}
             >
-              <SelectTrigger className="w-40">
+              <SelectTrigger className="w-52">
                 <SelectValue placeholder="Select a theme" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="system">System</SelectItem>
                 <SelectItem value="light">Light</SelectItem>
                 <SelectItem value="dark">Dark</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label>System role name</Label>
+            <Select
+              value={useLegacyRoleNames ? 'true' : 'false'}
+              onValueChange={(value) => setUseLegacyRoleNames(value === 'true')}
+            >
+              <SelectTrigger className="w-52">
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="false">
+                  <span className="font-mono">&quot;developer&quot;</span>{' '}
+                  <span className="text-muted-foreground">(Default)</span>
+                </SelectItem>
+                <SelectItem value="true">
+                  <span className="font-mono">&quot;system&quot;</span>{' '}
+                  <span className="text-muted-foreground">(Legacy)</span>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -161,19 +194,19 @@ export const SettingsModal = memo(
               </Button>
             </div>
           </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button className="w-fit" variant="secondary">
-                Cancel
-              </Button>
-            </DialogClose>
-            <DialogClose asChild>
-              <Button type="submit" className="w-fit" onClick={handleSaveClick}>
-                Save
-              </Button>
-            </DialogClose>
-          </DialogFooter>
         </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button className="w-fit" variant="secondary">
+              Cancel
+            </Button>
+          </DialogClose>
+          <DialogClose asChild>
+            <Button type="submit" className="w-fit" onClick={handleSaveClick}>
+              Save
+            </Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     );
   },

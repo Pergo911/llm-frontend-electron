@@ -58,7 +58,7 @@ const ChatInputBar = React.memo(
 
     const handleSend = React.useCallback(() => {
       if (canSend || overrideCanSend) {
-        onSend(value, overrideCanSend ? 'user' : sendAs);
+        onSend(value, overrideCanSend && value === '' ? 'user' : sendAs);
         setSendAs(defaultSendAs);
         setValue('');
         resetHeight();
@@ -83,7 +83,7 @@ const ChatInputBar = React.memo(
       // Little area at the bottom
       <div className="flex w-full flex-1 flex-grow-0 justify-center bg-background p-4 pt-0">
         {/* Input box itself */}
-        <div className="flex max-h-[300px] w-full max-w-[800px] flex-col rounded-xl bg-card text-card-foreground">
+        <div className="z-10 flex max-h-[300px] w-full max-w-[800px] flex-col rounded-xl bg-card text-card-foreground drop-shadow-md">
           <Textarea
             className="h-auto resize-none border-none pb-0 pt-4 shadow-none focus:outline-none focus-visible:ring-0"
             placeholder="Message here..."
@@ -127,13 +127,13 @@ const ChatInputBar = React.memo(
                 variant="default"
                 size="icon"
                 className="rounded-full"
-                disabled={!canSend && !isStreaming && !overrideCanSend}
+                disabled={!(canSend || isStreaming || overrideCanSend)}
                 onClick={!isStreaming ? handleSend : onAbort}
               >
                 {!isStreaming ? (
                   <SendIcon className="h-4 w-4" />
                 ) : (
-                  <Square className="h-4 w-4 animate-pulse" />
+                  <Square className="h-4 w-4 animate-pulse duration-1000" />
                 )}
               </Button>
             </div>

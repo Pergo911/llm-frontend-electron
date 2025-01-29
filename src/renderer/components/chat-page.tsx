@@ -234,7 +234,10 @@ export default function ChatPage() {
         setChat(finalChat);
       }
 
-      if (finishReason && finishReason !== 'stop') {
+      if (
+        finishReason &&
+        !(finishReason === 'stop' || finishReason === 'abort')
+      ) {
         setError(`Unexpected finish reason: ${finishReason}`);
       }
     },

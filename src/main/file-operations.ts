@@ -63,6 +63,10 @@ export function getConfig(): Config {
     theme: store.get('theme') as 'system' | 'light' | 'dark',
     // @ts-ignore
     saveFilePath: store.get('saveFilePath') as string,
+    // @ts-ignore
+    sidebarState: store.get('sidebarState') as boolean,
+    // @ts-ignore
+    useLegacyRoleNames: store.get('useLegacyRoleNames') as boolean,
   };
 
   return config;

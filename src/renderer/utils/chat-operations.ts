@@ -129,7 +129,13 @@ const buildRequestMessages = async (
   error: string | null;
 }> => {
   try {
-    const resultMessages = await Promise.all(
+    // New role name for system messages for official OpenAI API is 'developer'
+    // For legacy API, it's 'system'
+    const { useLegacyRoleNames } =
+      await window.electron.fileOperations.getConfig();
+    const systemRole = useLegacyRoleNames ? 'system' : 'developer';
+
+    const converted = await Promise.all(
       messageData.map(async (m): Promise<RequestMessage> => {
         const role =
           // eslint-disable-next-line no-nested-ternary
@@ -137,7 +143,7 @@ const buildRequestMessages = async (
             ? m.messageType
             : m.messageType === 'user-prompt'
               ? 'user'
-              : 'developer';
+              : systemRole;
 
         let content: string;
 
@@ -174,6 +180,21 @@ const buildRequestMessages = async (
         return { role, content };
       }),
     );
+
+    // Concatenate consecutive messages with the same role
+    const resultMessages = converted.reduce<RequestMessage[]>((acc, curr) => {
+      const lastMessage = acc[acc.length - 1];
+
+      if (lastMessage && lastMessage.role === curr.role) {
+        // Combine with previous message of same role
+        lastMessage.content += `\n\n${curr.content}`;
+        return acc;
+      }
+
+      // Add as new message
+      acc.push({ ...curr });
+      return acc;
+    }, []);
 
     return { resultMessages, error: null };
   } catch (e) {
@@ -528,7 +549,7 @@ const streamingRequest = async (
     return {
       finalMessage: null,
       finishReason: null,
-      error: (e as Error).message || 'An error occurred during the API request',
+      error: `${e as Error}`,
     };
   }
 };

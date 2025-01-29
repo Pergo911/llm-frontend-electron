@@ -17,6 +17,14 @@ export const ConfigSchema = {
   saveFilePath: {
     type: 'string',
   },
+  sidebarState: {
+    type: 'boolean',
+    default: true,
+  },
+  useLegacyRoleNames: {
+    type: 'boolean',
+    default: false,
+  },
 };
 
 export type Config = {
@@ -25,6 +33,8 @@ export type Config = {
   selectedModel: string;
   theme: 'system' | 'light' | 'dark';
   saveFilePath: string;
+  sidebarState: boolean;
+  useLegacyRoleNames: boolean;
 };
 
 export type ChatEntry = {
@@ -112,7 +122,7 @@ export type StreamingMessageHandle = {
 };
 
 export type RequestMessage = {
-  role: 'user' | 'assistant' | 'developer';
+  role: 'user' | 'assistant' | 'system' | 'developer';
   content: string;
 };
 

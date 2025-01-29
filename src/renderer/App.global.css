@@ -123,25 +123,28 @@
 
   .markdown blockquote {
     @apply !bg-background;
-    border-left: 4px solid hsl(var(--border));
-    margin: 1.5em 10px;
-    quotes: "\201C""\201D""\2018""\2019";
+    border-left: 4px solid hsl(var(--border)) !important;
+    margin: 1.5em 10px !important;
   }
   .markdown blockquote p {
-    display: inline;
+    display: inline !important;
   }
 
   .markdown code {
     @apply !bg-card;
-    @apply !text-primary;
+    @apply !text-foreground;
     @apply !rounded-sm;
     @apply !px-1;
   }
 
   .markdown pre {
     @apply !bg-card;
-    @apply !rounded-sm;
+    @apply !rounded-lg;
     @apply !p-2;
     @apply !overflow-x-auto;
+  }
+
+  .markdown p {
+    @apply !text-foreground;
   }
 }
