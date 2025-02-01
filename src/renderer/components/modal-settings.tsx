@@ -174,12 +174,12 @@ export const SettingsModal = memo(
           <div className="flex flex-col gap-2">
             <Label>Savefile path</Label>
             <div className="flex gap-2">
-              <div className="flex h-9 w-full flex-[4] items-center rounded-md border border-input bg-transparent px-3 py-1 shadow-sm transition-colors md:text-sm">
+              <div className="flex h-9 w-full flex-4 items-center rounded-md border border-input bg-transparent px-3 py-1 shadow-xs transition-colors md:text-sm">
                 <FileJson className="mr-2 h-4 w-4" />
                 {saveFilePath}
               </div>
               <Button
-                className="flex-[1]"
+                className="flex-1"
                 variant="outline"
                 onClick={async () => {
                   const { canceled, filePath } =

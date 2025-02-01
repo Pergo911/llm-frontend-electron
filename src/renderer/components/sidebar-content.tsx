@@ -43,7 +43,7 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
                       <SidebarMenuButton isActive={isActive} asChild>
                         <div className="flex">
                           <MessageCircle className="h-4 w-4" />
-                          {item.title}
+                          <span className="truncate">{item.title}</span>
                         </div>
                       </SidebarMenuButton>
                     );
@@ -72,7 +72,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton>
                     <Folder className="mr-2" />
-                    {item.title}
+                    <span className="truncate">{item.title}</span>
                     <Plus className="ml-auto group-data-[state=open]/collapsible:hidden" />
                     <Minus className="ml-auto group-data-[state=closed]/collapsible:hidden" />
                   </SidebarMenuButton>
@@ -95,7 +95,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                                 ) : (
                                   <SquareTerminal className="mr-2" />
                                 )}
-                                {item.title}
+                                <span className="truncate">{item.title}</span>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           );

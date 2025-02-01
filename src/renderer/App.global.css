@@ -80,7 +80,7 @@
     @apply border-border;
   }
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply bg-background font-sans text-foreground antialiased;
   }
   ::-webkit-scrollbar {
     @apply w-2;
@@ -115,14 +115,14 @@
   }
 
   .markdown * {
-    @apply !my-0;
-    @apply !leading-normal;
-    @apply !tracking-normal;
-    @apply !leading-normal;
+    @apply my-0!;
+    @apply leading-normal!;
+    @apply tracking-normal!;
+    @apply leading-normal!;
   }
 
   .markdown blockquote {
-    @apply !bg-background;
+    @apply bg-background!;
     border-left: 4px solid hsl(var(--border)) !important;
     margin: 1.5em 10px !important;
   }
@@ -131,20 +131,19 @@
   }
 
   .markdown code {
-    @apply !bg-card;
-    @apply !text-foreground;
-    @apply !rounded-sm;
-    @apply !px-1;
+    @apply bg-card!;
+    @apply text-foreground!;
+    @apply rounded-sm!;
+    @apply px-1!;
   }
 
   .markdown pre {
-    @apply !bg-card;
-    @apply !rounded-lg;
-    @apply !p-2;
-    @apply !overflow-x-auto;
+    @apply bg-card!;
+    @apply rounded-lg!;
+    @apply p-2!;
   }
 
   .markdown p {
-    @apply !text-foreground;
+    @apply text-foreground!;
   }
 }

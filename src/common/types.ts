@@ -6,8 +6,11 @@ export const ConfigSchema = {
   apiKey: {
     type: 'string',
   },
-  selectedModel: {
-    type: 'string',
+  modelSelection: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
   },
   theme: {
     type: 'string',
@@ -30,7 +33,7 @@ export const ConfigSchema = {
 export type Config = {
   baseUrl: string;
   apiKey: string;
-  selectedModel: string;
+  modelSelection: string[];
   theme: 'system' | 'light' | 'dark';
   saveFilePath: string;
   sidebarState: boolean;

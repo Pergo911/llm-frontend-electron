@@ -81,11 +81,11 @@ const ChatInputBar = React.memo(
 
     return (
       // Little area at the bottom
-      <div className="flex w-full flex-1 flex-grow-0 justify-center bg-background p-4 pt-0">
+      <div className="flex w-full flex-1 grow-0 justify-center bg-background p-4 pt-0">
         {/* Input box itself */}
         <div className="z-10 flex max-h-[300px] w-full max-w-[800px] flex-col rounded-xl bg-card text-card-foreground drop-shadow-md">
           <Textarea
-            className="h-auto resize-none border-none pb-0 pt-4 shadow-none focus:outline-none focus-visible:ring-0"
+            className="h-auto resize-none border-none pb-0 pt-4 shadow-none focus:outline-hidden focus-visible:ring-0"
             placeholder="Message here..."
             spellCheck="false"
             value={value}

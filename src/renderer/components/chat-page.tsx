@@ -10,8 +10,6 @@ import {
 } from '@/common/types';
 import { MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
-import TitleBar from './ui/title-bar';
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem } from './ui/breadcrumb';
 import ChatInputBar from './chat-input-bar';
 import Messages from './messages';
 import { formatTimestamp, setWindowTitle } from '../utils/utils';
@@ -63,7 +61,7 @@ const ChatTitle = memo(
         <p className="text-muted-foreground">
           Created {formatTimestamp(timestamp)}
         </p>
-        <div className="h-5 min-w-full max-w-[700px] bg-gradient-to-r from-transparent via-sidebar-border to-transparent bg-[length:100%_1px] bg-bottom bg-no-repeat" />
+        <div className="h-5 min-w-full max-w-[700px] bg-linear-to-r from-transparent via-sidebar-border to-transparent bg-[length:100%_1px] bg-bottom bg-no-repeat" />
         <div className="h-5" />
       </div>
     );
@@ -82,6 +80,16 @@ export default function ChatPage() {
   const editMessageModalRef = useRef<EditMessageModalRef>(null);
   const promptSelectModalRef = useRef<PromptSelectModalRef>(null);
   const abortRequestRef = useRef<AbortController | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'instant',
+      });
+    });
+  }, []);
 
   useEffect(() => {
     const getChat = async () => {
@@ -187,7 +195,6 @@ export default function ChatPage() {
       }
 
       setIsStreaming(true);
-
       // eslint-disable-next-line no-promise-executor-return
       await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -229,6 +236,104 @@ export default function ChatPage() {
 
         if (finalChatError || !finalChat) {
           setError(finalChatError || "Couldn't write response.");
+        }
+
+        setChat(finalChat);
+      }
+
+      if (
+        finishReason &&
+        !(finishReason === 'stop' || finishReason === 'abort')
+      ) {
+        setError(`Unexpected finish reason: ${finishReason}`);
+      }
+    },
+    [chat],
+  );
+
+  const handleOnMessageRegen = useCallback(
+    async (id: string) => {
+      if (!chat) return;
+
+      // Find message index
+      const messageIndex = chat.messages.findIndex((m) => m.id === id);
+      if (messageIndex === -1) {
+        setError('Message not found');
+        return;
+      }
+
+      // Get messages up to the one to regenerate
+      const messagesToInclude = chat.messages.slice(0, messageIndex);
+
+      // Save current chat state
+      const chatCopy = JSON.parse(JSON.stringify(chat));
+
+      // Remove messages after the one to regenerate
+      setChat({
+        ...chat,
+        messages: messagesToInclude,
+      });
+
+      // Build request messages
+      const { resultMessages, error: brmError } =
+        await ChatOperations.buildRequestMessages(messagesToInclude);
+
+      if (brmError || !resultMessages) {
+        setError(
+          brmError || "Couldn't convert messages to API response format.",
+        );
+        return;
+      }
+
+      setIsStreaming(true);
+      // eslint-disable-next-line no-promise-executor-return
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      if (!streamHandleRef.current) {
+        setError('No stream handle.');
+        setIsStreaming(false);
+        setChat(chatCopy);
+        return;
+      }
+
+      if (abortRequestRef.current) {
+        setError('Request already in progress.');
+        setIsStreaming(false);
+        setChat(chatCopy);
+        return;
+      }
+
+      const abortController = new AbortController();
+      abortRequestRef.current = abortController;
+
+      const {
+        finalMessage,
+        finishReason,
+        error: requestError,
+      } = await ChatOperations.streamingRequest(
+        resultMessages,
+        (t) => {
+          streamHandleRef.current?.addToken(t);
+        },
+        abortRequestRef.current.signal,
+      );
+
+      setIsStreaming(false);
+      abortRequestRef.current = null;
+
+      if (requestError) {
+        setError(requestError);
+        setChat(chatCopy);
+        return;
+      }
+
+      if (finalMessage) {
+        const { newChat: finalChat, error: insertError } =
+          await ChatOperations.insertChoice(chatCopy, id, finalMessage);
+
+        if (insertError || !finalChat) {
+          setError(insertError || "Couldn't write regenerated response.");
+          return;
         }
 
         setChat(finalChat);
@@ -333,18 +438,8 @@ export default function ChatPage() {
 
   return (
     <div className="h-[calc(100vh-64px)]">
-      <TitleBar>
-        <Breadcrumb className="flex h-full items-center">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <MessageCircle className="h-4 w-4" />
-              {chat?.title ?? 'Chat'}
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </TitleBar>
       <div className="flex h-full w-full flex-col rounded-t-xl bg-background">
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto" ref={scrollRef}>
           {chat ? (
             chat.messages.length === 0 ? (
               <EmptyChatTitle
@@ -360,7 +455,8 @@ export default function ChatPage() {
                   onMessageEdit={handleOnMessageEdit}
                   onMessageDelete={handleOnMessageDelete}
                   onSetActiveChoice={handleOnSetActiveChoice}
-                  onMessageRegen={(id: string) => ({})}
+                  onMessageRegen={handleOnMessageRegen}
+                  onNeedsScroll={scrollToBottom}
                   isStreaming={isStreaming}
                   streamHandle={streamHandleRef}
                 />

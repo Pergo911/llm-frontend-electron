@@ -95,7 +95,7 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
         </DialogHeader>
         <div className="flex max-h-[300px] overflow-y-auto rounded-xl bg-card text-card-foreground">
           <Textarea
-            className="resize-none border-none shadow-none focus:outline-none focus-visible:ring-0"
+            className="resize-none border-none shadow-none focus:outline-hidden focus-visible:ring-0"
             spellCheck="false"
             value={textareaValue}
             onChange={(e) => {

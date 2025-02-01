@@ -9,6 +9,7 @@ import { ThemeProvider } from './components/theme-provider';
 import HomePage from './components/home-page';
 import ChatPage from './components/chat-page';
 import PromptPage from './components/prompt-page';
+import TitleBar from './components/title-bar';
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -73,6 +74,7 @@ export default function App() {
         <SidebarProvider>
           <AppSidebar />
           <SidebarInset className="bg-sidebar">
+            <TitleBar />
             <AppRoutes />
           </SidebarInset>
         </SidebarProvider>

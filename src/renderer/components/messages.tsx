@@ -25,41 +25,144 @@ import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
 
-const UserMessageComponent = React.memo(
-  React.forwardRef<
-    HTMLDivElement,
-    {
-      m: Message;
-      onMessageEdit: (toEdit: string, id: string) => {};
-      onMessageDelete: (id: string) => {};
-      needsAnimate?: boolean;
-    }
-  >(({ m, onMessageEdit, onMessageDelete, needsAnimate }, ref) => {
+const UserMessageComponent = React.memo<{
+  m: Message;
+  onMessageEdit: (toEdit: string, id: string) => void;
+  onMessageDelete: (id: string) => void;
+  needsAnimate?: boolean;
+}>(({ m, onMessageEdit, onMessageDelete, needsAnimate }) => {
+  const handleDelete = React.useCallback(() => {
+    onMessageDelete(m.id);
+  }, [m.id, onMessageDelete]);
+
+  const handleEdit = React.useCallback(() => {
+    onMessageEdit(m.content, m.id);
+  }, [m.content, m.id, onMessageEdit]);
+
+  return (
+    <div className="group/textbox flex w-full flex-col items-end">
+      <div className="flex max-w-[90%] flex-wrap-reverse justify-end gap-0.5">
+        {/* Action buttons */}
+        <div className="flex h-fit w-fit min-w-[88px] gap-0.5 text-xs text-muted-foreground">
+          <Button
+            variant="actionButton"
+            size="icon"
+            className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+            onClick={handleDelete}
+            title="Delete message"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="actionButton"
+            size="icon"
+            className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+            onClick={handleEdit}
+            title="Edit message"
+          >
+            <Edit3 className="h-4 w-4" />
+          </Button>
+        </div>
+
+        {/* Message bubble */}
+        <div
+          className={cn(
+            needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
+            'display-linebreak flex w-fit flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
+          )}
+          title={`Sent ${formatTimestamp(m.timestamp)}`}
+        >
+          {m.content}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+const AssistantMessageComponent = React.memo<{
+  m: MultipleChoiceMessage;
+  onMessageEdit: (toEdit: string, id: string, choice: number) => void;
+  onMessageDelete: (id: string) => void;
+  onMessageRegen: (id: string) => void;
+  onSetActiveChoice: (id: string, choice: number) => void;
+}>(
+  ({
+    m,
+    onMessageEdit,
+    onMessageDelete,
+    onMessageRegen,
+    onSetActiveChoice,
+  }) => {
+    const handlePrevChoice = React.useCallback(() => {
+      onSetActiveChoice(m.id, m.activeChoice - 1);
+    }, [m.id, m.activeChoice, onSetActiveChoice]);
+
+    const handleNextChoice = React.useCallback(() => {
+      onSetActiveChoice(m.id, m.activeChoice + 1);
+    }, [m.id, m.activeChoice, onSetActiveChoice]);
+
+    const handleEdit = React.useCallback(() => {
+      onMessageEdit(m.choices[m.activeChoice].content, m.id, m.activeChoice);
+    }, [m.activeChoice, m.choices, m.id, onMessageEdit]);
+
+    const handleRegen = React.useCallback(() => {
+      onMessageRegen(m.id);
+    }, [m.id, onMessageRegen]);
+
     const handleDelete = React.useCallback(() => {
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
 
-    const handleEdit = React.useCallback(() => {
-      onMessageEdit(m.content, m.id);
-    }, [m.content, m.id, onMessageEdit]);
-
     return (
-      <div className="group/textbox flex w-full flex-col items-end">
-        <div className="mb-2 w-full text-center text-xs text-muted-foreground">
-          {formatTimestamp(m.timestamp)}
+      <div className="group/textbox flex w-full flex-col gap-0.5 self-start">
+        <div
+          className="px-4 py-2"
+          title={`Sent ${formatTimestamp(m.choices[m.activeChoice].timestamp)}`}
+        >
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            className="display-linebreak markdown prose prose-neutral max-w-none dark:prose-invert"
+          >
+            {m.choices[m.activeChoice].content}
+          </ReactMarkdown>
         </div>
-
-        <div className="flex max-w-[90%] flex-wrap-reverse justify-end gap-0.5">
-          {/* Action buttons */}
-          <div className="flex h-fit w-fit min-w-[88px] gap-0.5 text-xs text-muted-foreground">
+        {/* Action buttons */}
+        <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
+          <div
+            className={cn(
+              'flex select-none items-center',
+              m.choices.length === 1 && 'hidden',
+            )}
+          >
             <Button
               variant="actionButton"
               size="icon"
-              className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
-              onClick={handleDelete}
-              title="Delete message"
+              disabled={m.activeChoice === 0}
+              onClick={handlePrevChoice}
+              title="Previous response"
             >
-              <Trash2 className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            {m.activeChoice + 1} / {m.choices.length}
+            <Button
+              variant="actionButton"
+              size="icon"
+              disabled={m.activeChoice === m.choices.length - 1}
+              onClick={handleNextChoice}
+              title="Next response"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex items-center">
+            <Button
+              variant="actionButton"
+              size="icon"
+              className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+              onClick={handleRegen}
+              title="Regenerate response"
+            >
+              <RefreshCw className="h-4 w-4" />
             </Button>
             <Button
               variant="actionButton"
@@ -70,151 +173,34 @@ const UserMessageComponent = React.memo(
             >
               <Edit3 className="h-4 w-4" />
             </Button>
-          </div>
-
-          {/* Message bubble */}
-          <div
-            ref={ref}
-            className={cn(
-              needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
-              'display-linebreak flex w-fit flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
-            )}
-          >
-            {m.content}
+            <Button
+              variant="actionButton"
+              size="icon"
+              className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+              onClick={handleDelete}
+              title="Delete message"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
     );
-  }),
-);
-
-const AssistantMessageComponent = React.memo(
-  // eslint-disable-next-line react/no-unused-prop-types
-  React.forwardRef<
-    HTMLDivElement,
-    {
-      m: MultipleChoiceMessage;
-      onMessageEdit: (toEdit: string, id: string, choice: number) => {};
-      onMessageDelete: (id: string) => {};
-      onMessageRegen: (id: string) => {};
-      onSetActiveChoice: (id: string, choice: number) => {};
-    }
-  >(
-    (
-      { m, onMessageEdit, onMessageDelete, onMessageRegen, onSetActiveChoice },
-      ref,
-    ) => {
-      const handlePrevChoice = React.useCallback(() => {
-        onSetActiveChoice(m.id, m.activeChoice - 1);
-      }, [m.id, m.activeChoice, onSetActiveChoice]);
-
-      const handleNextChoice = React.useCallback(() => {
-        onSetActiveChoice(m.id, m.activeChoice + 1);
-      }, [m.id, m.activeChoice, onSetActiveChoice]);
-
-      const handleEdit = React.useCallback(() => {
-        onMessageEdit(m.choices[m.activeChoice].content, m.id, m.activeChoice);
-      }, [m.activeChoice, m.choices, m.id, onMessageEdit]);
-
-      const handleRegen = React.useCallback(() => {
-        onMessageRegen(m.id);
-      }, [m.id, onMessageRegen]);
-
-      const handleDelete = React.useCallback(() => {
-        onMessageDelete(m.id);
-      }, [m.id, onMessageDelete]);
-
-      return (
-        <div
-          ref={ref}
-          className="group/textbox flex w-full flex-col gap-0.5 self-start"
-        >
-          <div className="mb-2 w-full text-center text-xs text-muted-foreground">
-            {formatTimestamp(m.choices[m.activeChoice].timestamp)}
-          </div>
-          <div className="display-linebreak markdown px-4 py-2">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              className="markdown prose prose-neutral max-w-none dark:prose-invert"
-            >
-              {m.choices[m.activeChoice].content}
-            </ReactMarkdown>
-          </div>
-          {/* Action buttons */}
-          <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
-            <div
-              className={cn(
-                'flex select-none items-center',
-                m.choices.length === 1 && 'hidden',
-              )}
-            >
-              <Button
-                variant="actionButton"
-                size="icon"
-                disabled={m.activeChoice === 0}
-                onClick={handlePrevChoice}
-                title="Previous response"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              {m.activeChoice + 1} / {m.choices.length}
-              <Button
-                variant="actionButton"
-                size="icon"
-                disabled={m.activeChoice === m.choices.length - 1}
-                onClick={handleNextChoice}
-                title="Next response"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="flex items-center">
-              <Button
-                variant="actionButton"
-                size="icon"
-                className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
-                onClick={handleRegen}
-                title="Regenerate response"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="actionButton"
-                size="icon"
-                className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
-                onClick={handleEdit}
-                title="Edit message"
-              >
-                <Edit3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="actionButton"
-                size="icon"
-                className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
-                onClick={handleDelete}
-                title="Delete message"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-      );
-    },
-  ),
+  },
 );
 
 const PromptMessageComponent = React.memo(
-  // eslint-disable-next-line react/no-unused-prop-types
-  React.forwardRef<
-    HTMLDivElement,
-    {
-      m: PromptMessage;
-      isConcat: boolean;
-      onMessageDelete: (id: string) => {};
-      needsAnimate?: boolean;
-    }
-  >(({ m, isConcat, onMessageDelete, needsAnimate }, ref) => {
+  ({
+    m,
+    isConcat,
+    onMessageDelete,
+    needsAnimate,
+  }: {
+    m: PromptMessage;
+    isConcat: boolean;
+    onMessageDelete: (id: string) => void;
+    needsAnimate?: boolean;
+  }) => {
     const handleDelete = React.useCallback(() => {
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
@@ -223,7 +209,6 @@ const PromptMessageComponent = React.memo(
       <div className="group/textbox flex w-full flex-col items-end">
         {isConcat && <div className="text-muted-foreground">+</div>}
         <div
-          ref={ref}
           className={cn(
             needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
             'flex w-fit max-w-[400px] gap-0.5',
@@ -268,7 +253,7 @@ const PromptMessageComponent = React.memo(
         </div>
       </div>
     );
-  }),
+  },
 );
 
 const StreamingAssistantMessageComponent = React.memo(
@@ -295,16 +280,17 @@ const StreamingAssistantMessageComponent = React.memo(
             isStreaming && 'flex',
           )}
         >
-          <div className="mb-2 w-full animate-pulse text-center text-xs text-muted-foreground duration-1000">
-            Thinking...
-          </div>
-          <div className="display-linebreak markdown px-4 py-2">
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              className="markdown prose prose-neutral max-w-none dark:prose-invert"
-            >
-              {text}
-            </ReactMarkdown>
+          <div className="display-linebreak markdown flex animate-pulse items-center px-4 py-2">
+            {text ? (
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                className="markdown prose prose-neutral max-w-none dark:prose-invert"
+              >
+                {`${text} **■**`}
+              </ReactMarkdown>
+            ) : (
+              <span>Thinking...</span>
+            )}
           </div>
           {/* Action buttons here keep spacing the same */}
           <div className="flex items-center gap-0.5 text-xs text-muted-foreground opacity-0">
@@ -331,23 +317,24 @@ const Messages = React.memo(
     onMessageDelete,
     onSetActiveChoice,
     onMessageRegen,
+    onNeedsScroll,
     isStreaming,
     streamHandle,
   }: {
     messages: Chat['messages'];
-    onMessageEdit: (toEdit: string, id: string, choice?: number) => {};
-    onMessageDelete: (id: string) => {};
-    onSetActiveChoice: (id: string, choice: number) => {};
-    onMessageRegen: (id: string) => {};
+    onMessageEdit: (toEdit: string, id: string, choice?: number) => void;
+    onMessageDelete: (id: string) => void;
+    onSetActiveChoice: (id: string, choice: number) => void;
+    onMessageRegen: (id: string) => void;
+    onNeedsScroll: () => void;
     isStreaming: boolean;
     streamHandle: React.MutableRefObject<StreamingMessageHandle | null>;
   }) => {
     const [displayMessages, setDisplayMessages] = React.useState<
       Array<DisplayMessage>
     >([]);
-    const scrollRef = React.useRef<HTMLDivElement>(null);
-    const needsScroll = React.useRef<boolean>(false);
     const needsAnimate = React.useRef<boolean>(false);
+    const willNeedScroll = React.useRef<boolean>(false);
     const prevMRef = React.useRef<PromptMessage['type'] | null>(null);
 
     useEffect(() => {
@@ -355,9 +342,19 @@ const Messages = React.memo(
         const resolvedMessages =
           await ChatOperations.buildDisplayMessages(messages);
 
-        // If new messages are added, scroll to the bottom
-        if (displayMessages.length < resolvedMessages.length)
-          needsScroll.current = true;
+        // Scroll to bottom on first render
+        if (displayMessages.length === 0 && resolvedMessages.length !== 0) {
+          willNeedScroll.current = true;
+        }
+
+        // Scroll to bottom if new non-assistant messages are added
+        if (
+          displayMessages.length !== 0 &&
+          resolvedMessages.length > displayMessages.length &&
+          resolvedMessages[resolvedMessages.length - 1].type !== 'assistant'
+        ) {
+          willNeedScroll.current = true;
+        }
 
         // Animates new messages
         if (
@@ -376,23 +373,23 @@ const Messages = React.memo(
     }, [messages]);
 
     useEffect(() => {
-      if (needsScroll.current && scrollRef.current) {
-        requestAnimationFrame(() => {
-          scrollRef.current?.scrollIntoView({
-            behavior: 'instant',
-            block: 'start',
-          });
-        });
-
-        needsScroll.current = false;
+      if (willNeedScroll.current) {
+        onNeedsScroll();
+        willNeedScroll.current = false;
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [displayMessages]);
+
+    useEffect(() => {
+      if (isStreaming) {
+        onNeedsScroll();
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isStreaming]);
 
     return (
       <div className="mx-auto flex max-w-[800px] flex-col gap-4 p-4">
         {displayMessages.map((m, i) => {
-          const ref = i === displayMessages.length - 1 ? scrollRef : undefined;
-
           if (m.type === 'user') {
             prevMRef.current = null;
 
@@ -400,7 +397,6 @@ const Messages = React.memo(
               <UserMessageComponent
                 key={m.item.id}
                 m={m.item as Message}
-                ref={ref}
                 onMessageEdit={onMessageEdit}
                 onMessageDelete={onMessageDelete}
                 needsAnimate={needsAnimate.current}
@@ -415,7 +411,6 @@ const Messages = React.memo(
               <AssistantMessageComponent
                 key={m.item.id}
                 m={m.item as MultipleChoiceMessage}
-                ref={ref}
                 onMessageEdit={onMessageEdit}
                 onMessageDelete={onMessageDelete}
                 onMessageRegen={onMessageRegen}
@@ -439,7 +434,6 @@ const Messages = React.memo(
                 key={m.item.id}
                 m={mitem}
                 isConcat={isConcat}
-                ref={ref}
                 onMessageDelete={onMessageDelete}
                 needsAnimate={needsAnimate.current}
               />
