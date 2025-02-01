@@ -58,7 +58,7 @@ export function getConfig(): Config {
     // @ts-ignore
     apiKey: store.get('apiKey') as string,
     // @ts-ignore
-    selectedModel: store.get('selectedModel') as string,
+    modelSelection: store.get('modelSelection') as string[],
     // @ts-ignore
     theme: store.get('theme') as 'system' | 'light' | 'dark',
     // @ts-ignore

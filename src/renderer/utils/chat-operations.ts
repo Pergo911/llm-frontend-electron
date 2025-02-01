@@ -256,7 +256,7 @@ const insertMessage = async (
 };
 
 /**
- * Adds a new choice to an assistant message
+ * Adds a new choice to an assistant message and sets it as active
  * @param chat The chat containing the message
  * @param messageId ID of the message to add the choice to
  * @param content Content of the new choice
@@ -294,6 +294,9 @@ const insertChoice = async (
     timestamp: Date.now(),
     content,
   });
+
+  // Set new choice as active
+  message.activeChoice = message.choices.length - 1;
 
   // Replace old message
   const newChat: Chat = { ...chat, messages: [...chat.messages] };
@@ -489,6 +492,8 @@ const streamingRequest = async (
     | 'abort'
     | null = null;
 
+  console.log('GOT:', messages);
+
   try {
     const newConfig = await window.electron.fileOperations.getConfig();
 
@@ -517,7 +522,7 @@ const streamingRequest = async (
 
     // Always use latest values from config
     const completion = await openAI.chat.completions.create({
-      model: newConfig.selectedModel,
+      model: newConfig.modelSelection[0],
       messages,
       stream: true,
     });
@@ -554,6 +559,87 @@ const streamingRequest = async (
   }
 };
 
+/**
+ * Retrieves available models from OpenAI API and merges them with stored models
+ * @returns Promise containing either an array of model IDs or an error
+ * @example
+ * const {models, error} = await ChatOperations.getModels();
+ * // models = ['gpt-4', 'gpt-3.5-turbo', ...]
+ */
+const getModels = async (): Promise<{
+  models: string[] | null;
+  error: string | null;
+}> => {
+  try {
+    const newConfig = await window.electron.fileOperations.getConfig();
+
+    // Create new OpenAI instance if it doesn't exist or if config has changed
+    if (
+      !openAI ||
+      !config ||
+      config.apiKey !== newConfig.apiKey ||
+      config.baseUrl !== newConfig.baseUrl
+    ) {
+      config = newConfig;
+      openAI = new OpenAI({
+        baseURL: config.baseUrl,
+        apiKey: config.apiKey,
+        dangerouslyAllowBrowser: true,
+      });
+    }
+
+    const rawList = (await openAI.models.list()).data.map((m) => m.id);
+    const storedModels = newConfig.modelSelection;
+
+    // Remove stored models that are no longer available
+    const models = storedModels.filter((m) => rawList.includes(m));
+
+    // Add new models to the list
+    rawList.forEach((m) => {
+      if (!models.includes(m)) {
+        models.push(m);
+      }
+    });
+
+    return { models, error: null };
+  } catch (e) {
+    return { models: null, error: `${e as Error}` };
+  }
+};
+
+/**
+ * Inserts the given model at the start of the model selection list
+ * @param model Model ID to prioritize
+ * @returns Promise containing an error message or null
+ * @example
+ * const { error } = await ChatOperations.selectModel('gpt-4');
+ * // Selects 'gpt-4' as the primary model
+ * // error is null if successful, otherwise contains an error message
+ */
+const selectModel = async (
+  model: string,
+): Promise<{ error: string | null }> => {
+  const selection = (await window.electron.fileOperations.getConfig())
+    .modelSelection;
+
+  // Remove model from current position if it exists
+  const modelIndex = selection.indexOf(model);
+  if (modelIndex !== -1) {
+    selection.splice(modelIndex, 1);
+  }
+
+  // Add model to beginning of array
+  selection.unshift(model);
+
+  // Update config
+  const { error } = await window.electron.fileOperations.setConfig(
+    'modelSelection',
+    selection,
+  );
+
+  return { error };
+};
+
 export const ChatOperations = {
   buildDisplayMessages,
   buildRequestMessages,
@@ -563,4 +649,5 @@ export const ChatOperations = {
   deleteMessages,
   setActiveChoice,
   streamingRequest,
+  getModels,
 };
