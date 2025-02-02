@@ -1,3 +1,6 @@
+/* eslint-disable promise/always-return */
+/* eslint-disable promise/catch-or-return */
+/* eslint-disable camelcase */
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-nested-ternary */
 import React, { useCallback, useEffect } from 'react';
@@ -46,16 +49,12 @@ import {
   CommandItem,
 } from './ui/command';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Input } from './ui/input';
+import { Slider } from './ui/slider';
 
+// Used to display home icon, kept for consistency
 const HomeBreadcrumb = () => {
-  return (
-    <BreadcrumbList>
-      <BreadcrumbItem>
-        <Home className="h-4 w-4" />
-        Home
-      </BreadcrumbItem>
-    </BreadcrumbList>
-  );
+  return null;
 };
 
 const ChatBreadcrumb = ({ chatData }: { chatData: string | undefined }) => {
@@ -260,7 +259,11 @@ const ModelSelector = () => {
                           )}
                         />
                       )}
-                      {model}
+                      <span
+                        className={cn(model === selectedModel && 'font-bold')}
+                      >
+                        {model}
+                      </span>
                     </CommandItem>
                   );
                 })}
@@ -273,23 +276,252 @@ const ModelSelector = () => {
 };
 
 function GenSettings() {
+  const [max_tokens, setMaxTokens] = React.useState(4096);
+  const [max_tokensInvalid, setMaxTokensInvalid] = React.useState(false);
+  const [top_p, setTopP] = React.useState(0.9);
+  const [top_pInvalid, setTopPInvalid] = React.useState(false);
+  const [temperature, setTemperature] = React.useState(0.9);
+  const [temperatureInvalid, setTemperatureInvalid] = React.useState(false);
+  const [stop, setStop] = React.useState<string[] | null>(null);
+  const [stopInvalid, setStopInvalid] = React.useState(false);
+
+  const [stopRaw, setStopRaw] = React.useState<string>('');
+
+  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  const invalid =
+    max_tokensInvalid || top_pInvalid || temperatureInvalid || stopInvalid;
+
+  useEffect(() => {
+    const loadSettings = async () => {
+      const config = await window.electron.fileOperations.getConfig();
+
+      const { genSettings } = config;
+
+      if (!genSettings) {
+        setError('Failed to load settings');
+        return;
+      }
+
+      setMaxTokens(genSettings.max_tokens);
+      setTopP(genSettings.top_p);
+      setTemperature(genSettings.temperature);
+      setStop(genSettings.stop);
+      setStopRaw(
+        genSettings.stop.length !== 0 ? JSON.stringify(genSettings.stop) : '',
+      );
+    };
+
+    if (loading) loadSettings().then(() => setLoading(false));
+  }, [loading]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+      setError(null);
+    }
+  }, [error]);
+
+  const validateInputs = useCallback(() => {
+    // Max tokens validation
+    setMaxTokensInvalid(max_tokens < 1 || !Number.isInteger(max_tokens));
+
+    // Temperature validation
+    setTemperatureInvalid(temperature < 0 || temperature > 5);
+
+    // Top P validation
+    setTopPInvalid(top_p < 0 || top_p > 1);
+
+    // Stop sequences validation
+    try {
+      if (stopRaw.trim() === '') {
+        setStop(null);
+        setStopInvalid(false);
+      } else {
+        const parsed = JSON.parse(stopRaw);
+        const isValid =
+          Array.isArray(parsed) &&
+          parsed.length <= 4 &&
+          parsed.every((item) => typeof item === 'string');
+        setStopInvalid(!isValid);
+        if (isValid) {
+          setStop(parsed);
+        }
+      }
+    } catch {
+      setStopInvalid(true);
+    }
+  }, [max_tokens, temperature, top_p, stopRaw]);
+
+  useEffect(() => {
+    validateInputs();
+  }, [max_tokens, temperature, top_p, stopRaw, validateInputs]);
+
+  useEffect(() => {
+    // Don't auto-save if loading hasn't finished yet.
+    if (loading) return;
+
+    // Don't auto-save if there are any invalid values.
+    if (invalid) return;
+
+    const debounceTimer = setTimeout(() => {
+      window.electron.fileOperations
+        .setConfig('genSettings', {
+          max_tokens,
+          top_p,
+          temperature,
+          stop: stop ?? [],
+        })
+        .then(({ error }) => {
+          if (error) {
+            toast.error(error);
+          }
+        });
+    }, 1000); // 1000ms debounce
+
+    // eslint-disable-next-line consistent-return
+    return () => clearTimeout(debounceTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invalid, max_tokens, top_p, temperature, stop]);
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          aria-label="Generation settings"
-          className="group/button non-draggable"
-          variant="ghost"
-          size="sm"
-        >
-          <SlidersHorizontal />
-          <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground" />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" align="end">
-        Generation settings
-      </TooltipContent>
-    </Tooltip>
+    <Popover>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              aria-label="Generation settings"
+              className="group/button non-draggable"
+              variant="ghost"
+              size="sm"
+            >
+              <div className="relative">
+                {invalid && (
+                  <>
+                    <div className="absolute right-0 top-0 h-2 w-2 animate-pulse rounded-full bg-red-500" />
+                    <div className="absolute right-0 top-0 h-2 w-2 animate-ping rounded-full bg-red-500" />
+                  </>
+                )}
+                <SlidersHorizontal />
+              </div>
+              <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground" />
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" align="end">
+          {invalid ? `Invalid generation settings!` : 'Generation settings'}
+        </TooltipContent>
+      </Tooltip>
+      <PopoverContent
+        className="non-draggable w-[300px] p-0"
+        side="bottom"
+        align="end"
+      >
+        <div className="flex flex-col gap-2 p-4">
+          {/* Max tokens: int, default: 4096, min: 1 */}
+          <div className="text-sm font-bold">
+            Max new tokens{' '}
+            <span className="font-normal text-muted-foreground">(1{'<'})</span>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              className={cn(
+                'flex-[2]',
+                max_tokensInvalid &&
+                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+              )}
+              value={max_tokens}
+              onChange={(e) => setMaxTokens(Number(e.target.value))}
+              step={1}
+              min={1}
+            />
+          </div>
+
+          {/* Temperature: float, default: 0.9, min: 0, max: 5 */}
+          <div className="text-sm font-bold">
+            Temperature{' '}
+            <span className="font-normal text-muted-foreground">(0-5)</span>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              className={cn(
+                'flex-[2]',
+                temperatureInvalid &&
+                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+              )}
+              value={temperature}
+              onChange={(e) => setTemperature(Number(e.target.value))}
+              min={0}
+              max={5}
+              step={0.1}
+            />
+            <Slider
+              className={cn(
+                'flex-[8]',
+                temperatureInvalid && 'text-red-600 dark:text-red-400',
+              )}
+              min={0}
+              max={2}
+              step={0.1}
+              value={[temperature]}
+              onValueChange={(value) => setTemperature(value[0])}
+            />
+          </div>
+
+          {/* Top P: float, default: 0.9, min: 0, max: 1 */}
+          <div className="text-sm font-bold">
+            Top P{' '}
+            <span className="font-normal text-muted-foreground">(0-1)</span>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              type="number"
+              className={cn(
+                'flex-[2]',
+                top_pInvalid &&
+                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+              )}
+              min={0}
+              max={1}
+              value={top_p}
+              onChange={(e) => setTopP(Number(e.target.value))}
+              step={0.1}
+            />
+            <Slider
+              className={cn(
+                'flex-[8]',
+                top_pInvalid && 'text-red-600 dark:text-red-400',
+              )}
+              min={0}
+              max={1}
+              step={0.1}
+              value={[top_p]}
+              onValueChange={(value) => setTopP(value[0])}
+            />
+          </div>
+
+          {/* Stop sequences: string[]; up to 4 items */}
+          <div className="text-sm font-bold">
+            Stop sequences{' '}
+            <span className="font-normal text-muted-foreground">(max 4)</span>
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder='["\n", "You:"]'
+              value={stopRaw}
+              onChange={(e) => setStopRaw(e.target.value)}
+              className={cn(
+                stopInvalid &&
+                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+              )}
+            />
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 

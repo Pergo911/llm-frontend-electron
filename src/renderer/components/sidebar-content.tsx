@@ -96,9 +96,9 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                       </div>
                     )}
                     {item.items.map((item) => (
-                      <Tooltip>
+                      <Tooltip key={item.id}>
                         <TooltipTrigger className="w-full" asChild>
-                          <NavLink key={item.id} to={`/p/${item.id}`}>
+                          <NavLink to={`/p/${item.id}`}>
                             {({ isActive }) => {
                               return (
                                 <SidebarMenuSubItem>

@@ -80,6 +80,18 @@ export function getConfig(): Config {
     sidebarState: store.get('sidebarState') as boolean,
     // @ts-ignore
     useLegacyRoleNames: store.get('useLegacyRoleNames') as boolean,
+    // @ts-ignore
+    genSettings: (store.get('genSettings') as {
+      max_tokens: number;
+      temperature: number;
+      top_p: number;
+      stop: string[];
+    }) ?? {
+      max_tokens: 4096,
+      temperature: 0.9,
+      top_p: 0.9,
+      stop: [],
+    },
   };
 
   return config;

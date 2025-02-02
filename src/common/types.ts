@@ -28,6 +28,35 @@ export const ConfigSchema = {
     type: 'boolean',
     default: false,
   },
+  genSettings: {
+    type: 'object',
+    properties: {
+      max_tokens: {
+        type: 'integer',
+        default: 4096,
+        minimum: 1,
+      },
+      temperature: {
+        type: 'number',
+        default: 0.9,
+        minimum: 0,
+        maximum: 5,
+      },
+      top_p: {
+        type: 'number',
+        default: 1,
+        minimum: 0,
+        maximum: 1,
+      },
+      stop: {
+        type: 'array',
+        items: {
+          type: 'string',
+        },
+        maxItems: 4,
+      },
+    },
+  },
 };
 
 export type Config = {
@@ -38,6 +67,12 @@ export type Config = {
   saveFilePath: string;
   sidebarState: boolean;
   useLegacyRoleNames: boolean;
+  genSettings: {
+    max_tokens: number;
+    temperature: number;
+    top_p: number;
+    stop: string[];
+  };
 };
 
 export type ChatEntry = {

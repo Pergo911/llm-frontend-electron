@@ -492,8 +492,6 @@ const streamingRequest = async (
     | 'abort'
     | null = null;
 
-  console.log('GOT:', messages);
-
   try {
     const newConfig = await window.electron.fileOperations.getConfig();
 
@@ -523,6 +521,10 @@ const streamingRequest = async (
     // Always use latest values from config
     const completion = await openAI.chat.completions.create({
       model: newConfig.modelSelection[0],
+      max_tokens: newConfig.genSettings.max_tokens,
+      temperature: newConfig.genSettings.temperature,
+      top_p: newConfig.genSettings.top_p,
+      stop: newConfig.genSettings.stop,
       messages,
       stream: true,
     });

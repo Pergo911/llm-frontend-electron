@@ -275,22 +275,20 @@ const StreamingAssistantMessageComponent = React.memo(
       return (
         <div
           className={cn(
-            'group/textbox hidden w-full flex-col gap-0.5 self-start',
+            'group/textbox hidden w-full animate-pulse flex-col gap-0.5 self-start',
             isStreaming && 'flex',
           )}
         >
-          <div className="display-linebreak markdown flex animate-pulse items-center px-4 py-2">
-            {text ? (
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
-                className="markdown prose prose-neutral max-w-none dark:prose-invert"
-              >
-                {`${text} **■**`}
-              </ReactMarkdown>
-            ) : (
-              <span>Thinking...</span>
-            )}
-          </div>
+          {text ? (
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              className="display-linebreak markdown px-4 py-2"
+            >
+              {`${text} ■`}
+            </ReactMarkdown>
+          ) : (
+            <span>Thinking...</span>
+          )}
           {/* Action buttons here keep spacing the same */}
           <div className="flex items-center gap-0.5 text-xs text-muted-foreground opacity-0">
             <div className="flex items-center">

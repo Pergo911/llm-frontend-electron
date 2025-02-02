@@ -155,6 +155,7 @@
     @apply !max-h-[400px];
     @apply !w-full;
     @apply !min-w-0;
+    @apply !w-full;
     @apply !rounded-lg;
     @apply !p-2;
     @apply !overflow-auto;
