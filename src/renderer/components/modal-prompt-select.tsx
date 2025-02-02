@@ -159,23 +159,26 @@ const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
                       {f.items.map((p) => {
                         return (
                           <SidebarMenuSubItem key={p.id}>
-                            <SidebarMenuSubButton
-                              onClick={() => {
-                                handleConfirm(p.id, p.type);
-                              }}
-                              className="group/sub flex cursor-pointer select-none justify-between"
-                            >
-                              <div className="flex items-center text-sm">
-                                {p.type === 'user' ? (
-                                  <Notebook className="mr-2 h-4 w-4" />
-                                ) : (
-                                  <SquareTerminal className="mr-2 h-4 w-4" />
-                                )}
-                                {p.title}
-                              </div>
-                              <div className="hidden text-sm font-bold text-muted-foreground group-hover/sub:block">
-                                Add
-                              </div>
+                            <SidebarMenuSubButton asChild>
+                              <Button
+                                variant="ghost"
+                                className="group/sub flex w-full cursor-pointer select-none justify-between"
+                                onClick={() => {
+                                  handleConfirm(p.id, p.type);
+                                }}
+                              >
+                                <div className="flex items-center text-sm">
+                                  {p.type === 'user' ? (
+                                    <Notebook className="mr-2 h-4 w-4" />
+                                  ) : (
+                                    <SquareTerminal className="mr-2 h-4 w-4" />
+                                  )}
+                                  {p.title}
+                                </div>
+                                <div className="hidden text-sm font-bold text-muted-foreground group-hover/sub:block group-focus/sub:block">
+                                  Add
+                                </div>
+                              </Button>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         );

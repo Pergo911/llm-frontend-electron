@@ -4,6 +4,7 @@ import { ChatInputBarActions } from '@/common/types';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { cn } from '../utils/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 const ChatInputBar = React.memo(
   ({
@@ -106,22 +107,29 @@ const ChatInputBar = React.memo(
               Prompt
             </Button>
             <div className="flex items-center">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => {
-                  setSendAs(sendAs === 'user' ? 'assistant' : 'user');
-                }}
-                title={
-                  sendAs === 'user' ? 'Sending as user' : 'Sending as assistant'
-                }
-                disabled={(overrideCanSend && !canSend) || isStreaming}
-                className={cn(
-                  ((overrideCanSend && !canSend) || isStreaming) && 'hidden',
-                )}
-              >
-                {sendAs === 'user' ? <User2 /> : <Bot />}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      setSendAs(sendAs === 'user' ? 'assistant' : 'user');
+                    }}
+                    disabled={(overrideCanSend && !canSend) || isStreaming}
+                    className={cn(
+                      ((overrideCanSend && !canSend) || isStreaming) &&
+                        'hidden',
+                    )}
+                  >
+                    {sendAs === 'user' ? <User2 /> : <Bot />}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {sendAs === 'user'
+                    ? 'Sending as user'
+                    : 'Sending as assistant'}
+                </TooltipContent>
+              </Tooltip>
               <div className="w-2" />
               <Button
                 variant="default"

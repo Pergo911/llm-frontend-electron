@@ -22,13 +22,7 @@ async function getSaveFile(): Promise<{
 
   try {
     if (!existsSync(path)) {
-      const emptySaveFile: SaveFile = {
-        chats: [],
-        prompts: [],
-        folders: [],
-      };
-      await writeFile(path, JSON.stringify(emptySaveFile, null, 2), 'utf-8');
-      return { saveFile: emptySaveFile, error: null };
+      return { saveFile: null, error: 'Savefile not found' };
     }
 
     const saveFileContents = await readFile(path, 'utf-8');
@@ -47,6 +41,25 @@ async function openSaveFilePickerModal(window: BrowserWindow) {
     filters: [{ name: 'JSON', extensions: ['json'] }],
     properties: ['createDirectory', 'dontAddToRecent'],
   });
+
+  if (!canceled && filePath) {
+    try {
+      if (!existsSync(filePath)) {
+        const emptySaveFile: SaveFile = {
+          chats: [],
+          prompts: [],
+          folders: [],
+        };
+        await writeFile(
+          filePath,
+          JSON.stringify(emptySaveFile, null, 2),
+          'utf-8',
+        );
+      }
+    } catch (e) {
+      return { canceled: true, filePath: '' };
+    }
+  }
 
   return { canceled, filePath };
 }

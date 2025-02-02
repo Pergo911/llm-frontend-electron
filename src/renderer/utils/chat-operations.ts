@@ -650,4 +650,5 @@ export const ChatOperations = {
   setActiveChoice,
   streamingRequest,
   getModels,
+  selectModel,
 };

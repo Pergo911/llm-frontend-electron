@@ -24,6 +24,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from './ui/collapsible';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
   return (
@@ -37,18 +38,23 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
             )}
             {data.map((item) => (
               <SidebarMenuItem key={item.id}>
-                <NavLink to={`/c/${item.id}`}>
-                  {({ isActive }) => {
-                    return (
-                      <SidebarMenuButton isActive={isActive} asChild>
-                        <div className="flex">
-                          <MessageCircle className="h-4 w-4" />
-                          <span className="truncate">{item.title}</span>
-                        </div>
-                      </SidebarMenuButton>
-                    );
-                  }}
-                </NavLink>
+                <Tooltip>
+                  <TooltipTrigger asChild className="w-full">
+                    <NavLink to={`/c/${item.id}`}>
+                      {({ isActive }) => {
+                        return (
+                          <SidebarMenuButton isActive={isActive} asChild>
+                            <div className="flex">
+                              <MessageCircle className="h-4 w-4" />
+                              <span className="truncate">{item.title}</span>
+                            </div>
+                          </SidebarMenuButton>
+                        );
+                      }}
+                    </NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{item.title}</TooltipContent>
+                </Tooltip>
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
@@ -69,14 +75,19 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
           {data.map((item) => (
             <Collapsible key={item.title} className="group/collapsible">
               <SidebarMenuItem>
-                <CollapsibleTrigger asChild>
-                  <SidebarMenuButton>
-                    <Folder className="mr-2" />
-                    <span className="truncate">{item.title}</span>
-                    <Plus className="ml-auto group-data-[state=open]/collapsible:hidden" />
-                    <Minus className="ml-auto group-data-[state=closed]/collapsible:hidden" />
-                  </SidebarMenuButton>
-                </CollapsibleTrigger>
+                <Tooltip>
+                  <TooltipTrigger className="w-full" asChild>
+                    <CollapsibleTrigger asChild>
+                      <SidebarMenuButton>
+                        <Folder className="mr-2" />
+                        <span className="truncate">{item.title}</span>
+                        <Plus className="ml-auto group-data-[state=open]/collapsible:hidden" />
+                        <Minus className="ml-auto group-data-[state=closed]/collapsible:hidden" />
+                      </SidebarMenuButton>
+                    </CollapsibleTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">{item.title}</TooltipContent>
+                </Tooltip>
                 <CollapsibleContent>
                   <SidebarMenuSub>
                     {item.items.length === 0 && (
@@ -85,22 +96,31 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                       </div>
                     )}
                     {item.items.map((item) => (
-                      <NavLink key={item.id} to={`/p/${item.id}`}>
-                        {({ isActive }) => {
-                          return (
-                            <SidebarMenuSubItem>
-                              <SidebarMenuSubButton isActive={isActive}>
-                                {item.type === 'user' ? (
-                                  <Notebook className="mr-2" />
-                                ) : (
-                                  <SquareTerminal className="mr-2" />
-                                )}
-                                <span className="truncate">{item.title}</span>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          );
-                        }}
-                      </NavLink>
+                      <Tooltip>
+                        <TooltipTrigger className="w-full" asChild>
+                          <NavLink key={item.id} to={`/p/${item.id}`}>
+                            {({ isActive }) => {
+                              return (
+                                <SidebarMenuSubItem>
+                                  <SidebarMenuSubButton isActive={isActive}>
+                                    {item.type === 'user' ? (
+                                      <Notebook className="mr-2" />
+                                    ) : (
+                                      <SquareTerminal className="mr-2" />
+                                    )}
+                                    <span className="truncate">
+                                      {item.title}
+                                    </span>
+                                  </SidebarMenuSubButton>
+                                </SidebarMenuSubItem>
+                              );
+                            }}
+                          </NavLink>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          {item.title}
+                        </TooltipContent>
+                      </Tooltip>
                     ))}
                   </SidebarMenuSub>
                 </CollapsibleContent>

@@ -10,6 +10,7 @@ import HomePage from './components/home-page';
 import ChatPage from './components/chat-page';
 import PromptPage from './components/prompt-page';
 import TitleBar from './components/title-bar';
+import { TooltipProvider } from './components/ui/tooltip';
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -71,13 +72,15 @@ export default function App() {
   return (
     <MemoryRouter>
       <ThemeProvider>
-        <SidebarProvider>
-          <AppSidebar />
-          <SidebarInset className="bg-sidebar">
-            <TitleBar />
-            <AppRoutes />
-          </SidebarInset>
-        </SidebarProvider>
+        <TooltipProvider>
+          <SidebarProvider>
+            <AppSidebar />
+            <SidebarInset className="bg-sidebar">
+              <TitleBar />
+              <AppRoutes />
+            </SidebarInset>
+          </SidebarProvider>
+        </TooltipProvider>
       </ThemeProvider>
       <Toaster />
     </MemoryRouter>

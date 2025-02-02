@@ -5,6 +5,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/renderer/components/ui/sidebar';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export function SidebarToggle({
   callback,
@@ -18,7 +19,6 @@ export function SidebarToggle({
       <SidebarMenuItem>
         <SidebarMenuButton
           aria-label="Swap pages"
-          title="Swap pages"
           className="group/button"
           size="lg"
           onClick={() => {

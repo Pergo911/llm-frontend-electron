@@ -80,7 +80,6 @@ export const AppSidebar = React.memo(
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarRail />
       </Sidebar>
     );
   },
