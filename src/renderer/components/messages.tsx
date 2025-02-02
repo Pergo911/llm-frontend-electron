@@ -116,12 +116,11 @@ const AssistantMessageComponent = React.memo<{
     return (
       <div className="group/textbox flex w-full flex-col gap-0.5 self-start">
         <div
-          className="px-4 py-2"
           title={`Sent ${formatTimestamp(m.choices[m.activeChoice].timestamp)}`}
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
-            className="display-linebreak markdown prose prose-neutral max-w-none dark:prose-invert"
+            className="display-linebreak markdown px-4 py-2"
           >
             {m.choices[m.activeChoice].content}
           </ReactMarkdown>

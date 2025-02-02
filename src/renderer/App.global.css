@@ -88,7 +88,11 @@
   }
 
   ::-webkit-scrollbar {
-    @apply w-2;
+    @apply h-2 w-2;
+  }
+
+  ::-webkit-scrollbar-corner {
+    background-color: transparent;
   }
 
   ::-webkit-scrollbar-track {
@@ -119,6 +123,10 @@
     white-space: pre-line;
   }
 
+  .markdown {
+    @apply prose prose-neutral !max-w-none dark:prose-invert;
+  }
+
   .markdown * {
     @apply !my-0;
     @apply !leading-normal;
@@ -144,9 +152,12 @@
 
   .markdown pre {
     @apply !bg-card;
+    @apply !max-h-[400px];
+    @apply !w-full;
+    @apply !min-w-0;
     @apply !rounded-lg;
     @apply !p-2;
-    @apply !overflow-x-auto;
+    @apply !overflow-auto;
   }
 
   .markdown p {

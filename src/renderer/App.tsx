@@ -75,7 +75,7 @@ export default function App() {
         <TooltipProvider>
           <SidebarProvider>
             <AppSidebar />
-            <SidebarInset className="bg-sidebar">
+            <SidebarInset className="min-w-0 bg-sidebar">
               <TitleBar />
               <AppRoutes />
             </SidebarInset>

@@ -421,7 +421,7 @@ export default function ChatPage() {
 
   return (
     <div className="h-[calc(100vh-64px)]">
-      <div className="flex h-full w-full flex-col rounded-t-xl bg-background">
+      <div className="flex h-full flex-col rounded-t-xl bg-background">
         <div className="h-full overflow-y-auto" ref={scrollRef}>
           {chat ? (
             chat.messages.length === 0 ? (
