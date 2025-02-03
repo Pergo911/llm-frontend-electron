@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Edit,
   Edit3,
+  Info,
   Notebook,
   RefreshCw,
   SquareTerminal,
@@ -24,6 +25,7 @@ import remarkGfm from 'remark-gfm';
 import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 const UserMessageComponent = React.memo<{
   m: Message;
@@ -49,7 +51,6 @@ const UserMessageComponent = React.memo<{
             size="icon"
             className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
             onClick={handleDelete}
-            title="Delete message"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -58,10 +59,24 @@ const UserMessageComponent = React.memo<{
             size="icon"
             className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
             onClick={handleEdit}
-            title="Edit message"
           >
             <Edit3 className="h-4 w-4" />
           </Button>
+          <Tooltip>
+            <TooltipTrigger>
+              <Button
+                variant="actionButton"
+                size="icon"
+                className="pointer-events-none cursor-default opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+                tabIndex={-1}
+              >
+                <Info className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="top">
+              Sent {formatTimestamp(m.timestamp)}
+            </TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Message bubble */}
@@ -70,7 +85,6 @@ const UserMessageComponent = React.memo<{
             needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
             'display-linebreak flex w-fit flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
           )}
-          title={`Sent ${formatTimestamp(m.timestamp)}`}
         >
           {m.content}
         </div>
@@ -115,16 +129,12 @@ const AssistantMessageComponent = React.memo<{
 
     return (
       <div className="group/textbox flex w-full flex-col gap-0.5 self-start">
-        <div
-          title={`Sent ${formatTimestamp(m.choices[m.activeChoice].timestamp)}`}
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          className="display-linebreak markdown px-4 py-2"
         >
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            className="display-linebreak markdown px-4 py-2"
-          >
-            {m.choices[m.activeChoice].content}
-          </ReactMarkdown>
-        </div>
+          {m.choices[m.activeChoice].content}
+        </ReactMarkdown>
         {/* Action buttons */}
         <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
           <div
@@ -138,7 +148,6 @@ const AssistantMessageComponent = React.memo<{
               size="icon"
               disabled={m.activeChoice === 0}
               onClick={handlePrevChoice}
-              title="Previous response"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -148,18 +157,29 @@ const AssistantMessageComponent = React.memo<{
               size="icon"
               disabled={m.activeChoice === m.choices.length - 1}
               onClick={handleNextChoice}
-              title="Next response"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
           <div className="flex items-center">
+            <Tooltip>
+              <TooltipTrigger>
+                <Button
+                  variant="actionButton"
+                  size="icon"
+                  className="pointer-events-none opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+                  tabIndex={-1}
+                >
+                  <Info className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{`Sent ${formatTimestamp(m.choices[m.activeChoice].timestamp)}`}</TooltipContent>
+            </Tooltip>
             <Button
               variant="actionButton"
               size="icon"
               className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
               onClick={handleRegen}
-              title="Regenerate response"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -168,7 +188,6 @@ const AssistantMessageComponent = React.memo<{
               size="icon"
               className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
               onClick={handleEdit}
-              title="Edit message"
             >
               <Edit3 className="h-4 w-4" />
             </Button>
@@ -177,7 +196,6 @@ const AssistantMessageComponent = React.memo<{
               size="icon"
               className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
               onClick={handleDelete}
-              title="Delete message"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -221,7 +239,6 @@ const PromptMessageComponent = React.memo(
                 size="icon"
                 className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
                 onClick={handleDelete}
-                title="Delete prompt"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -229,7 +246,6 @@ const PromptMessageComponent = React.memo(
           </div>
           <Link
             to={`/p/${m.promptId}`}
-            title="Edit prompt"
             className="group/promptbox flex gap-2 rounded-lg border border-sidebar-border bg-card p-2 text-card-foreground hover:bg-accent"
           >
             {m.type === 'user' ? (

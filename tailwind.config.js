@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 const animate = require('tailwindcss-animate');
 const typography = require('@tailwindcss/typography');
+const containerQueries = require('@tailwindcss/container-queries');
 
 module.exports = {
   content: ['./src/renderer/**/*.{js,jsx,ts,tsx,ejs}'],
@@ -62,5 +63,5 @@ module.exports = {
   variants: {
     extend: {},
   },
-  plugins: [animate, typography],
+  plugins: [animate, typography, containerQueries],
 };

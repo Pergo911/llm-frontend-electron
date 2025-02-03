@@ -59,8 +59,9 @@ const HomeBreadcrumb = () => {
 
 const ChatBreadcrumb = ({ chatData }: { chatData: string | undefined }) => {
   return (
-    <BreadcrumbList>
-      <BreadcrumbItem className="min-w-0 max-w-36 lg:max-w-80">
+    <BreadcrumbList className="@container">
+      {/* Ellipsis */}
+      <BreadcrumbItem className="w-full min-w-0">
         <MessageCircle className="h-4 w-4 flex-shrink-0" />
         <span className="truncate">{chatData}</span>
       </BreadcrumbItem>
@@ -76,13 +77,17 @@ const PromptBreadcrumb = ({
     | undefined;
 }) => {
   return (
-    <BreadcrumbList className="">
-      <BreadcrumbItem className="min-w-0 max-w-36">
+    <BreadcrumbList className="@container flex flex-nowrap">
+      {/* Folder */}
+      <BreadcrumbItem className="@sm:flex hidden max-w-40">
         <Folder className="h-4 w-4 flex-shrink-0" />
         <span className="truncate">{promptData?.folder ?? ''}</span>
       </BreadcrumbItem>
-      <BreadcrumbSeparator className="" />
-      <BreadcrumbItem className="min-w-0 max-w-40">
+
+      <BreadcrumbSeparator className="@sm:block hidden" />
+
+      {/* Ellipsis */}
+      <BreadcrumbItem className="w-full min-w-0">
         {promptData?.type === 'user' ? (
           <Notebook className="h-4 w-4 flex-shrink-0" />
         ) : (
@@ -592,7 +597,7 @@ export default function TitleBar() {
       >
         <ArrowLeft className="my-auto" />
       </Button>
-      <Breadcrumb className="flex-1">
+      <Breadcrumb className="min-w-0 flex-1">
         {breadcrumbType === 'home' ? (
           <HomeBreadcrumb />
         ) : breadcrumbType === 'chat' ? (
