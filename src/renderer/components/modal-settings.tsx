@@ -22,7 +22,13 @@ import { Button } from './ui/button';
 import { useTheme } from './theme-provider';
 
 export const SettingsModal = memo(
-  ({ triggerRefresh }: { triggerRefresh: () => void }) => {
+  ({
+    triggerRefresh,
+    onSetOpen,
+  }: {
+    triggerRefresh: () => void;
+    onSetOpen: (v: boolean) => void;
+  }) => {
     const { setTheme: setAppTheme } = useTheme();
     const [theme, setTheme] = useState<Config['theme']>('system');
     const [useLegacyRoleNames, setUseLegacyRoleNames] =
@@ -31,22 +37,9 @@ export const SettingsModal = memo(
     const [apiKey, setApiKey] = useState<Config['apiKey']>('');
     const [saveFilePath, setSaveFilePath] =
       useState<Config['saveFilePath']>('');
+    const [configLoaded, setConfigLoaded] = useState(false);
 
     const themeFailed = useRef<Config['theme']>('system');
-
-    useEffect(() => {
-      const getConfig = async () => {
-        const config = await window.electron.fileOperations.getConfig();
-
-        setTheme(config.theme);
-        themeFailed.current = config.theme;
-        setUseLegacyRoleNames(config.useLegacyRoleNames);
-        setBaseUrl(config.baseUrl);
-        setApiKey(config.apiKey);
-        setSaveFilePath(config.saveFilePath);
-      };
-      getConfig();
-    }, []);
 
     const handleSave = useCallback(async () => {
       const e: Array<string | null> = [];
@@ -104,6 +97,41 @@ export const SettingsModal = memo(
           return false;
         });
     }, [handleSave, triggerRefresh]);
+
+    // First effect: load configuration.
+    useEffect(() => {
+      const getConfig = async () => {
+        const config = await window.electron.fileOperations.getConfig();
+        setTheme(config.theme);
+        themeFailed.current = config.theme;
+        setUseLegacyRoleNames(config.useLegacyRoleNames);
+        setBaseUrl(config.baseUrl);
+        setApiKey(config.apiKey);
+        setSaveFilePath(config.saveFilePath);
+        setConfigLoaded(true);
+      };
+
+      getConfig();
+    }, []);
+
+    // Second effect: register keydown event after configuration has loaded.
+    useEffect(() => {
+      if (!configLoaded) return;
+
+      const handleSaveWithCtrlEnter = (e: KeyboardEvent) => {
+        if (e.ctrlKey && e.key === 'Enter') {
+          handleSaveClick();
+          onSetOpen(false);
+        }
+      };
+
+      window.addEventListener('keydown', handleSaveWithCtrlEnter);
+
+      // eslint-disable-next-line consistent-return
+      return () => {
+        window.removeEventListener('keydown', handleSaveWithCtrlEnter);
+      };
+    }, [configLoaded, handleSaveClick, onSetOpen]);
 
     return (
       <DialogContent>

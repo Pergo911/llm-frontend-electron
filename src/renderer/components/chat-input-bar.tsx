@@ -58,13 +58,13 @@ const ChatInputBar = React.memo(
     }
 
     const handleSend = React.useCallback(() => {
-      if (canSend || overrideCanSend) {
+      if ((canSend || overrideCanSend) && !isStreaming) {
         onSend(value, overrideCanSend && value === '' ? 'user' : sendAs);
         setSendAs(defaultSendAs);
         setValue('');
         resetHeight();
       }
-    }, [canSend, onSend, overrideCanSend, sendAs, value]);
+    }, [canSend, isStreaming, onSend, overrideCanSend, sendAs, value]);
 
     const handleKeyDown = React.useCallback(
       (e: React.KeyboardEvent<HTMLTextAreaElement>) => {

@@ -225,7 +225,7 @@ const ModelSelector = () => {
           <CommandList>
             <CommandEmpty>
               {error ? (
-                <div className="leading-loose text-red-600 dark:text-red-400">
+                <div className="p-4 leading-loose text-red-600 dark:text-red-400">
                   <CircleAlert className="inline" />
                   <br />
                   {error}

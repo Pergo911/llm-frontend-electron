@@ -83,8 +83,9 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 
-  a {
-    @apply ring-ring;
+  a,
+  button {
+    @apply outline-ring;
   }
 
   ::-webkit-scrollbar {

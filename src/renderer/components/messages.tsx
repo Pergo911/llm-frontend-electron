@@ -13,6 +13,8 @@ import {
   Edit,
   Edit3,
   Info,
+  Maximize,
+  Maximize2,
   Notebook,
   RefreshCw,
   SquareTerminal,
@@ -25,7 +27,7 @@ import remarkGfm from 'remark-gfm';
 import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 
 const UserMessageComponent = React.memo<{
   m: Message;
@@ -33,6 +35,9 @@ const UserMessageComponent = React.memo<{
   onMessageDelete: (id: string) => void;
   needsAnimate?: boolean;
 }>(({ m, onMessageEdit, onMessageDelete, needsAnimate }) => {
+  const [infoOpen, setInfoOpen] = useState(false);
+  const shouldUnfocus = React.useRef(false);
+
   const handleDelete = React.useCallback(() => {
     onMessageDelete(m.id);
   }, [m.id, onMessageDelete]);
@@ -49,7 +54,11 @@ const UserMessageComponent = React.memo<{
           <Button
             variant="actionButton"
             size="icon"
-            className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+            className={cn(
+              'opacity-0 transition-opacity hover:text-red-500 focus:text-red-500',
+              'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+              infoOpen && 'opacity-100',
+            )}
             onClick={handleDelete}
           >
             <Trash2 className="h-4 w-4" />
@@ -57,26 +66,46 @@ const UserMessageComponent = React.memo<{
           <Button
             variant="actionButton"
             size="icon"
-            className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+            className={cn(
+              'opacity-0 transition-opacity',
+              'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+              infoOpen && 'opacity-100',
+            )}
             onClick={handleEdit}
           >
             <Edit3 className="h-4 w-4" />
           </Button>
-          <Tooltip>
-            <TooltipTrigger>
+          <Popover open={infoOpen} onOpenChange={setInfoOpen}>
+            <PopoverTrigger asChild>
               <Button
                 variant="actionButton"
                 size="icon"
-                className="pointer-events-none cursor-default opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
-                tabIndex={-1}
+                className={cn(
+                  'opacity-0 transition-opacity',
+                  'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+                  infoOpen && 'opacity-100',
+                )}
+                onMouseLeave={() => {
+                  setInfoOpen(false);
+                  shouldUnfocus.current = true;
+                }}
               >
                 <Info className="h-4 w-4" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent side="top">
+            </PopoverTrigger>
+            <PopoverContent
+              side="top"
+              className="w-fit rounded-md border-0 bg-card p-2 text-xs drop-shadow-md dark:border-[0.5px]"
+              onCloseAutoFocus={(e) => {
+                if (shouldUnfocus.current) {
+                  e.preventDefault();
+                  shouldUnfocus.current = false;
+                }
+              }}
+            >
               Sent {formatTimestamp(m.timestamp)}
-            </TooltipContent>
-          </Tooltip>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Message bubble */}
@@ -107,6 +136,9 @@ const AssistantMessageComponent = React.memo<{
     onMessageRegen,
     onSetActiveChoice,
   }) => {
+    const [infoOpen, setInfoOpen] = useState(false);
+    const shouldUnfocus = React.useRef(false);
+
     const handlePrevChoice = React.useCallback(() => {
       onSetActiveChoice(m.id, m.activeChoice - 1);
     }, [m.id, m.activeChoice, onSetActiveChoice]);
@@ -162,39 +194,42 @@ const AssistantMessageComponent = React.memo<{
             </Button>
           </div>
           <div className="flex items-center">
-            <Tooltip>
-              <TooltipTrigger>
+            <Popover open={infoOpen} onOpenChange={setInfoOpen}>
+              <PopoverTrigger asChild>
                 <Button
                   variant="actionButton"
                   size="icon"
-                  className="pointer-events-none opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
-                  tabIndex={-1}
+                  onMouseLeave={() => {
+                    setInfoOpen(false);
+                    shouldUnfocus.current = true;
+                  }}
                 >
                   <Info className="h-4 w-4" />
                 </Button>
-              </TooltipTrigger>
-              <TooltipContent>{`Sent ${formatTimestamp(m.choices[m.activeChoice].timestamp)}`}</TooltipContent>
-            </Tooltip>
-            <Button
-              variant="actionButton"
-              size="icon"
-              className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
-              onClick={handleRegen}
-            >
+              </PopoverTrigger>
+              <PopoverContent
+                side="top"
+                className="w-fit rounded-md border-0 bg-card p-2 text-xs drop-shadow-md dark:border-[0.5px]"
+                onCloseAutoFocus={(e) => {
+                  if (shouldUnfocus.current) {
+                    e.preventDefault();
+                    shouldUnfocus.current = false;
+                  }
+                }}
+              >
+                {`Sent ${formatTimestamp(m.choices[m.activeChoice].timestamp)}`}
+              </PopoverContent>
+            </Popover>
+            <Button variant="actionButton" size="icon" onClick={handleRegen}>
               <RefreshCw className="h-4 w-4" />
             </Button>
-            <Button
-              variant="actionButton"
-              size="icon"
-              className="opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
-              onClick={handleEdit}
-            >
+            <Button variant="actionButton" size="icon" onClick={handleEdit}>
               <Edit3 className="h-4 w-4" />
             </Button>
             <Button
               variant="actionButton"
               size="icon"
-              className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
+              className="hover:text-red-500 focus:text-red-500"
               onClick={handleDelete}
             >
               <Trash2 className="h-4 w-4" />
@@ -263,7 +298,7 @@ const PromptMessageComponent = React.memo(
                 </span>
               </div>
             </div>
-            <Edit className="mx-2 h-4 w-4 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
+            <Maximize className="mx-2 h-4 w-4 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
           </Link>
         </div>
       </div>
@@ -303,7 +338,9 @@ const StreamingAssistantMessageComponent = React.memo(
               {`${text} ■`}
             </ReactMarkdown>
           ) : (
-            <span>Thinking...</span>
+            <span className="px-4 py-2 font-bold animate-in fade-in">
+              Thinking...
+            </span>
           )}
           {/* Action buttons here keep spacing the same */}
           <div className="flex items-center gap-0.5 text-xs text-muted-foreground opacity-0">

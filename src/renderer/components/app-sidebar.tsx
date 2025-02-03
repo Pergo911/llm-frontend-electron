@@ -27,6 +27,7 @@ export const AppSidebar = React.memo(
     const [page, setPage] = React.useState<'chat' | 'prompt'>('chat');
     const [chatData, setChatData] = React.useState<ChatEntry[]>([]);
     const [promptData, setPromptData] = React.useState<PromptEntry[]>([]);
+    const [settingsOpen, setSettingsOpen] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
 
     React.useEffect(() => {
@@ -51,6 +52,10 @@ export const AppSidebar = React.memo(
       setLoading(true);
     }, []);
 
+    const handleSettingsOpen = useCallback((v: boolean) => {
+      setSettingsOpen(v);
+    }, []);
+
     return (
       <Sidebar {...props}>
         <SidebarGroup>
@@ -65,7 +70,7 @@ export const AppSidebar = React.memo(
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <Dialog>
+                <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
                   <DialogTrigger asChild>
                     <SidebarMenuButton>
                       <Settings className="mr-2" />
@@ -73,7 +78,10 @@ export const AppSidebar = React.memo(
                     </SidebarMenuButton>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px]">
-                    <SettingsModal triggerRefresh={handleRefresh} />
+                    <SettingsModal
+                      triggerRefresh={handleRefresh}
+                      onSetOpen={handleSettingsOpen}
+                    />
                   </DialogContent>
                 </Dialog>
               </SidebarMenuItem>

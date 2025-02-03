@@ -1,7 +1,7 @@
 /* eslint-disable promise/always-return */
 /* eslint-disable promise/catch-or-return */
 /* eslint-disable no-nested-ternary */
-import { useParams } from 'react-router-dom';
+import { ScrollRestoration, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import {
   Chat,
@@ -163,6 +163,8 @@ export default function ChatPage() {
     async (t: string, as: 'user' | 'assistant') => {
       if (!chat) return;
 
+      const chatRecovery = JSON.parse(JSON.stringify(chat));
+
       const { newChat, error } = await ChatOperations.insertMessage(
         chat,
         as,
@@ -180,6 +182,7 @@ export default function ChatPage() {
 
       if (abortRequestRef.current) {
         setError('Request already in progress.');
+        setChat(chatRecovery);
         return;
       }
 
@@ -336,15 +339,6 @@ export default function ChatPage() {
     async (id: string) => {
       if (!chat) return;
 
-      if (!deleteDialogRef.current) {
-        setError("Couldn't get delete confirm dialog");
-        return;
-      }
-
-      const confirmed = await deleteDialogRef.current.confirm();
-
-      if (!confirmed) return;
-
       const { newChat, error } = await ChatOperations.deleteMessages(chat, id);
 
       if (error || !newChat) {
@@ -446,6 +440,7 @@ export default function ChatPage() {
               </>
             )
           ) : null}
+          {/* <ScrollRestoration /> */}
         </div>
         <ChatInputBar
           onSend={handleSend}
