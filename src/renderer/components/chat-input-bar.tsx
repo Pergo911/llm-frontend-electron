@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bot, Plus, SendIcon, Square, User2 } from 'lucide-react';
+import { ArrowUp, Bot, Plus, SendIcon, Square, User2 } from 'lucide-react';
 import { ChatInputBarActions } from '@/common/types';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
@@ -139,7 +139,7 @@ const ChatInputBar = React.memo(
                 onClick={!isStreaming ? handleSend : onAbort}
               >
                 {!isStreaming ? (
-                  <SendIcon className="h-4 w-4" />
+                  <ArrowUp className="h-4 w-4" />
                 ) : (
                   <Square className="h-4 w-4 animate-pulse duration-1000" />
                 )}

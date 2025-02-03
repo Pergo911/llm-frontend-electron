@@ -24,6 +24,11 @@ import React, { useEffect, useImperativeHandle, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import {
+  vscDarkPlus,
+  vs,
+} from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
@@ -87,7 +92,10 @@ const UserMessageComponent = React.memo<{
                 )}
                 onMouseLeave={() => {
                   setInfoOpen(false);
+                }}
+                onMouseUp={(e) => {
                   shouldUnfocus.current = true;
+                  e.currentTarget.blur();
                 }}
               >
                 <Info className="h-4 w-4" />
@@ -122,6 +130,33 @@ const UserMessageComponent = React.memo<{
   );
 });
 
+const reactMarkdownComponents = (isDarkTheme: boolean) => {
+  return {
+    code({ ...props }) {
+      const { children, className, node, ...rest } = props;
+      const match = /language-(\w+)/.exec(className || '');
+      return (
+        <SyntaxHighlighter
+          {...rest}
+          language={match ? match[1] : 'text'}
+          PreTag="div"
+          style={isDarkTheme ? vscDarkPlus : vs}
+          customStyle={
+            {
+              padding: '0',
+              margin: '0',
+              borderWidth: 0,
+              backgroundColor: 'transparent',
+            } as React.CSSProperties
+          }
+        >
+          {String(children ?? '').replace(/\n$/, '')}
+        </SyntaxHighlighter>
+      );
+    },
+  };
+};
+
 const AssistantMessageComponent = React.memo<{
   m: MultipleChoiceMessage;
   onMessageEdit: (toEdit: string, id: string, choice: number) => void;
@@ -138,6 +173,21 @@ const AssistantMessageComponent = React.memo<{
   }) => {
     const [infoOpen, setInfoOpen] = useState(false);
     const shouldUnfocus = React.useRef(false);
+
+    const [isDarkTheme, setIsDarkTheme] = useState(false);
+
+    useEffect(() => {
+      const updateTheme = (e: MediaQueryListEvent | MediaQueryList) => {
+        setIsDarkTheme(e.matches);
+      };
+
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+      setIsDarkTheme(mediaQuery.matches);
+
+      mediaQuery.addEventListener('change', updateTheme);
+      return () => mediaQuery.removeEventListener('change', updateTheme);
+    }, []);
 
     const handlePrevChoice = React.useCallback(() => {
       onSetActiveChoice(m.id, m.activeChoice - 1);
@@ -163,6 +213,7 @@ const AssistantMessageComponent = React.memo<{
       <div className="group/textbox flex w-full flex-col gap-0.5 self-start">
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
+          components={reactMarkdownComponents(isDarkTheme)}
           className="display-linebreak markdown px-4 py-2"
         >
           {m.choices[m.activeChoice].content}
@@ -201,7 +252,10 @@ const AssistantMessageComponent = React.memo<{
                   size="icon"
                   onMouseLeave={() => {
                     setInfoOpen(false);
+                  }}
+                  onMouseUp={(e) => {
                     shouldUnfocus.current = true;
+                    e.currentTarget.blur();
                   }}
                 >
                   <Info className="h-4 w-4" />
@@ -311,6 +365,21 @@ const StreamingAssistantMessageComponent = React.memo(
     ({ isStreaming }, ref) => {
       const [text, setText] = useState('');
 
+      const [isDarkTheme, setIsDarkTheme] = useState(false);
+
+      useEffect(() => {
+        const updateTheme = (e: MediaQueryListEvent | MediaQueryList) => {
+          setIsDarkTheme(e.matches);
+        };
+
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+
+        setIsDarkTheme(mediaQuery.matches);
+
+        mediaQuery.addEventListener('change', updateTheme);
+        return () => mediaQuery.removeEventListener('change', updateTheme);
+      }, []);
+
       useImperativeHandle(ref, () => ({
         addToken: (token) => {
           setText((prev) => prev + token);
@@ -326,19 +395,20 @@ const StreamingAssistantMessageComponent = React.memo(
       return (
         <div
           className={cn(
-            'group/textbox hidden w-full animate-pulse flex-col gap-0.5 self-start',
+            'group/textbox hidden w-full flex-col gap-0.5 self-start',
             isStreaming && 'flex',
           )}
         >
           {text ? (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
+              components={reactMarkdownComponents(isDarkTheme)}
               className="display-linebreak markdown px-4 py-2"
             >
               {`${text} ■`}
             </ReactMarkdown>
           ) : (
-            <span className="px-4 py-2 font-bold animate-in fade-in">
+            <span className="animate-pulse px-4 py-2 font-bold">
               Thinking...
             </span>
           )}

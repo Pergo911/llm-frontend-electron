@@ -146,18 +146,16 @@
 
   .markdown code {
     @apply !bg-card;
-    @apply !text-foreground;
-    @apply !rounded-sm;
+    @apply !text-sm;
     @apply !px-1;
   }
 
   .markdown pre {
     @apply !bg-card;
-    @apply !max-h-[400px];
     @apply !w-full;
     @apply !min-w-0;
     @apply !w-full;
-    @apply !rounded-lg;
+    @apply !rounded-xl;
     @apply !p-2;
     @apply !overflow-auto;
   }
