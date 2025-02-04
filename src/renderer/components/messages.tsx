@@ -30,6 +30,7 @@ import { cn, formatTimestamp } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Separator } from './ui/separator';
+import ReasoningBlock from './reasoning-block';
 
 const UserMessageComponent = React.memo<{
   m: Message;
@@ -204,13 +205,28 @@ const AssistantMessageComponent = React.memo<{
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
 
+    const reasoningStartText =
+      m.choices[m.activeChoice].content.split('<think>');
+    const reasoningEndText = reasoningStartText[1]?.split('</think>');
+    const text = {
+      reasoning: reasoningStartText[1] ? reasoningEndText?.[0] : '', // Only get reasoning if <think> tag exists
+      reasoningEnd: reasoningStartText[0] + (reasoningEndText?.[1] ?? ''), // Combine before + after, handling missing parts
+    };
+
     return (
       <div className="group/textbox flex w-full flex-col gap-0.5 self-start">
+        {text.reasoning && (
+          <div className="px-4 py-2">
+            <ReasoningBlock isStreaming={false}>
+              {text.reasoning}
+            </ReasoningBlock>
+          </div>
+        )}
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           className="display-linebreak markdown px-4 py-2"
         >
-          {m.choices[m.activeChoice].content}
+          {text.reasoningEnd}
         </ReactMarkdown>
         {/* Action buttons */}
         <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
@@ -436,16 +452,48 @@ const StreamingAssistantMessageComponent = React.memo(
   React.forwardRef<StreamingMessageHandle, { isStreaming: boolean }>(
     ({ isStreaming }, ref) => {
       const [text, setText] = useState('');
+      const [reasoningText, setReasoningText] = useState('');
+      const foundReasoningStart = React.useRef(false);
+      const foundReasoningEnd = React.useRef(false);
+      const isReasoning = React.useRef(false);
 
       useImperativeHandle(ref, () => ({
         addToken: (token) => {
-          setText((prev) => prev + token);
+          setText((prev) => {
+            let newText = prev;
+            let toAdd = token;
+
+            if (toAdd === '<think>') {
+              foundReasoningStart.current = true;
+              isReasoning.current = true;
+              toAdd = '';
+              return newText;
+            }
+
+            if (toAdd === '</think>') {
+              foundReasoningEnd.current = true;
+              isReasoning.current = false;
+              toAdd = '';
+              return newText;
+            }
+
+            if (foundReasoningStart.current && !foundReasoningEnd.current) {
+              setReasoningText((prevReasoning) => prevReasoning + toAdd);
+            } else {
+              newText += toAdd;
+            }
+
+            return newText;
+          });
         },
       }));
 
       useEffect(() => {
         if (!isStreaming) {
           setText('');
+          setReasoningText('');
+          foundReasoningStart.current = false;
+          foundReasoningEnd.current = false;
         }
       }, [isStreaming]);
 
@@ -456,14 +504,18 @@ const StreamingAssistantMessageComponent = React.memo(
             isStreaming && 'flex',
           )}
         >
-          {text ? (
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              className="display-linebreak markdown px-4 py-2"
-            >
-              {`${text} ■`}
-            </ReactMarkdown>
-          ) : (
+          {reasoningText && (
+            <ReasoningBlock isStreaming={isReasoning.current}>
+              {reasoningText}
+            </ReasoningBlock>
+          )}
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            className="display-linebreak markdown px-4 py-2"
+          >
+            {text && `${text} ■`}
+          </ReactMarkdown>
+          {!text && !reasoningText && (
             <span className="animate-pulse px-4 py-2 font-bold">
               Thinking...
             </span>
