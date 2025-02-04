@@ -59,7 +59,7 @@ const HomeBreadcrumb = () => {
 
 const ChatBreadcrumb = ({ chatData }: { chatData: string | undefined }) => {
   return (
-    <BreadcrumbList className="@container">
+    <BreadcrumbList>
       {/* Ellipsis */}
       <BreadcrumbItem className="w-full min-w-0">
         <MessageCircle className="h-4 w-4 flex-shrink-0" />
@@ -77,14 +77,14 @@ const PromptBreadcrumb = ({
     | undefined;
 }) => {
   return (
-    <BreadcrumbList className="@container flex flex-nowrap">
+    <BreadcrumbList className="flex flex-nowrap">
       {/* Folder */}
-      <BreadcrumbItem className="@sm:flex hidden max-w-40">
+      <BreadcrumbItem className="@2xl/main:flex hidden max-w-40">
         <Folder className="h-4 w-4 flex-shrink-0" />
         <span className="truncate">{promptData?.folder ?? ''}</span>
       </BreadcrumbItem>
 
-      <BreadcrumbSeparator className="@sm:block hidden" />
+      <BreadcrumbSeparator className="@2xl/main:block hidden" />
 
       {/* Ellipsis */}
       <BreadcrumbItem className="w-full min-w-0">
@@ -174,7 +174,7 @@ const ModelSelector = () => {
               aria-label="Model selector"
               aria-expanded={open}
               role="combobox"
-              className="group/button non-draggable"
+              className="group/button non-draggable justify-start"
               variant="ghost"
               size="sm"
             >
@@ -196,7 +196,29 @@ const ModelSelector = () => {
                   )}
                 </div>
               )}
-              <ChevronDown className="text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground" />
+
+              <span className="@xl/main:inline hidden w-36 truncate text-left">
+                {selectedModel ? (
+                  <>
+                    <span className="text-xs text-muted-foreground">
+                      {selectedModel.includes('/') &&
+                        selectedModel.split('/')[0]}
+                    </span>
+                    <br />
+                    <span className="font-bold">
+                      {selectedModel.includes('/')
+                        ? selectedModel.split('/')[1]
+                        : selectedModel}
+                    </span>
+                  </>
+                ) : loading ? (
+                  'Loading...'
+                ) : (
+                  'No model selected!'
+                )}
+              </span>
+
+              <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground" />
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
@@ -585,7 +607,7 @@ export default function TitleBar() {
     loadData();
   }, [location]);
   return (
-    <div className="draggable flex h-[64px] items-center gap-2 bg-sidebar p-2 pr-[145px]">
+    <div className="draggable @container/main flex h-[64px] items-center gap-2 bg-sidebar p-2 pr-[145px]">
       <SidebarTrigger className="my-auto" />
       <Button
         variant="ghost"
