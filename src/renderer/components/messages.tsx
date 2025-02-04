@@ -29,10 +29,12 @@ import {
   vscDarkPlus,
   vs,
 } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { PopoverClose } from '@radix-ui/react-popover';
 import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Separator } from './ui/separator';
 
 const UserMessageComponent = React.memo<{
   m: Message;
@@ -41,7 +43,9 @@ const UserMessageComponent = React.memo<{
   needsAnimate?: boolean;
 }>(({ m, onMessageEdit, onMessageDelete, needsAnimate }) => {
   const [infoOpen, setInfoOpen] = useState(false);
-  const shouldUnfocus = React.useRef(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const shouldUnfocusInfo = React.useRef(false);
+  const shouldUnfocusDelete = React.useRef(false);
 
   const handleDelete = React.useCallback(() => {
     onMessageDelete(m.id);
@@ -56,25 +60,61 @@ const UserMessageComponent = React.memo<{
       <div className="flex max-w-[90%] flex-wrap-reverse justify-end gap-0.5">
         {/* Action buttons */}
         <div className="flex h-fit w-fit min-w-[88px] gap-0.5 text-xs text-muted-foreground">
-          <Button
-            variant="actionButton"
-            size="icon"
-            className={cn(
-              'opacity-0 transition-opacity hover:text-red-500 focus:text-red-500',
-              'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
-              infoOpen && 'opacity-100',
-            )}
-            onClick={handleDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <Popover open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="actionButton"
+                size="icon"
+                className={cn(
+                  'opacity-0 transition-opacity hover:text-red-500 focus:text-red-500',
+                  'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+                  (infoOpen || deleteOpen) && 'opacity-100',
+                )}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              side="top"
+              className="rounded-md border-0 bg-card p-4 text-xs drop-shadow-md dark:border-[0.5px]"
+              onCloseAutoFocus={(e) => {
+                if (shouldUnfocusDelete.current) {
+                  e.preventDefault();
+                  shouldUnfocusDelete.current = false;
+                }
+              }}
+            >
+              <div>
+                <div className="text-lg font-bold">Delete?</div>
+                <div className="text-muted-foreground">
+                  Also removes subsequent messages.
+                </div>
+              </div>
+              <div className="h-4" />
+              <div className="flex w-full justify-end gap-2">
+                <PopoverClose asChild>
+                  <Button
+                    variant="secondary"
+                    onMouseDown={() => {
+                      shouldUnfocusDelete.current = true;
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </PopoverClose>
+                <Button variant="destructive" onClick={handleDelete}>
+                  Confirm
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Button
             variant="actionButton"
             size="icon"
             className={cn(
               'opacity-0 transition-opacity',
               'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
-              infoOpen && 'opacity-100',
+              (infoOpen || deleteOpen) && 'opacity-100',
             )}
             onClick={handleEdit}
           >
@@ -88,13 +128,13 @@ const UserMessageComponent = React.memo<{
                 className={cn(
                   'opacity-0 transition-opacity',
                   'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
-                  infoOpen && 'opacity-100',
+                  (infoOpen || deleteOpen) && 'opacity-100',
                 )}
                 onMouseLeave={() => {
                   setInfoOpen(false);
                 }}
                 onMouseUp={(e) => {
-                  shouldUnfocus.current = true;
+                  shouldUnfocusInfo.current = true;
                   e.currentTarget.blur();
                 }}
               >
@@ -105,9 +145,9 @@ const UserMessageComponent = React.memo<{
               side="top"
               className="w-fit rounded-md border-0 bg-card p-2 text-xs drop-shadow-md dark:border-[0.5px]"
               onCloseAutoFocus={(e) => {
-                if (shouldUnfocus.current) {
+                if (shouldUnfocusInfo.current) {
                   e.preventDefault();
-                  shouldUnfocus.current = false;
+                  shouldUnfocusInfo.current = false;
                 }
               }}
             >
@@ -172,7 +212,9 @@ const AssistantMessageComponent = React.memo<{
     onSetActiveChoice,
   }) => {
     const [infoOpen, setInfoOpen] = useState(false);
-    const shouldUnfocus = React.useRef(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const shouldUnfocusInfo = React.useRef(false);
+    const shouldUnfocusDelete = React.useRef(false);
 
     const [isDarkTheme, setIsDarkTheme] = useState(false);
 
@@ -254,7 +296,7 @@ const AssistantMessageComponent = React.memo<{
                     setInfoOpen(false);
                   }}
                   onMouseUp={(e) => {
-                    shouldUnfocus.current = true;
+                    shouldUnfocusInfo.current = true;
                     e.currentTarget.blur();
                   }}
                 >
@@ -265,9 +307,9 @@ const AssistantMessageComponent = React.memo<{
                 side="top"
                 className="w-fit rounded-md border-0 bg-card p-2 text-xs drop-shadow-md dark:border-[0.5px]"
                 onCloseAutoFocus={(e) => {
-                  if (shouldUnfocus.current) {
+                  if (shouldUnfocusInfo.current) {
                     e.preventDefault();
-                    shouldUnfocus.current = false;
+                    shouldUnfocusInfo.current = false;
                   }
                 }}
               >
@@ -280,14 +322,50 @@ const AssistantMessageComponent = React.memo<{
             <Button variant="actionButton" size="icon" onClick={handleEdit}>
               <Edit3 className="h-4 w-4" />
             </Button>
-            <Button
-              variant="actionButton"
-              size="icon"
-              className="hover:text-red-500 focus:text-red-500"
-              onClick={handleDelete}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <Popover open={deleteOpen} onOpenChange={setDeleteOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="actionButton"
+                  size="icon"
+                  className="hover:text-red-500 focus:text-red-500"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                side="top"
+                className="rounded-md border-0 bg-card p-4 text-xs drop-shadow-md dark:border-[0.5px]"
+                onCloseAutoFocus={(e) => {
+                  if (shouldUnfocusDelete.current) {
+                    e.preventDefault();
+                    shouldUnfocusDelete.current = false;
+                  }
+                }}
+              >
+                <div>
+                  <div className="text-lg font-bold">Delete?</div>
+                  <div className="text-muted-foreground">
+                    Removes all message choices and subsequent messages.
+                  </div>
+                </div>
+                <div className="h-4" />
+                <div className="flex w-full justify-end gap-2">
+                  <PopoverClose asChild>
+                    <Button
+                      variant="secondary"
+                      onMouseDown={() => {
+                        shouldUnfocusDelete.current = true;
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </PopoverClose>
+                  <Button variant="destructive" onClick={handleDelete}>
+                    Confirm
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
@@ -307,6 +385,9 @@ const PromptMessageComponent = React.memo(
     onMessageDelete: (id: string) => void;
     needsAnimate?: boolean;
   }) => {
+    const [deleteOpen, setDeleteOpen] = useState(false);
+    const shouldUnfocusDelete = React.useRef(false);
+
     const handleDelete = React.useCallback(() => {
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
@@ -323,14 +404,53 @@ const PromptMessageComponent = React.memo(
           {/* Action buttons */}
           <div className="flex items-center justify-end gap-0.5 text-xs text-muted-foreground">
             <div className="flex items-center">
-              <Button
-                variant="actionButton"
-                size="icon"
-                className="opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100"
-                onClick={handleDelete}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <Popover open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="actionButton"
+                    size="icon"
+                    className={cn(
+                      'opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+                      deleteOpen && 'opacity-100',
+                    )}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent
+                  side="top"
+                  className="rounded-md border-0 bg-card p-4 text-xs drop-shadow-md dark:border-[0.5px]"
+                  onCloseAutoFocus={(e) => {
+                    if (shouldUnfocusDelete.current) {
+                      e.preventDefault();
+                      shouldUnfocusDelete.current = false;
+                    }
+                  }}
+                >
+                  <div>
+                    <div className="text-lg font-bold">Delete?</div>
+                    <div className="text-muted-foreground">
+                      Also removes subsequent messages.
+                    </div>
+                  </div>
+                  <div className="h-4" />
+                  <div className="flex w-full justify-end gap-2">
+                    <PopoverClose asChild>
+                      <Button
+                        variant="secondary"
+                        onMouseDown={() => {
+                          shouldUnfocusDelete.current = true;
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </PopoverClose>
+                    <Button variant="destructive" onClick={handleDelete}>
+                      Confirm
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <Link

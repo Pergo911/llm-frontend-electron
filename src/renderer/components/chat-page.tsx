@@ -14,7 +14,6 @@ import ChatInputBar from './chat-input-bar';
 import Messages from './messages';
 import { formatTimestamp, setWindowTitle } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
-import { ConfirmDeleteRequest, ConfirmDeleteRequestRef } from './modal-delete';
 import { EditMessageModal, EditMessageModalRef } from './modal-edit';
 import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
 
@@ -76,7 +75,6 @@ export default function ChatPage() {
   const [overrideCanSend, setOverrideCanSend] = useState(false);
   const chatInputBarActionRef = useRef<ChatInputBarActions>(null);
   const streamHandleRef = useRef<StreamingMessageHandle>(null);
-  const deleteDialogRef = useRef<ConfirmDeleteRequestRef>(null);
   const editMessageModalRef = useRef<EditMessageModalRef>(null);
   const promptSelectModalRef = useRef<PromptSelectModalRef>(null);
   const abortRequestRef = useRef<AbortController | null>(null);
@@ -450,7 +448,6 @@ export default function ChatPage() {
           onAbort={handleAbortStreaming}
           overrideCanSend={overrideCanSend}
         />
-        <ConfirmDeleteRequest ref={deleteDialogRef} />
         <EditMessageModal ref={editMessageModalRef} />
         <PromptSelectModal ref={promptSelectModalRef} />
       </div>
