@@ -407,6 +407,28 @@ export default function ChatPage() {
     setChat(newChat);
   }, [chat]);
 
+  const handleOnSwapPrompt = useCallback(
+    async (oldId: string, newId: string, newType: 'user' | 'system') => {
+      if (!chat) return;
+
+      const { newChat, error } = await ChatOperations.editMessage(
+        chat,
+        oldId,
+        newId,
+        undefined,
+        newType,
+      );
+
+      if (error || !newChat) {
+        setError(error);
+        return;
+      }
+
+      setChat(newChat);
+    },
+    [chat],
+  );
+
   const handleInputFocus = useCallback(() => {
     chatInputBarActionRef.current?.focus();
   }, []);
@@ -428,6 +450,7 @@ export default function ChatPage() {
                 <Messages
                   messages={chat.messages}
                   onMessageEdit={handleOnMessageEdit}
+                  onSwapPrompt={handleOnSwapPrompt}
                   onMessageDelete={handleOnMessageDelete}
                   onSetActiveChoice={handleOnSetActiveChoice}
                   onMessageRegen={handleOnMessageRegen}

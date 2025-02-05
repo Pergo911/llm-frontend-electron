@@ -316,8 +316,9 @@ const insertChoice = async (
  * Edits the content of a message
  * @param chat The chat containing the message
  * @param id ID of the message to edit
- * @param content New content for the message
+ * @param content New content for the message, or prompt ID for prompt messages
  * @param choice For assistant messages, index of the choice to edit
+ * @param promptType For prompt messages, type of the new prompt
  * @returns Object containing the updated chat or error
  * @example
  * // Edit a user message
@@ -325,12 +326,16 @@ const insertChoice = async (
  *
  * // Edit a specific choice in an assistant message
  * const {newChat, error} = await editMessage(chat, "msg-456", "New response", 1);
+ *
+ * // Swap a prompt message
+ * const {newChat, error} = await editMessage(chat, "msg-789", "new-prompt-id", 0);
  */
 const editMessage = async (
   chat: Chat,
   id: string,
   content: string,
   choice?: number,
+  promptType?: 'user' | 'system',
 ): Promise<{ newChat: Chat | null; error: string | null }> => {
   // Find message
   const messageIndex = chat.messages.findIndex((m) => m.id === id);
@@ -338,13 +343,10 @@ const editMessage = async (
     return { newChat: null, error: 'editMessage: Message not found' };
   }
 
-  // Create deep copy of the message
-  const message = {
-    ...chat.messages[messageIndex],
-    choices: chat.messages[messageIndex].choices
-      ? [...chat.messages[messageIndex].choices]
-      : undefined,
-  };
+  // Create deep copy of the message using JSON
+  const message: ChatMessage = JSON.parse(
+    JSON.stringify(chat.messages[messageIndex]),
+  );
 
   // Handle different message types
   if (message.messageType === 'assistant') {
@@ -368,7 +370,12 @@ const editMessage = async (
       content,
     };
   } else {
-    return { newChat: null, error: 'editMessage: Invalid message type' };
+    if (!promptType)
+      return { newChat: null, error: 'editMessage: No prompt type provided' };
+
+    message.promptId = content;
+    message.messageType =
+      promptType === 'user' ? 'user-prompt' : 'system-prompt';
   }
 
   // Create new chat with updated message

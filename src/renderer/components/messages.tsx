@@ -8,13 +8,12 @@ import {
   StreamingMessageHandle,
 } from '@/common/types';
 import {
+  ArrowLeftRight,
   ChevronLeft,
   ChevronRight,
-  Edit,
   Edit3,
   Info,
   Maximize,
-  Maximize2,
   Notebook,
   RefreshCw,
   SquareTerminal,
@@ -29,8 +28,8 @@ import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import { Separator } from './ui/separator';
 import ReasoningBlock from './reasoning-block';
+import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
 
 const UserMessageComponent = React.memo<{
   m: Message;
@@ -205,13 +204,20 @@ const AssistantMessageComponent = React.memo<{
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
 
-    const reasoningStartText =
-      m.choices[m.activeChoice].content.split('<think>');
-    const reasoningEndText = reasoningStartText[1]?.split('</think>');
-    const text = {
-      reasoning: reasoningStartText[1] ? reasoningEndText?.[0] : '', // Only get reasoning if <think> tag exists
-      reasoningEnd: reasoningStartText[0] + (reasoningEndText?.[1] ?? ''), // Combine before + after, handling missing parts
-    };
+    const text = React.useMemo(() => {
+      const reasoningStartText =
+        m.choices[m.activeChoice].content.split('<think>') || [];
+      const reasoningEndText = reasoningStartText[1]
+        ? reasoningStartText[1].split('</think>')
+        : [];
+      return {
+        reasoning:
+          reasoningStartText[1] && reasoningEndText[0]
+            ? reasoningEndText[0].trim()
+            : '',
+        reasoningEnd: `${reasoningStartText[0] || ''}${reasoningEndText?.[1] || ''}`,
+      };
+    }, [m.choices, m.activeChoice]);
 
     return (
       <div className="group/textbox flex w-full flex-col gap-0.5 self-start">
@@ -346,19 +352,36 @@ const PromptMessageComponent = React.memo(
     m,
     isConcat,
     onMessageDelete,
+    onSwapPrompt,
     needsAnimate,
   }: {
     m: PromptMessage;
     isConcat: boolean;
     onMessageDelete: (id: string) => void;
+    onSwapPrompt: (
+      oldId: string,
+      newId: string,
+      newType: 'user' | 'system',
+    ) => void;
     needsAnimate?: boolean;
   }) => {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const shouldUnfocusDelete = React.useRef(false);
+    const modalRef = React.useRef<PromptSelectModalRef>(null);
 
     const handleDelete = React.useCallback(() => {
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
+
+    const handleSwapPrompt = React.useCallback(async () => {
+      if (!modalRef.current) return;
+
+      const result = await modalRef.current.promptUser();
+
+      if (!result) return;
+
+      onSwapPrompt(m.id, result.id, result.type);
+    }, [m.id, onSwapPrompt]);
 
     return (
       <div className="group/textbox flex w-full flex-col items-end">
@@ -419,6 +442,17 @@ const PromptMessageComponent = React.memo(
                   </div>
                 </PopoverContent>
               </Popover>
+              <Button
+                variant="actionButton"
+                size="icon"
+                className={cn(
+                  'opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+                  deleteOpen && 'opacity-100',
+                )}
+                onClick={handleSwapPrompt}
+              >
+                <ArrowLeftRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
           <Link
@@ -426,9 +460,9 @@ const PromptMessageComponent = React.memo(
             className="group/promptbox flex gap-2 rounded-lg border border-sidebar-border bg-card p-2 text-card-foreground hover:bg-accent"
           >
             {m.type === 'user' ? (
-              <Notebook className="h-5 w-5" />
+              <Notebook className="h-5 w-5 flex-shrink-0" />
             ) : (
-              <SquareTerminal className="h-5 w-5" />
+              <SquareTerminal className="h-5 w-5 flex-shrink-0" />
             )}
             <div className="flex flex-col gap-2">
               <div className="text-lg font-bold leading-none">{m.title}</div>
@@ -440,9 +474,10 @@ const PromptMessageComponent = React.memo(
                 </span>
               </div>
             </div>
-            <Maximize className="mx-2 h-4 w-4 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
+            <Maximize className="mx-2 h-4 w-4 flex-shrink-0 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
           </Link>
         </div>
+        <PromptSelectModal ref={modalRef} />
       </div>
     );
   },
@@ -542,6 +577,7 @@ const Messages = React.memo(
   ({
     messages,
     onMessageEdit,
+    onSwapPrompt,
     onMessageDelete,
     onSetActiveChoice,
     onMessageRegen,
@@ -551,6 +587,11 @@ const Messages = React.memo(
   }: {
     messages: Chat['messages'];
     onMessageEdit: (toEdit: string, id: string, choice?: number) => void;
+    onSwapPrompt: (
+      oldId: string,
+      newId: string,
+      newType: 'user' | 'system',
+    ) => void;
     onMessageDelete: (id: string) => void;
     onSetActiveChoice: (id: string, choice: number) => void;
     onMessageRegen: (id: string) => void;
@@ -663,6 +704,7 @@ const Messages = React.memo(
                 m={mitem}
                 isConcat={isConcat}
                 onMessageDelete={onMessageDelete}
+                onSwapPrompt={onSwapPrompt}
                 needsAnimate={needsAnimate.current}
               />
             );

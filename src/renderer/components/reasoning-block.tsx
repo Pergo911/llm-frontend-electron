@@ -39,12 +39,14 @@ const ReasoningBlock = ({
           className="text-muted-foreground hover:text-accent-foreground focus:text-accent-foreground"
           size="icon"
           onClick={() => setIsExpanded((prev) => !prev)}
+          onMouseUp={(e) => e.currentTarget.blur()}
         >
-          {isExpanded ? (
-            <ChevronDown className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
+          <ChevronLeft
+            className={cn(
+              'h-4 w-4 flex-shrink-0 transition-transform duration-75',
+              isExpanded && '-rotate-90',
+            )}
+          />
         </Button>
       </div>
       <div
