@@ -30,7 +30,7 @@ const ReasoningBlock = ({
         )}
       >
         {isStreaming ? (
-          <span className="animate-pulse">Reasoning...</span>
+          <span className="animate-pulse">Thinking...</span>
         ) : (
           'Reasoning text'
         )}

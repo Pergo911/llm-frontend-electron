@@ -1,11 +1,10 @@
 import * as React from 'react';
-import { ArrowRightLeft, MessageCircle, Notebook } from 'lucide-react';
+import { ArrowUpDown, MessageCircle, Notebook } from 'lucide-react';
 import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/renderer/components/ui/sidebar';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export function SidebarToggle({
   callback,
@@ -33,7 +32,7 @@ export function SidebarToggle({
           <div className="grid flex-1 text-left text-lg font-bold leading-tight">
             {page === 'chat' ? 'Chats' : 'Prompts'}
           </div>
-          <ArrowRightLeft className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:-translate-x-1 group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground group-active/button:translate-x-1" />
+          <ArrowUpDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:scale-110 group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground group-active/button:translate-y-1" />
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>

@@ -3,36 +3,34 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-nested-ternary */
-import React, { useCallback, useEffect } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+} from 'react';
 import {
   ArrowLeft,
-  ArrowRightLeft,
   Brain,
   Check,
   ChevronDown,
-  ChevronsUpDown,
   CircleAlert,
   Folder,
-  Home,
   Loader2,
   MessageCircle,
   Notebook,
+  Plus,
+  RefreshCw,
   SlidersHorizontal,
   SquareTerminal,
   TriangleAlert,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarTrigger,
-} from './ui/sidebar';
+import { SidebarTrigger, useSidebar } from './ui/sidebar';
 import { Button } from './ui/button';
 import {
   Breadcrumb,
-  BreadcrumbEllipsis,
   BreadcrumbItem,
   BreadcrumbList,
   BreadcrumbSeparator,
@@ -51,6 +49,8 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Input } from './ui/input';
 import { Slider } from './ui/slider';
+import AddRefreshButtonGroup from './add-refresh-buttongroup';
+import { RefreshRef } from './app-sidebar';
 
 // Used to display home icon, kept for consistency
 const HomeBreadcrumb = () => {
@@ -79,12 +79,12 @@ const PromptBreadcrumb = ({
   return (
     <BreadcrumbList className="flex flex-nowrap">
       {/* Folder */}
-      <BreadcrumbItem className="@2xl/main:flex hidden max-w-40">
+      <BreadcrumbItem className="hidden max-w-40 @2xl/main:flex">
         <Folder className="h-4 w-4 flex-shrink-0" />
         <span className="truncate">{promptData?.folder ?? ''}</span>
       </BreadcrumbItem>
 
-      <BreadcrumbSeparator className="@2xl/main:block hidden" />
+      <BreadcrumbSeparator className="hidden @2xl/main:block" />
 
       {/* Ellipsis */}
       <BreadcrumbItem className="w-full min-w-0">
@@ -116,7 +116,7 @@ const ErrorOrLoadingBreadcrumb = ({ error }: { error: string | null }) => {
   );
 };
 
-const ModelSelector = () => {
+const ModelSelector = forwardRef<RefreshRef, {}>((props, ref) => {
   const [models, setModels] = React.useState<string[]>([]);
   const [selectedModel, setSelectedModel] = React.useState<string | null>(null);
   const [open, setOpen] = React.useState(false);
@@ -159,6 +159,8 @@ const ModelSelector = () => {
     setLoading(true);
   }, []);
 
+  useImperativeHandle(ref, () => ({ refresh: handleRefresh }));
+
   useEffect(() => {
     if (error) {
       toast.error(error);
@@ -197,7 +199,7 @@ const ModelSelector = () => {
                 </div>
               )}
 
-              <span className="@xl/main:inline hidden w-36 truncate text-left">
+              <span className="hidden w-36 truncate text-left @xl/main:inline">
                 {selectedModel ? (
                   <>
                     <span className="text-xs text-muted-foreground">
@@ -300,9 +302,9 @@ const ModelSelector = () => {
       </PopoverContent>
     </Popover>
   );
-};
+});
 
-function GenSettings() {
+const GenSettings = forwardRef<RefreshRef, {}>((props, ref) => {
   const [max_tokens, setMaxTokens] = React.useState(4096);
   const [max_tokensInvalid, setMaxTokensInvalid] = React.useState(false);
   const [top_p, setTopP] = React.useState(0.9);
@@ -338,9 +340,12 @@ function GenSettings() {
       setStopRaw(
         genSettings.stop.length !== 0 ? JSON.stringify(genSettings.stop) : '',
       );
+
+      console.log('loaded gen settings0');
     };
 
     if (loading) loadSettings().then(() => setLoading(false));
+    console.log(`loading=${loading}`);
   }, [loading]);
 
   useEffect(() => {
@@ -349,6 +354,12 @@ function GenSettings() {
       setError(null);
     }
   }, [error]);
+
+  const handleRefresh = useCallback(() => {
+    setLoading(true);
+  }, []);
+
+  useImperativeHandle(ref, () => ({ refresh: handleRefresh }));
 
   const validateInputs = useCallback(() => {
     // Max tokens validation
@@ -550,9 +561,9 @@ function GenSettings() {
       </PopoverContent>
     </Popover>
   );
-}
+});
 
-export default function TitleBar() {
+const TitleBar = forwardRef<RefreshRef, {}>((props, ref) => {
   const navigation = useNavigate();
   const location = useLocation();
   const [breadcrumbType, setBreadCrumbType] = React.useState<
@@ -568,6 +579,17 @@ export default function TitleBar() {
     | undefined
   >();
   const [error, setError] = React.useState<string | null>(null);
+  const sidebarClosed = useSidebar().state === 'collapsed';
+  const modelSelectorRef = React.useRef<RefreshRef>(null);
+  const genSettingsRef = React.useRef<RefreshRef>(null);
+
+  useImperativeHandle(ref, () => ({
+    refresh: () => {
+      modelSelectorRef.current?.refresh();
+      genSettingsRef.current?.refresh();
+    },
+  }));
+
   useEffect(() => {
     const loadData = async () => {
       const locList = location.pathname.split('/').filter((x) => x !== '');
@@ -607,11 +629,12 @@ export default function TitleBar() {
     loadData();
   }, [location]);
   return (
-    <div className="draggable @container/main flex h-[64px] items-center gap-2 bg-sidebar p-2 pr-[145px]">
+    <div className="draggable flex h-[64px] items-center gap-2 bg-sidebar p-2 pr-[145px] @container/main">
       <SidebarTrigger className="my-auto" />
+      {sidebarClosed && <AddRefreshButtonGroup handleAdd={() => {}} />}
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
         onClick={() => {
           navigation(-1);
         }}
@@ -630,8 +653,10 @@ export default function TitleBar() {
           <ErrorOrLoadingBreadcrumb error={error} />
         )}
       </Breadcrumb>
-      <ModelSelector />
-      <GenSettings />
+      <ModelSelector ref={modelSelectorRef} />
+      <GenSettings ref={genSettingsRef} />
     </div>
   );
-}
+});
+
+export default TitleBar;

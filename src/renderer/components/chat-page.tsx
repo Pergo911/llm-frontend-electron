@@ -1,7 +1,7 @@
 /* eslint-disable promise/always-return */
 /* eslint-disable promise/catch-or-return */
 /* eslint-disable no-nested-ternary */
-import { ScrollRestoration, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import {
   Chat,
@@ -461,7 +461,6 @@ export default function ChatPage() {
               </>
             )
           ) : null}
-          {/* <ScrollRestoration /> */}
         </div>
         <ChatInputBar
           onSend={handleSend}

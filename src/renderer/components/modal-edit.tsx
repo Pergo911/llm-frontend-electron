@@ -90,7 +90,7 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleDismiss()}>
-      <DialogContent>
+      <DialogContent className="max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Edit message</DialogTitle>
         </DialogHeader>

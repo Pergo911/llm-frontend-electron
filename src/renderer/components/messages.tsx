@@ -12,8 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Edit3,
+  ExternalLink,
   Info,
-  Maximize,
   Notebook,
   RefreshCw,
   SquareTerminal,
@@ -52,7 +52,7 @@ const UserMessageComponent = React.memo<{
 
   return (
     <div className="group/textbox flex w-full flex-col items-end">
-      <div className="flex max-w-[90%] flex-wrap-reverse justify-end gap-0.5">
+      <div className="flex max-w-[90%] flex-wrap-reverse items-center justify-end gap-0.5">
         {/* Action buttons */}
         <div className="flex h-fit w-fit min-w-[88px] gap-0.5 text-xs text-muted-foreground">
           <Popover open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -474,7 +474,7 @@ const PromptMessageComponent = React.memo(
                 </span>
               </div>
             </div>
-            <Maximize className="mx-2 h-4 w-4 flex-shrink-0 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
+            <ExternalLink className="mx-2 h-4 w-4 flex-shrink-0 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
           </Link>
         </div>
         <PromptSelectModal ref={modalRef} />
