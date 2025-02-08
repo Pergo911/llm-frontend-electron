@@ -26,6 +26,8 @@ import {
 } from './ui/collapsible';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
+const TOOLTIP_DELAY = 700;
+
 export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
   return (
     <SidebarContent>
@@ -38,7 +40,7 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
             )}
             {data.map((item) => (
               <SidebarMenuItem key={item.id}>
-                <Tooltip>
+                <Tooltip delayDuration={TOOLTIP_DELAY}>
                   <TooltipTrigger asChild className="w-full">
                     <NavLink to={`/c/${item.id}`}>
                       {({ isActive }) => {
@@ -75,7 +77,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
           {data.map((item) => (
             <Collapsible key={item.title} className="group/collapsible">
               <SidebarMenuItem>
-                <Tooltip>
+                <Tooltip delayDuration={TOOLTIP_DELAY}>
                   <TooltipTrigger className="w-full" asChild>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton>
@@ -96,7 +98,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                       </div>
                     )}
                     {item.items.map((item) => (
-                      <Tooltip key={item.id}>
+                      <Tooltip key={item.id} delayDuration={TOOLTIP_DELAY}>
                         <TooltipTrigger className="w-full" asChild>
                           <NavLink to={`/p/${item.id}`}>
                             {({ isActive }) => {

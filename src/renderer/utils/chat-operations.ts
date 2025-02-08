@@ -10,6 +10,7 @@ import {
 } from '@/common/types';
 import { generateUUID } from '@/common/uuid';
 import OpenAI from 'openai';
+import { toast } from 'sonner';
 
 /**
  * Converts a chat's messages into a display-friendly format
@@ -62,7 +63,20 @@ const buildDisplayMessages = async (
         const { error, prompt, folder } =
           await window.electron.fileOperations.getPromptById(m.promptId);
 
-        if (error || !prompt) return null;
+        if (error || !prompt) {
+          toast.warning(`Couldn't find prompt ${m.promptId}`);
+
+          return {
+            type: 'prompt',
+            item: {
+              id: m.id,
+              promptId: '',
+              type: m.messageType === 'user-prompt' ? 'user' : 'system',
+              title: '',
+              content: '',
+            } as PromptMessage,
+          };
+        }
 
         return {
           type: 'prompt',

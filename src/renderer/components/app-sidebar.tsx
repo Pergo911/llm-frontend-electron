@@ -74,7 +74,7 @@ export const AppSidebar = React.memo(
           <SidebarGroup>
             <SidebarGroupContent className="flex items-center gap-0.5">
               <SidebarToggle callback={setPage} />
-              <AddRefreshButtonGroup handleAdd={() => {}} />
+              <AddRefreshButtonGroup />
             </SidebarGroupContent>
           </SidebarGroup>
           {page === 'chat' ? (

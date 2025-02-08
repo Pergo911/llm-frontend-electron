@@ -116,7 +116,7 @@ const ErrorOrLoadingBreadcrumb = ({ error }: { error: string | null }) => {
   );
 };
 
-const ModelSelector = forwardRef<RefreshRef, {}>((props, ref) => {
+const ModelSelector = forwardRef<RefreshRef>((_, ref) => {
   const [models, setModels] = React.useState<string[]>([]);
   const [selectedModel, setSelectedModel] = React.useState<string | null>(null);
   const [open, setOpen] = React.useState(false);
@@ -304,7 +304,7 @@ const ModelSelector = forwardRef<RefreshRef, {}>((props, ref) => {
   );
 });
 
-const GenSettings = forwardRef<RefreshRef, {}>((props, ref) => {
+const GenSettings = forwardRef<RefreshRef>((_, ref) => {
   const [max_tokens, setMaxTokens] = React.useState(4096);
   const [max_tokensInvalid, setMaxTokensInvalid] = React.useState(false);
   const [top_p, setTopP] = React.useState(0.9);
@@ -340,12 +340,9 @@ const GenSettings = forwardRef<RefreshRef, {}>((props, ref) => {
       setStopRaw(
         genSettings.stop.length !== 0 ? JSON.stringify(genSettings.stop) : '',
       );
-
-      console.log('loaded gen settings0');
     };
 
     if (loading) loadSettings().then(() => setLoading(false));
-    console.log(`loading=${loading}`);
   }, [loading]);
 
   useEffect(() => {
@@ -563,7 +560,7 @@ const GenSettings = forwardRef<RefreshRef, {}>((props, ref) => {
   );
 });
 
-const TitleBar = forwardRef<RefreshRef, {}>((props, ref) => {
+const TitleBar = forwardRef<RefreshRef>((_, ref) => {
   const navigation = useNavigate();
   const location = useLocation();
   const [breadcrumbType, setBreadCrumbType] = React.useState<
@@ -631,7 +628,7 @@ const TitleBar = forwardRef<RefreshRef, {}>((props, ref) => {
   return (
     <div className="draggable flex h-[64px] items-center gap-2 bg-sidebar p-2 pr-[145px] @container/main">
       <SidebarTrigger className="my-auto" />
-      {sidebarClosed && <AddRefreshButtonGroup handleAdd={() => {}} />}
+      {sidebarClosed && <AddRefreshButtonGroup />}
       <Button
         variant="ghost"
         size="sm"

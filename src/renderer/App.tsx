@@ -24,6 +24,7 @@ import ChatPage from './components/chat-page';
 import PromptPage from './components/prompt-page';
 import TitleBar from './components/title-bar';
 import { TooltipProvider } from './components/ui/tooltip';
+import { NewModal, NewModalRef } from './components/modal-new';
 
 const RefreshContext = createContext<() => void>(() => {});
 
@@ -96,11 +97,32 @@ export default function App() {
     titlebarRef.current?.refresh();
   }, []);
 
+  useEffect(() => {
+    const handleRefreshShortcut = (e: KeyboardEvent) => {
+      if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+        e.preventDefault();
+        refresh();
+      }
+    };
+
+    window.addEventListener('keydown', handleRefreshShortcut);
+    return () => window.removeEventListener('keydown', handleRefreshShortcut);
+  }, [refresh]);
+
+  // Disable chrome's default keybinds for refresh
+  // https://stackoverflow.com/questions/51187602/electron-js-prevent-refresh-for-created-window
+  window.addEventListener('beforeunload', (ev) => {
+    // Setting any value other than undefined here will prevent the window
+    // from closing or reloading
+    // IS DISABLED FOR DEBUGGING PURPOSES
+    // ev.returnValue = true;
+  });
+
   return (
     <RefreshContext.Provider value={refresh}>
       <MemoryRouter>
         <ThemeProvider>
-          <TooltipProvider>
+          <TooltipProvider skipDelayDuration={0}>
             <SidebarProvider>
               <AppSidebar ref={sidebarRef} />
               <SidebarInset className="min-w-0 bg-sidebar">

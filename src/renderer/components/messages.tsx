@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/no-unused-prop-types */
 import {
   Message,
@@ -18,6 +19,7 @@ import {
   RefreshCw,
   SquareTerminal,
   Trash2,
+  TriangleAlert,
 } from 'lucide-react';
 import React, { useEffect, useImperativeHandle, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -369,6 +371,8 @@ const PromptMessageComponent = React.memo(
     const shouldUnfocusDelete = React.useRef(false);
     const modalRef = React.useRef<PromptSelectModalRef>(null);
 
+    const disabled = m.promptId === '';
+
     const handleDelete = React.useCallback(() => {
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
@@ -457,16 +461,29 @@ const PromptMessageComponent = React.memo(
           </div>
           <Link
             to={`/p/${m.promptId}`}
-            className="group/promptbox flex gap-2 rounded-lg border border-sidebar-border bg-card p-2 text-card-foreground hover:bg-accent"
+            className={cn(
+              'group/promptbox flex gap-2 rounded-lg border border-sidebar-border bg-card p-2 text-card-foreground hover:bg-accent',
+              disabled && 'pointer-events-none opacity-50',
+            )}
+            aria-disabled={disabled}
           >
-            {m.type === 'user' ? (
+            {disabled ? (
+              <TriangleAlert className="h-5 w-5 flex-shrink-0" />
+            ) : m.type === 'user' ? (
               <Notebook className="h-5 w-5 flex-shrink-0" />
             ) : (
               <SquareTerminal className="h-5 w-5 flex-shrink-0" />
             )}
             <div className="flex flex-col gap-2">
-              <div className="text-lg font-bold leading-none">{m.title}</div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-lg font-bold leading-none">
+                {disabled ? 'Unknown' : m.title}
+              </div>
+              <div
+                className={cn(
+                  'text-xs text-muted-foreground',
+                  disabled && 'invisible',
+                )}
+              >
                 <span className="font-bold">{m.content.split(' ').length}</span>{' '}
                 words • Sent as{' '}
                 <span className="font-bold">

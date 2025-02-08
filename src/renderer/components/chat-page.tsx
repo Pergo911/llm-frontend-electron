@@ -1,7 +1,7 @@
 /* eslint-disable promise/always-return */
 /* eslint-disable promise/catch-or-return */
 /* eslint-disable no-nested-ternary */
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import {
   Chat,
@@ -71,6 +71,7 @@ export default function ChatPage() {
   const { id } = useParams();
   const [chat, setChat] = useState<Chat | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const nav = useNavigate();
   const [isStreaming, setIsStreaming] = useState(false);
   const [overrideCanSend, setOverrideCanSend] = useState(false);
   const chatInputBarActionRef = useRef<ChatInputBarActions>(null);
@@ -98,6 +99,10 @@ export default function ChatPage() {
       const { chat, error } =
         await window.electron.fileOperations.getChatById(id);
 
+      if (!chat) {
+        nav('/');
+      }
+
       setError(error);
       setChat(chat);
       setWindowTitle(chat?.title ?? 'Chat');
@@ -108,6 +113,7 @@ export default function ChatPage() {
     return () => {
       setChat(null);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   useEffect(() => {

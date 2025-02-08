@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Prompt } from '@/common/types';
 import { setWindowTitle } from '../utils/utils';
@@ -8,6 +8,7 @@ export default function PromptPage() {
   const [prompt, setPrompt] = useState<Prompt | null>(null);
   const [folderName, setFolderName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const nav = useNavigate();
 
   useEffect(() => {
     if (prompt) {
@@ -22,12 +23,17 @@ export default function PromptPage() {
       const { prompt, folder, error } =
         await window.electron.fileOperations.getPromptById(id);
 
+      if (!prompt) {
+        nav('/');
+      }
+
       setPrompt(prompt);
       setFolderName(folder?.title ?? null);
       setError(error);
     };
 
     getPrompt();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   return (

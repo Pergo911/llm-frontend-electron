@@ -29,16 +29,9 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
 
   const autoHeight = () => {
     if (textareaRef.current === null) return;
-
-    // Store current scroll position
-    const { scrollTop } = textareaRef.current;
-
     const taStyle = textareaRef.current.style;
     taStyle.height = 'auto';
     taStyle.height = `${textareaRef.current.scrollHeight}px`;
-
-    // Restore scroll position
-    textareaRef.current.scrollTop = scrollTop;
   };
 
   useImperativeHandle(ref, () => ({
