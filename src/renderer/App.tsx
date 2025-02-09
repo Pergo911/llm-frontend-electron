@@ -26,9 +26,7 @@ import TitleBar from './components/title-bar';
 import { TooltipProvider } from './components/ui/tooltip';
 import { NewModal, NewModalRef } from './components/modal-new';
 
-const RefreshContext = createContext<() => void>(() => {});
-
-export const useRefresh = () => useContext(RefreshContext);
+import { RefreshContext, useRefresh } from './hooks/use-refresh';
 
 function AppRoutes({ refreshKey }: { refreshKey: number }) {
   const navigate = useNavigate();

@@ -5,11 +5,14 @@ import {
   ChatEntry,
   PromptEntry,
   Chat,
+  Prompt,
+  Folder,
 } from '@/common/types';
 import { BrowserWindow, dialog, ipcMain } from 'electron';
 import Store from 'electron-store';
 import { readFile, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
+import { generateUUID } from '@/common/uuid';
 
 const store = new Store({ schema: ConfigSchema });
 
@@ -203,6 +206,71 @@ async function writeChat(chat: Chat) {
   }
 }
 
+async function create(
+  itemType: 'chat' | 'prompt' | 'folder',
+  title: string,
+  folderId?: string,
+  promptType?: 'user' | 'system',
+): Promise<{ id: string | null; error: string | null }> {
+  const { saveFile, error } = await getSaveFile();
+
+  if (error || !saveFile) {
+    return { id: null, error };
+  }
+
+  let id = '';
+
+  if (itemType === 'chat') {
+    id = generateUUID('c');
+
+    const item = {
+      title,
+      id,
+      timestamp: Date.now(),
+      messages: [],
+    } as Chat;
+
+    saveFile.chats.push(item);
+  } else if (itemType === 'prompt') {
+    if (!folderId || !promptType)
+      return {
+        id: null,
+        error: 'No `folderId` or `promptType` provided for prompt',
+      };
+
+    id = generateUUID('p');
+
+    const item = {
+      title,
+      id,
+      type: promptType,
+      folderId,
+      timestamp: Date.now(),
+      content: '',
+    } as Prompt;
+
+    saveFile.prompts.push(item);
+  } else if (itemType === 'folder') {
+    id = generateUUID('f');
+
+    const item = { id, title } as Folder;
+
+    saveFile.folders.push(item);
+  }
+
+  try {
+    await writeFile(
+      // @ts-ignore
+      store.get('saveFilePath') as string,
+      JSON.stringify(saveFile, null, 2),
+      'utf-8',
+    );
+    return { id, error: null };
+  } catch (e) {
+    return { id: null, error: (e as Error).message };
+  }
+}
+
 export const registerFileOperations = () => {
   ipcMain.handle('get-config', () => {
     return getConfig();
@@ -210,7 +278,7 @@ export const registerFileOperations = () => {
 
   ipcMain.handle(
     'set-config',
-    (event, key: keyof Config, value: Config[keyof Config]) => {
+    (_event, key: keyof Config, value: Config[keyof Config]) => {
       return setConfigValue(key, value);
     },
   );
@@ -229,15 +297,28 @@ export const registerFileOperations = () => {
     return getEntries();
   });
 
-  ipcMain.handle('get-chat-by-id', (event, id: string) => {
+  ipcMain.handle('get-chat-by-id', (_event, id: string) => {
     return getChatById(id);
   });
 
-  ipcMain.handle('get-prompt-by-id', (event, id: string) => {
+  ipcMain.handle('get-prompt-by-id', (_event, id: string) => {
     return getPromptById(id);
   });
 
-  ipcMain.handle('write-chat', (event, chat: Chat) => {
+  ipcMain.handle('write-chat', (_event, chat: Chat) => {
     return writeChat(chat);
   });
+
+  ipcMain.handle(
+    'create',
+    (
+      _event,
+      itemType: 'chat' | 'prompt' | 'folder',
+      title: string,
+      folderId?: string,
+      promptType?: 'user' | 'system',
+    ) => {
+      return create(itemType, title, folderId, promptType);
+    },
+  );
 };

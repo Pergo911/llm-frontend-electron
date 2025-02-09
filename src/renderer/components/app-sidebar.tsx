@@ -21,7 +21,7 @@ import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import { SettingsModal } from './modal-settings';
 import { Button } from './ui/button';
 import AddRefreshButtonGroup from './add-refresh-buttongroup';
-import { useRefresh } from '../App';
+import { useRefresh } from '../hooks/use-refresh';
 
 // Define the ref interface
 export interface RefreshRef {

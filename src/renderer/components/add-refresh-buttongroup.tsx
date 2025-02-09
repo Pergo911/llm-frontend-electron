@@ -3,7 +3,7 @@ import { Loader2, Plus, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '../utils/utils';
 // eslint-disable-next-line import/no-cycle
-import { useRefresh } from '../App';
+import { useRefresh } from '../hooks/use-refresh';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { NewModal, NewModalRef } from './modal-new';
 
