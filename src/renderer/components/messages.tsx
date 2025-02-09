@@ -12,6 +12,7 @@ import {
   ArrowLeftRight,
   ChevronLeft,
   ChevronRight,
+  Copy,
   Edit3,
   ExternalLink,
   Info,
@@ -32,6 +33,17 @@ import { ChatOperations } from '../utils/chat-operations';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import ReasoningBlock from './reasoning-block';
 import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuPortal,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from './ui/context-menu';
+import { Separator } from './ui/separator';
 
 const UserMessageComponent = React.memo<{
   m: Message;
@@ -43,6 +55,8 @@ const UserMessageComponent = React.memo<{
   const [deleteOpen, setDeleteOpen] = useState(false);
   const shouldUnfocusInfo = React.useRef(false);
   const shouldUnfocusDelete = React.useRef(false);
+
+  const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
 
   const handleDelete = React.useCallback(() => {
     onMessageDelete(m.id);
@@ -154,14 +168,66 @@ const UserMessageComponent = React.memo<{
         </div>
 
         {/* Message bubble */}
-        <div
-          className={cn(
-            needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
-            'display-linebreak flex w-fit flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
-          )}
-        >
-          {m.content}
-        </div>
+        <ContextMenu>
+          <ContextMenuTrigger>
+            <div
+              className={cn(
+                needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
+                'display-linebreak flex w-fit flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
+              )}
+            >
+              {m.content}
+            </div>
+          </ContextMenuTrigger>
+          <ContextMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+            <ContextMenuItem onClick={handleEdit}>
+              <Edit3 className="mr-2 h-4 w-4" />
+              Edit
+            </ContextMenuItem>
+            <ContextMenuItem
+              onClick={() => {
+                navigator.clipboard.writeText(m.id);
+              }}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              Copy ID
+            </ContextMenuItem>
+            <ContextMenuSub
+              open={contextDeleteOpen}
+              onOpenChange={(open) => {
+                if (!open) setContextDeleteOpen(false);
+              }}
+            >
+              <ContextMenuSubTrigger
+                className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
+                onClick={() => setContextDeleteOpen(true)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </ContextMenuSubTrigger>
+              <ContextMenuPortal>
+                <ContextMenuSubContent className="w-72 text-xs">
+                  <div>
+                    <div className="text-lg font-bold">Delete?</div>
+                    <div className="text-muted-foreground">
+                      Also removes subsequent messages.
+                    </div>
+                  </div>
+                  <div className="h-4" />
+                  <div className="flex w-full justify-end gap-2">
+                    <Button variant="destructive" onClick={handleDelete}>
+                      Confirm
+                    </Button>
+                  </div>
+                </ContextMenuSubContent>
+              </ContextMenuPortal>
+            </ContextMenuSub>
+            <Separator />
+            <div className="p-2 text-xs text-muted-foreground">
+              Sent {formatTimestamp(m.timestamp)}
+            </div>
+          </ContextMenuContent>
+        </ContextMenu>
       </div>
     </div>
   );
@@ -183,6 +249,7 @@ const AssistantMessageComponent = React.memo<{
   }) => {
     const [infoOpen, setInfoOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
     const shouldUnfocusInfo = React.useRef(false);
     const shouldUnfocusDelete = React.useRef(false);
 
@@ -223,19 +290,103 @@ const AssistantMessageComponent = React.memo<{
 
     return (
       <div className="group/textbox flex w-full flex-col gap-0.5 self-start">
-        {text.reasoning && (
-          <div className="px-4 py-2">
-            <ReasoningBlock isStreaming={false}>
-              {text.reasoning}
-            </ReasoningBlock>
-          </div>
-        )}
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          className="display-linebreak markdown px-4 py-2"
-        >
-          {text.reasoningEnd}
-        </ReactMarkdown>
+        <ContextMenu>
+          <ContextMenuTrigger>
+            {text.reasoning && (
+              <div className="px-4 py-2">
+                <ReasoningBlock isStreaming={false}>
+                  {text.reasoning}
+                </ReasoningBlock>
+              </div>
+            )}
+            <div className="h-0.5" />
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              className="display-linebreak markdown px-4 py-2"
+            >
+              {text.reasoningEnd}
+            </ReactMarkdown>
+          </ContextMenuTrigger>
+
+          <ContextMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+            <ContextMenuItem onClick={handleRegen}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Regenerate
+            </ContextMenuItem>
+            <ContextMenuItem onClick={handleEdit}>
+              <Edit3 className="mr-2 h-4 w-4" />
+              Edit
+            </ContextMenuItem>
+            <ContextMenuItem
+              onClick={() => {
+                navigator.clipboard.writeText(m.id);
+              }}
+            >
+              <Copy className="mr-2 h-4 w-4" />
+              Copy ID
+            </ContextMenuItem>
+            <ContextMenuSub
+              open={contextDeleteOpen}
+              onOpenChange={(open) => {
+                if (!open) setContextDeleteOpen(false);
+              }}
+            >
+              <ContextMenuSubTrigger
+                className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
+                onClick={() => setContextDeleteOpen(true)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </ContextMenuSubTrigger>
+              <ContextMenuPortal>
+                <ContextMenuSubContent className="w-72 text-xs">
+                  <div>
+                    <div className="text-lg font-bold">Delete?</div>
+                    <div className="text-muted-foreground">
+                      Removes all message choices and subsequent messages.
+                    </div>
+                  </div>
+                  <div className="h-4" />
+                  <div className="flex w-full justify-end gap-2">
+                    <Button variant="destructive" onClick={handleDelete}>
+                      Confirm
+                    </Button>
+                  </div>
+                </ContextMenuSubContent>
+              </ContextMenuPortal>
+            </ContextMenuSub>
+            {m.choices.length > 1 && (
+              <>
+                <Separator />
+                <div className="flex items-center justify-between p-2">
+                  <Button
+                    variant="actionButton"
+                    size="icon"
+                    disabled={m.activeChoice === 0}
+                    onClick={handlePrevChoice}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-xs text-muted-foreground">
+                    {m.activeChoice + 1} / {m.choices.length}
+                  </span>
+                  <Button
+                    variant="actionButton"
+                    size="icon"
+                    disabled={m.activeChoice === m.choices.length - 1}
+                    onClick={handleNextChoice}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </>
+            )}
+            <Separator />
+            <div className="p-2 text-xs text-muted-foreground">
+              Sent {formatTimestamp(m.choices[m.activeChoice].timestamp)}
+            </div>
+          </ContextMenuContent>
+        </ContextMenu>
         {/* Action buttons */}
         <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
           <div
@@ -368,6 +519,7 @@ const PromptMessageComponent = React.memo(
     needsAnimate?: boolean;
   }) => {
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
     const shouldUnfocusDelete = React.useRef(false);
     const modalRef = React.useRef<PromptSelectModalRef>(null);
 
@@ -459,40 +611,92 @@ const PromptMessageComponent = React.memo(
               </Button>
             </div>
           </div>
-          <Link
-            to={`/p/${m.promptId}`}
-            className={cn(
-              'group/promptbox flex gap-2 rounded-lg border border-sidebar-border bg-card p-2 text-card-foreground hover:bg-accent',
-              disabled && 'pointer-events-none opacity-50',
-            )}
-            aria-disabled={disabled}
-          >
-            {disabled ? (
-              <TriangleAlert className="h-5 w-5 flex-shrink-0" />
-            ) : m.type === 'user' ? (
-              <Notebook className="h-5 w-5 flex-shrink-0" />
-            ) : (
-              <SquareTerminal className="h-5 w-5 flex-shrink-0" />
-            )}
-            <div className="flex flex-col gap-2">
-              <div className="text-lg font-bold leading-none">
-                {disabled ? 'Unknown' : m.title}
-              </div>
-              <div
+
+          {/* Message bubble */}
+          <ContextMenu>
+            <ContextMenuTrigger>
+              <Link
+                to={`/p/${m.promptId}`}
                 className={cn(
-                  'text-xs text-muted-foreground',
-                  disabled && 'invisible',
+                  'group/promptbox flex gap-2 rounded-lg border border-sidebar-border bg-card p-2 text-card-foreground hover:bg-accent',
+                  disabled && 'pointer-events-none opacity-50',
                 )}
+                aria-disabled={disabled}
               >
-                <span className="font-bold">{m.content.split(' ').length}</span>{' '}
-                words • Sent as{' '}
-                <span className="font-bold">
-                  {m.type === 'user' ? 'user' : 'system'}
-                </span>
-              </div>
-            </div>
-            <ExternalLink className="mx-2 h-4 w-4 flex-shrink-0 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
-          </Link>
+                {disabled ? (
+                  <TriangleAlert className="h-5 w-5 flex-shrink-0" />
+                ) : m.type === 'user' ? (
+                  <Notebook className="h-5 w-5 flex-shrink-0" />
+                ) : (
+                  <SquareTerminal className="h-5 w-5 flex-shrink-0" />
+                )}
+                <div className="flex flex-col gap-2">
+                  <div className="text-lg font-bold leading-none">
+                    {disabled ? 'Unknown' : m.title}
+                  </div>
+                  <div
+                    className={cn(
+                      'text-xs text-muted-foreground',
+                      disabled && 'invisible',
+                    )}
+                  >
+                    <span className="font-bold">
+                      {m.content.split(' ').length}
+                    </span>{' '}
+                    words • Sent as{' '}
+                    <span className="font-bold">
+                      {m.type === 'user' ? 'user' : 'system'}
+                    </span>
+                  </div>
+                </div>
+                <ExternalLink className="mx-2 h-4 w-4 flex-shrink-0 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
+              </Link>
+            </ContextMenuTrigger>
+            <ContextMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
+              <ContextMenuItem onClick={handleSwapPrompt}>
+                <ArrowLeftRight className="mr-2 h-4 w-4" />
+                Swap
+              </ContextMenuItem>
+              <ContextMenuItem
+                onClick={() => {
+                  navigator.clipboard.writeText(m.id);
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy ID
+              </ContextMenuItem>
+              <ContextMenuSub
+                open={contextDeleteOpen}
+                onOpenChange={(open) => {
+                  if (!open) setContextDeleteOpen(false);
+                }}
+              >
+                <ContextMenuSubTrigger
+                  className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
+                  onClick={() => setContextDeleteOpen(true)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </ContextMenuSubTrigger>
+                <ContextMenuPortal>
+                  <ContextMenuSubContent className="w-72 text-xs">
+                    <div>
+                      <div className="text-lg font-bold">Delete?</div>
+                      <div className="text-muted-foreground">
+                        Also removes subsequent messages.
+                      </div>
+                    </div>
+                    <div className="h-4" />
+                    <div className="flex w-full justify-end gap-2">
+                      <Button variant="destructive" onClick={handleDelete}>
+                        Confirm
+                      </Button>
+                    </div>
+                  </ContextMenuSubContent>
+                </ContextMenuPortal>
+              </ContextMenuSub>
+            </ContextMenuContent>
+          </ContextMenu>
         </div>
         <PromptSelectModal ref={modalRef} />
       </div>

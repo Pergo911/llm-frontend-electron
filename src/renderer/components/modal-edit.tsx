@@ -81,6 +81,16 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
     };
   }, []);
 
+  // Fixes bug where pointer events are disabled after closing the modal
+  useEffect(() => {
+    if (isOpen) {
+      requestAnimationFrame(() => {
+        document.body.style.pointerEvents = '';
+      });
+    }
+    document.body.style.pointerEvents = 'auto';
+  }, [isOpen]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleDismiss()}>
       <DialogContent className="max-w-[700px]">

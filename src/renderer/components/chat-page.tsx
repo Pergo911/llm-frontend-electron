@@ -139,6 +139,11 @@ export default function ChatPage() {
     async (id: string, choice: number) => {
       if (!chat) return;
 
+      if (abortRequestRef.current) {
+        setError("Can't set choice while generating.");
+        return;
+      }
+
       const { newChat, error } = await ChatOperations.setActiveChoice(
         chat,
         id,
@@ -166,6 +171,11 @@ export default function ChatPage() {
   const handleSend = useCallback(
     async (t: string, as: 'user' | 'assistant') => {
       if (!chat) return;
+
+      if (abortRequestRef.current) {
+        setError('Already generating.');
+        return;
+      }
 
       const chatRecovery = JSON.parse(JSON.stringify(chat));
 
@@ -261,6 +271,12 @@ export default function ChatPage() {
   const handleOnMessageRegen = useCallback(
     async (id: string) => {
       if (!chat) return;
+
+      if (abortRequestRef.current) {
+        setError('Already generating.');
+        return;
+      }
+
       // Find message index
       const messageIndex = chat.messages.findIndex((m) => m.id === id);
       if (messageIndex === -1) {
@@ -343,6 +359,11 @@ export default function ChatPage() {
     async (id: string) => {
       if (!chat) return;
 
+      if (abortRequestRef.current) {
+        setError("Can't delete while generating.");
+        return;
+      }
+
       const { newChat, error } = await ChatOperations.deleteMessages(chat, id);
 
       if (error || !newChat) {
@@ -358,6 +379,11 @@ export default function ChatPage() {
   const handleOnMessageEdit = useCallback(
     async (toEdit: string, id: string, choice?: number) => {
       if (!chat) return;
+
+      if (abortRequestRef.current) {
+        setError("Can't edit while generating.");
+        return;
+      }
 
       if (!editMessageModalRef.current) {
         setError("Couldn't get message editing dialog.");
@@ -388,6 +414,11 @@ export default function ChatPage() {
   const handleOnAddPrompt = useCallback(async () => {
     if (!chat) return;
 
+    if (abortRequestRef.current) {
+      setError("Can't add while generating.");
+      return;
+    }
+
     if (!promptSelectModalRef.current) {
       setError("Couldn't get the prompt selector dialog.");
       return;
@@ -416,6 +447,11 @@ export default function ChatPage() {
   const handleOnSwapPrompt = useCallback(
     async (oldId: string, newId: string, newType: 'user' | 'system') => {
       if (!chat) return;
+
+      if (abortRequestRef.current) {
+        setError("Can't swap while generating.");
+        return;
+      }
 
       const { newChat, error } = await ChatOperations.editMessage(
         chat,

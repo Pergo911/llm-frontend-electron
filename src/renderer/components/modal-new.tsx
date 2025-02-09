@@ -5,14 +5,7 @@ import {
   useImperativeHandle,
   useEffect,
 } from 'react';
-import {
-  ChevronsUpDown,
-  Edit3,
-  Folder,
-  MessageCircle,
-  Notebook,
-  TerminalSquare,
-} from 'lucide-react';
+import { ChevronsUpDown, Edit3, Notebook, TerminalSquare } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DialogHeader,
@@ -23,11 +16,9 @@ import {
   DialogTitle,
   DialogClose,
 } from './ui/dialog';
-import { Textarea } from './ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { cn } from '../utils/utils';
 import {
   Select,
   SelectContent,
@@ -45,9 +36,15 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
   const [selectedTab, setSelectedTab] = useState<'chat' | 'prompt'>('chat');
   const resolveRef = useRef<() => void>();
 
-  const [primaryNameValue, setPrimaryNameValue] = useState('');
-  const [secondaryNameValue, setSecondaryNameValue] = useState('');
-  const [typeValue, setTypeValue] = useState<'user' | 'system'>('user');
+  // Chat tab
+  const [chatName, setChatName] = useState('New chat');
+  const chatNameInputRef = useRef<HTMLInputElement>(null);
+
+  // Prompt tab
+  const [promptName, setPromptName] = useState('New prompt');
+  const [promptFolder, setPromptFolder] = useState('');
+  const [promptType, setPromptType] = useState<'user' | 'system'>('user');
+  const promptNameInputRef = useRef<HTMLInputElement>(null);
 
   useImperativeHandle(ref, () => ({
     promptUser: (preset?: 'chat' | 'prompt' | undefined) => {
@@ -64,8 +61,13 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
 
   const handleClose = () => {
     resolveRef.current?.();
-    setIsOpen(false);
     resolveRef.current = undefined;
+    setIsOpen(false);
+    setChatName('New chat');
+    setPromptName('New prompt');
+    setPromptFolder('');
+    setPromptType('user');
+    setSelectedTab('chat');
   };
 
   useEffect(() => {
@@ -75,65 +77,82 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!resolveRef.current) return; // Most reliable way to check if the modal is open
+
+    requestAnimationFrame(() => {
+      if (selectedTab === 'chat') {
+        chatNameInputRef.current?.focus();
+        chatNameInputRef.current?.select();
+      } else {
+        promptNameInputRef.current?.focus();
+        promptNameInputRef.current?.select();
+      }
+    });
+  }, [selectedTab, isOpen]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogPortal forceMount />
-      <DialogContent className="pt-4">
+      <DialogContent className="max-w-[350px] pt-4">
         <DialogHeader>
-          <DialogTitle className="flex items-center">
-            <div className="leading-none">Create new</div>
-            <div className="w-4" />
-            <Tabs
-              value={selectedTab}
-              onValueChange={(v) => setSelectedTab(v as 'chat' | 'prompt')}
-              className="flex-1"
-            >
-              <TabsList className="w-full">
-                <TabsTrigger value="chat" className="w-full">
-                  Chat
-                </TabsTrigger>
-                <TabsTrigger value="prompt" className="w-full">
-                  Prompt
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <div className="w-6" />
-          </DialogTitle>
+          <DialogTitle className="flex items-center">Create new</DialogTitle>
         </DialogHeader>
-        <Label className="flex items-center">
-          <Edit3 className="mr-2 h-4 w-4" />
-          Name
-        </Label>
-        <Input
-          value={primaryNameValue}
-          onChange={(e) => setPrimaryNameValue(e.target.value)}
-        />
-        <div
-          className={cn(
-            'flex gap-4 transition-opacity',
-            selectedTab === 'chat' && 'opacity-50',
-          )}
+        <Tabs
+          value={selectedTab}
+          onValueChange={(v) => setSelectedTab(v as 'chat' | 'prompt')}
+          className="flex-1"
         >
-          <div className="flex w-full flex-col space-y-2">
+          <TabsList className="w-full">
+            <TabsTrigger value="chat" className="w-full">
+              Chat
+            </TabsTrigger>
+            <TabsTrigger value="prompt" className="w-full">
+              Prompt
+            </TabsTrigger>
+          </TabsList>
+
+          {/* NEW CHAT */}
+          <TabsContent value="chat" className="mt-4 flex flex-col gap-4">
+            <Label className="flex items-center">
+              <Edit3 className="mr-2 h-4 w-4" />
+              Name
+            </Label>
+            <Input
+              value={chatName}
+              ref={chatNameInputRef}
+              onChange={(e) => setChatName(e.target.value)}
+            />
+          </TabsContent>
+
+          {/* NEW PROMPT */}
+          <TabsContent value="prompt" className="flex flex-col gap-4">
+            <Label className="flex items-center">
+              <Edit3 className="mr-2 h-4 w-4" />
+              Name
+            </Label>
+            <Input
+              value={promptName}
+              ref={promptNameInputRef}
+              onChange={(e) => setPromptName(e.target.value)}
+            />
             <Label className="flex items-center">
               <ChevronsUpDown className="mr-2 h-4 w-4" />
               Folder
             </Label>
             <Input
-              value={secondaryNameValue}
+              value={promptFolder}
               disabled={selectedTab === 'chat'}
-              onChange={(e) => setSecondaryNameValue(e.target.value)}
+              onChange={(e) => setPromptFolder(e.target.value)}
             />
-          </div>
-          <div className="flex w-full flex-col space-y-2">
             <Label className="flex items-center">
               <ChevronsUpDown className="mr-2 h-4 w-4" />
               Type
             </Label>
             <Select
-              value={typeValue}
+              value={promptType}
               onValueChange={(value) => {
-                setTypeValue(value as 'user' | 'system');
+                setPromptType(value as 'user' | 'system');
               }}
             >
               <SelectTrigger>
@@ -150,8 +169,8 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
                 </SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
 
         <DialogFooter>
           <DialogClose asChild>

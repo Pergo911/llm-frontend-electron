@@ -51,6 +51,7 @@ import { Input } from './ui/input';
 import { Slider } from './ui/slider';
 import AddRefreshButtonGroup from './add-refresh-buttongroup';
 import { RefreshRef } from './app-sidebar';
+import { Separator } from './ui/separator';
 
 // Used to display home icon, kept for consistency
 const HomeBreadcrumb = () => {
@@ -628,17 +629,25 @@ const TitleBar = forwardRef<RefreshRef>((_, ref) => {
   return (
     <div className="draggable flex h-[64px] items-center gap-2 bg-sidebar p-2 pr-[145px] @container/main">
       <SidebarTrigger className="my-auto" />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              navigation(-1);
+            }}
+            disabled={location.key === 'default'}
+          >
+            <ArrowLeft className="my-auto" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Back</TooltipContent>
+      </Tooltip>
       {sidebarClosed && <AddRefreshButtonGroup />}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => {
-          navigation(-1);
-        }}
-        disabled={location.key === 'default'}
-      >
-        <ArrowLeft className="my-auto" />
-      </Button>
+      {breadcrumbType !== 'home' && (
+        <Separator orientation="vertical" className="h-6" />
+      )}
       <Breadcrumb className="min-w-0 flex-1">
         {breadcrumbType === 'home' ? (
           <HomeBreadcrumb />

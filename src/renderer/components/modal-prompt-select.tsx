@@ -108,6 +108,16 @@ const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
     );
   }, [promptEntries, searchValue]);
 
+  // Fixes bug where pointer events are disabled after closing the modal
+  useEffect(() => {
+    if (isOpen) {
+      requestAnimationFrame(() => {
+        document.body.style.pointerEvents = '';
+      });
+    }
+    document.body.style.pointerEvents = 'auto';
+  }, [isOpen]);
+
   const hasResults = filteredPromptEntries.some((f) => f.items.length > 0);
 
   return (
