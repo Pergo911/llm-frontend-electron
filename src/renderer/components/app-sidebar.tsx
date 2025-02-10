@@ -4,6 +4,7 @@ import {
   Sidebar,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -71,12 +72,14 @@ export const AppSidebar = React.memo(
 
       return (
         <Sidebar {...props}>
-          <SidebarGroup>
-            <SidebarGroupContent className="flex items-center gap-0.5">
-              <SidebarToggle callback={setPage} />
-              <AddRefreshButtonGroup />
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <SidebarHeader className="m-0 p-0">
+            <SidebarGroup>
+              <SidebarGroupContent className="flex items-center gap-0.5">
+                <SidebarToggle callback={setPage} />
+                <AddRefreshButtonGroup />
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </SidebarHeader>
           {page === 'chat' ? (
             <ChatsSidebarContent data={chatData} />
           ) : (

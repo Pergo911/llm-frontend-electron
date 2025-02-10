@@ -58,6 +58,10 @@ const electronHandler = {
         id: string | null;
         error: string | null;
       }>,
+    remove: (itemType: 'chat' | 'prompt' | 'folder', id: string) =>
+      ipcRenderer.invoke('remove', itemType, id) as Promise<{
+        error: string | null;
+      }>,
   },
   windowStyle: {
     setWindowControlsTheme: (theme: 'dark' | 'light') => {

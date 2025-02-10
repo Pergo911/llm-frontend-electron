@@ -230,7 +230,7 @@ async function create(
       messages: [],
     } as Chat;
 
-    saveFile.chats.push(item);
+    saveFile.chats.unshift(item);
   } else if (itemType === 'prompt') {
     if (!folderId || !promptType)
       return {
@@ -249,13 +249,13 @@ async function create(
       content: '',
     } as Prompt;
 
-    saveFile.prompts.push(item);
+    saveFile.prompts.unshift(item);
   } else if (itemType === 'folder') {
     id = generateUUID('f');
 
     const item = { id, title } as Folder;
 
-    saveFile.folders.push(item);
+    saveFile.folders.unshift(item);
   }
 
   try {
@@ -268,6 +268,55 @@ async function create(
     return { id, error: null };
   } catch (e) {
     return { id: null, error: (e as Error).message };
+  }
+}
+
+async function remove(itemType: 'chat' | 'prompt' | 'folder', id: string) {
+  const { saveFile, error } = await getSaveFile();
+
+  if (error || !saveFile) {
+    return { error };
+  }
+
+  if (itemType === 'chat') {
+    const index = saveFile.chats.findIndex((c) => c.id === id);
+
+    if (index === -1) {
+      return { error: 'Chat not found' };
+    }
+
+    saveFile.chats.splice(index, 1);
+  } else if (itemType === 'prompt') {
+    const index = saveFile.prompts.findIndex((p) => p.id === id);
+
+    if (index === -1) {
+      return { error: 'Prompt not found' };
+    }
+
+    saveFile.prompts.splice(index, 1);
+  } else if (itemType === 'folder') {
+    const index = saveFile.folders.findIndex((f) => f.id === id);
+
+    if (index === -1) {
+      return { error: 'Folder not found' };
+    }
+
+    saveFile.folders.splice(index, 1);
+
+    // Remove all prompts in the folder
+    saveFile.prompts = saveFile.prompts.filter((p) => p.folderId !== id);
+  }
+
+  try {
+    await writeFile(
+      // @ts-ignore
+      store.get('saveFilePath') as string,
+      JSON.stringify(saveFile, null, 2),
+      'utf-8',
+    );
+    return { error: null };
+  } catch (e) {
+    return { error: (e as Error).message };
   }
 }
 
@@ -319,6 +368,13 @@ export const registerFileOperations = () => {
       promptType?: 'user' | 'system',
     ) => {
       return create(itemType, title, folderId, promptType);
+    },
+  );
+
+  ipcMain.handle(
+    'remove',
+    (_event, itemType: 'chat' | 'prompt' | 'folder', id: string) => {
+      return remove(itemType, id);
     },
   );
 };

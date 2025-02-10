@@ -117,11 +117,11 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary" onClick={() => handleDismiss()}>
+            <Button variant="secondary" onClick={handleDismiss}>
               Cancel
             </Button>
           </DialogClose>
-          <Button onClick={() => handleConfirm()}>Edit</Button>
+          <Button onClick={handleConfirm}>Edit</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

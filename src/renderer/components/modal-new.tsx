@@ -40,6 +40,7 @@ import {
 } from './ui/select';
 import { Separator } from './ui/separator';
 import { useRefresh } from '../hooks/use-refresh';
+import { isInvalid } from '../utils/utils';
 
 export interface NewModalRef {
   promptUser: (preset?: 'chat' | 'prompt' | undefined) => Promise<void>;
@@ -48,7 +49,9 @@ export interface NewModalRef {
 const NewModal = forwardRef<NewModalRef>((_, ref) => {
   // Suppress ResizeObserver errors
   const suppressResizeObserverErrors = () => {
+    // eslint-disable-next-line no-console
     const consoleError = console.error;
+    // eslint-disable-next-line no-console
     console.error = (...args: any[]) => {
       if (
         args.length > 0 &&
@@ -61,6 +64,7 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
     };
 
     return () => {
+      // eslint-disable-next-line no-console
       console.error = consoleError;
     };
   };
@@ -97,12 +101,6 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
   const [chatNameInvalid, setChatNameInvalid] = useState(false);
   const [promptNameInvalid, setPromptNameInvalid] = useState(false);
   const [newFolderNameInvalid, setNewFolderNameInvalid] = useState(false);
-
-  const isInvalid = (s: string) => {
-    return (
-      s.trim() === '' || s.length > 50 || s.includes('/') || s.includes('$')
-    );
-  };
 
   useEffect(() => {
     setChatNameInvalid(isInvalid(chatName));

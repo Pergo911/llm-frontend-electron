@@ -641,7 +641,7 @@ const PromptMessageComponent = React.memo(
                     )}
                   >
                     <span className="font-bold">
-                      {m.content.split(' ').length}
+                      {m.content ? m.content.split(' ').length : 0}
                     </span>{' '}
                     words • Sent as{' '}
                     <span className="font-bold">

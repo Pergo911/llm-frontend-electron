@@ -19,3 +19,7 @@ export function setWindowTitle(title?: string) {
 
   document.title = `${title} - ChatApp`;
 }
+
+export const isInvalid = (s: string) => {
+  return s.trim() === '' || s.length > 50 || s.includes('/') || s.includes('$');
+};
