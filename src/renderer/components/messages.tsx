@@ -273,6 +273,7 @@ const AssistantMessageComponent = React.memo<{
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
 
+    // Extract reasoning text within <think></think> tags from message content
     const text = React.useMemo(() => {
       const reasoningStartText =
         m.choices[m.activeChoice].content.split('<think>') || [];
@@ -302,7 +303,7 @@ const AssistantMessageComponent = React.memo<{
             <div className="h-0.5" />
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              className="display-linebreak markdown px-4 py-2"
+              className="markdown px-4 py-2"
             >
               {text.reasoningEnd}
             </ReactMarkdown>
@@ -767,7 +768,7 @@ const StreamingAssistantMessageComponent = React.memo(
           )}
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
-            className="display-linebreak markdown px-4 py-2"
+            className="markdown px-4 py-2"
           >
             {text && `${text} ■`}
           </ReactMarkdown>

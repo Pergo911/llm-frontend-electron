@@ -128,13 +128,6 @@
     @apply prose prose-neutral !max-w-none dark:prose-invert;
   }
 
-  .markdown * {
-    @apply !my-0;
-    @apply !leading-normal;
-    @apply !tracking-normal;
-    @apply !leading-normal;
-  }
-
   .markdown blockquote {
     @apply !bg-background;
     border-left: 4px solid hsl(var(--border)) !important;
