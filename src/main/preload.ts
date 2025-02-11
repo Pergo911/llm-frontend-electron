@@ -38,8 +38,21 @@ const electronHandler = {
         folder: Folder | null;
         error: string | null;
       }>,
+    getFolderById: (id: string) =>
+      ipcRenderer.invoke('get-folder-by-id', id) as Promise<{
+        folder: Folder | null;
+        error: string | null;
+      }>,
     writeChat: (chat: Chat) =>
       ipcRenderer.invoke('write-chat', chat) as Promise<{
+        error: string | null;
+      }>,
+    writePrompt: (prompt: Prompt) =>
+      ipcRenderer.invoke('write-prompt', prompt) as Promise<{
+        error: string | null;
+      }>,
+    writeFolder: (folder: Folder) =>
+      ipcRenderer.invoke('write-folder', folder) as Promise<{
         error: string | null;
       }>,
     create: (

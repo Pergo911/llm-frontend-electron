@@ -178,6 +178,21 @@ async function getPromptById(id: string) {
   };
 }
 
+async function getFolderById(id: string) {
+  const { saveFile, error } = await getSaveFile();
+
+  if (error || !saveFile) {
+    return { folder: null, error };
+  }
+
+  const folder = saveFile.folders.find((f) => f.id === id);
+
+  return {
+    folder: folder || null,
+    error: null as string | null,
+  };
+}
+
 async function writeChat(chat: Chat) {
   const { saveFile, error } = await getSaveFile();
 
@@ -192,6 +207,62 @@ async function writeChat(chat: Chat) {
   }
 
   saveFile.chats[chatIndex] = chat;
+
+  try {
+    await writeFile(
+      // @ts-ignore
+      store.get('saveFilePath') as string,
+      JSON.stringify(saveFile, null, 2),
+      'utf-8',
+    );
+    return { error: null as string | null };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+async function writePrompt(prompt: Prompt) {
+  const { saveFile, error } = await getSaveFile();
+
+  if (error || !saveFile) {
+    return { error };
+  }
+
+  const promptIndex = saveFile.prompts.findIndex((p) => p.id === prompt.id);
+
+  if (promptIndex === -1) {
+    return { error: 'Prompt not found' };
+  }
+
+  saveFile.prompts[promptIndex] = prompt;
+
+  try {
+    await writeFile(
+      // @ts-ignore
+      store.get('saveFilePath') as string,
+      JSON.stringify(saveFile, null, 2),
+      'utf-8',
+    );
+    return { error: null as string | null };
+  } catch (e) {
+    return { error: (e as Error).message };
+  }
+}
+
+async function writeFolder(folder: Folder) {
+  const { saveFile, error } = await getSaveFile();
+
+  if (error || !saveFile) {
+    return { error };
+  }
+
+  const folderIndex = saveFile.folders.findIndex((f) => f.id === folder.id);
+
+  if (folderIndex === -1) {
+    return { error: 'Folder not found' };
+  }
+
+  saveFile.folders[folderIndex] = folder;
 
   try {
     await writeFile(
@@ -354,8 +425,20 @@ export const registerFileOperations = () => {
     return getPromptById(id);
   });
 
+  ipcMain.handle('get-folder-by-id', (_event, id: string) => {
+    return getFolderById(id);
+  });
+
   ipcMain.handle('write-chat', (_event, chat: Chat) => {
     return writeChat(chat);
+  });
+
+  ipcMain.handle('write-prompt', (_event, prompt: Prompt) => {
+    return writePrompt(prompt);
+  });
+
+  ipcMain.handle('write-folder', (_event, folder: Folder) => {
+    return writeFolder(folder);
   });
 
   ipcMain.handle(
