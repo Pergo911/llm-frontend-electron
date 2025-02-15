@@ -645,9 +645,6 @@ const TitleBar = forwardRef<RefreshRef>((_, ref) => {
         <TooltipContent>Back</TooltipContent>
       </Tooltip>
       {sidebarClosed && <AddRefreshButtonGroup />}
-      {breadcrumbType !== 'home' && (
-        <Separator orientation="vertical" className="h-6" />
-      )}
       <Breadcrumb className="min-w-0 flex-1">
         {breadcrumbType === 'home' ? (
           <HomeBreadcrumb />

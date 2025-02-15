@@ -150,7 +150,7 @@ const buildRequestMessages = async (
     const systemRole = useLegacyRoleNames ? 'system' : 'developer';
 
     const converted = await Promise.all(
-      messageData.map(async (m): Promise<RequestMessage> => {
+      messageData.map(async (m): Promise<RequestMessage | null> => {
         const role =
           // eslint-disable-next-line no-nested-ternary
           m.messageType === 'user' || m.messageType === 'assistant'
@@ -179,13 +179,13 @@ const buildRequestMessages = async (
           if (!m.promptId) {
             throw new Error(`Prompt message ${m.id} has no promptId`);
           }
+
           const { prompt, error } =
             await window.electron.fileOperations.getPromptById(m.promptId);
 
           if (error || !prompt) {
-            throw new Error(
-              `Failed to get prompt ${m.promptId}: ${error || 'No prompt.'}`,
-            );
+            toast.warning('Unreachable prompt omitted.');
+            return null;
           }
 
           content = prompt.content;
@@ -195,8 +195,11 @@ const buildRequestMessages = async (
       }),
     );
 
-    // Concatenate consecutive messages with the same role
+    // Remove null values and concatenate consecutive messages with the same role
     const resultMessages = converted.reduce<RequestMessage[]>((acc, curr) => {
+      // Omit null
+      if (!curr) return acc;
+
       const lastMessage = acc[acc.length - 1];
 
       if (lastMessage && lastMessage.role === curr.role) {
@@ -209,6 +212,10 @@ const buildRequestMessages = async (
       acc.push({ ...curr });
       return acc;
     }, []);
+
+    if (resultMessages[resultMessages.length - 1].role === 'assistant') {
+      throw new Error("Last message can't be an assistant message.");
+    }
 
     return { resultMessages, error: null };
   } catch (e) {

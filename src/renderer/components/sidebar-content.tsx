@@ -342,7 +342,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                                     ) : (
                                       <SquareTerminal className="mr-2" />
                                     )}
-                                    <span className="truncate">
+                                    <span className="mr-4 truncate">
                                       {item.title}
                                     </span>
                                   </SidebarMenuSubButton>

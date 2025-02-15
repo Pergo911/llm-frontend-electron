@@ -16,6 +16,7 @@ import { formatTimestamp, setWindowTitle } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
 import { EditMessageModal, EditMessageModalRef } from './modal-edit';
 import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
+import { Button } from './ui/button';
 
 const EmptyChatTitle = memo(
   ({
@@ -28,24 +29,17 @@ const EmptyChatTitle = memo(
     onPromptAdd: () => void;
   }) => {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-0.5 p-4">
-        <MessageCircle className="h-16 w-16" />
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="text-muted-foreground animate-in fade-in">
-          <button
-            className="font-bold hover:underline active:font-normal active:no-underline"
-            onClick={onInputFocus}
-          >
-            Start typing
-          </button>{' '}
-          <span> or </span>
-          <button
-            className="font-bold hover:underline active:font-normal active:no-underline"
-            onClick={onPromptAdd}
-          >
-            add a prompt
-          </button>
-        </p>
+      <div className="flex h-full flex-col items-center justify-center gap-2 p-4">
+        <MessageCircle className="h-16 w-16 ease-out animate-in fade-in slide-in-from-bottom" />
+        <h1 className="text-2xl font-bold ease-out animate-in fade-in slide-in-from-bottom">
+          {title}
+        </h1>
+        <div className="text-muted-foreground ease-out animate-in fade-in">
+          <span>Start typing or </span>
+          <Button variant="outline" onClick={onPromptAdd}>
+            Add a prompt
+          </Button>
+        </div>
       </div>
     );
   },
@@ -54,7 +48,7 @@ const EmptyChatTitle = memo(
 const ChatTitle = memo(
   ({ title, timestamp }: { title: string; timestamp: number }) => {
     return (
-      <div className="m-auto flex max-w-[800px] flex-col items-center justify-center gap-0.5 p-4">
+      <div className="m-auto flex max-w-[800px] flex-col items-center justify-center gap-2 p-4">
         <MessageCircle className="h-16 w-16" />
         <h1 className="text-2xl font-bold">{title}</h1>
         <p className="text-muted-foreground">
@@ -106,6 +100,8 @@ export default function ChatPage() {
       setError(error);
       setChat(chat);
       setWindowTitle(chat?.title ?? 'Chat');
+      // eslint-disable-next-line no-use-before-define
+      handleInputFocus();
     };
 
     getChat();
@@ -125,7 +121,9 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (chat && chat.messages.length !== 0) {
-      if (chat.messages[chat.messages.length - 1].messageType !== 'assistant') {
+      const lastMessage = chat.messages[chat.messages.length - 1];
+
+      if (lastMessage.messageType !== 'assistant') {
         setOverrideCanSend(true);
       } else {
         setOverrideCanSend(false);

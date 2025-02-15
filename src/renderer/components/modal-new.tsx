@@ -35,6 +35,7 @@ import {
   Select,
   SelectContent,
   SelectItem,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from './ui/select';
@@ -301,7 +302,7 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
         <Tabs
           value={selectedTab}
           onValueChange={(v) => setSelectedTab(v as 'chat' | 'prompt')}
-          className="flex-1"
+          className="min-w-0 flex-1"
         >
           <TabsList className="w-full">
             <TabsTrigger value="chat" className="w-full transition-none">
@@ -378,14 +379,20 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  {availableFolders.map((folder) => (
-                    <SelectItem key={folder.id} value={folder.id}>
-                      <Folder className="-mt-0.5 mr-2 inline h-4 w-4" />
-                      {folder.title}
-                    </SelectItem>
-                  ))}
-                  <Separator />
+                <SelectContent className="max-w-[300px]">
+                  <div className="max-h-[200px] overflow-y-auto">
+                    {availableFolders.map((folder) => (
+                      <SelectItem
+                        key={folder.id}
+                        value={folder.id}
+                        className="block"
+                      >
+                        <Folder className="-mt-0.5 mr-2 inline h-4 w-4" />
+                        {folder.title}
+                      </SelectItem>
+                    ))}
+                  </div>
+                  <SelectSeparator className="mt-0" />
                   <SelectItem value="$new">
                     <Plus className="-mt-0.5 mr-2 inline h-4 w-4" />
                     New folder
