@@ -1,21 +1,8 @@
-import {
-  MemoryRouter,
-  Routes,
-  Route,
-  useNavigate,
-  ScrollRestoration,
-} from 'react-router-dom';
+import { MemoryRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import './App.global.css';
 import 'tailwindcss/tailwind.css';
 import { Toaster } from 'sonner';
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SidebarInset, SidebarProvider } from './components/ui/sidebar';
 import { AppSidebar, RefreshRef } from './components/app-sidebar';
 import { ThemeProvider } from './components/theme-provider';
@@ -24,9 +11,8 @@ import ChatPage from './components/chat-page';
 import PromptPage from './components/prompt-page';
 import TitleBar from './components/title-bar';
 import { TooltipProvider } from './components/ui/tooltip';
-import { NewModal, NewModalRef } from './components/modal-new';
 
-import { RefreshContext, useRefresh } from './hooks/use-refresh';
+import { RefreshContext } from './hooks/use-refresh';
 
 function AppRoutes({ refreshKey }: { refreshKey: number }) {
   const navigate = useNavigate();
@@ -107,13 +93,14 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleRefreshShortcut);
   }, [refresh]);
 
-  // Disable chrome's default keybinds for refresh
-  // https://stackoverflow.com/questions/51187602/electron-js-prevent-refresh-for-created-window
   window.addEventListener('beforeunload', (ev) => {
-    // Setting any value other than undefined here will prevent the window
-    // from closing or reloading
-    // IS DISABLED FOR DEBUGGING PURPOSES
-    // ev.returnValue = true;
+    // Setting any value other than
+    // undefined here will prevent the
+    // window from closing or reloading
+
+    // https://stackoverflow.com/questions/51187602/electron-js-prevent-refresh-for-created-window
+
+    ev.returnValue = true;
   });
 
   return (
