@@ -1,5 +1,5 @@
 {
-  "name": "ChatApp",
+  "name": "chat-app",
   "description": "A frontend for chat completions with injectable prompt templates, using an arbitrary OpenAI compatible API",
   "keywords": [
     "electron",
@@ -202,8 +202,8 @@
     "webpack-merge": "^5.9.0"
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "ChatApp",
+    "appId": "com.chatapp",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
@@ -262,17 +262,14 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
+      "owner": "Pergo911",
+      "repo": "llm-frontend-electron"
     }
-  },
-  "collective": {
-    "url": "https://opencollective.com/electron-react-boilerplate-594"
   },
   "devEngines": {
     "runtime": {
       "name": "node",
-      "ChatApp": ">=14.x",
+      "version": ">=14.x",
       "onFail": "error"
     },
     "packageManager": {

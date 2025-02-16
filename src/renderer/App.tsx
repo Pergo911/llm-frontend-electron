@@ -97,10 +97,8 @@ export default function App() {
     // Setting any value other than
     // undefined here will prevent the
     // window from closing or reloading
-
     // https://stackoverflow.com/questions/51187602/electron-js-prevent-refresh-for-created-window
-
-    ev.returnValue = true;
+    // ev.returnValue = true;
   });
 
   return (
