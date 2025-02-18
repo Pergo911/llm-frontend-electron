@@ -94,6 +94,7 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
   >([]);
   const [promptFolder, setPromptFolder] = useState<string>('');
   const [isNewFolder, setIsNewFolder] = useState(false);
+  const [canCancelNewFolder, setCanCancelNewFolder] = useState(true);
   const [newFolderName, setNewFolderName] = useState('New folder');
   const newFolderInputRef = useRef<HTMLInputElement>(null);
   const [promptType, setPromptType] = useState<'user' | 'system'>('user');
@@ -127,6 +128,7 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
     setAvailableFolders([]);
     setPromptFolder('');
     setIsNewFolder(false);
+    setCanCancelNewFolder(true);
     setPromptType('user');
     setSelectedTab('chat');
   };
@@ -141,9 +143,17 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
       return;
     }
 
-    setAvailableFolders(
-      promptEntries.map((entry) => ({ id: entry.id, title: entry.title })),
-    );
+    const folders = promptEntries.map((entry) => ({
+      id: entry.id,
+      title: entry.title,
+    }));
+    setAvailableFolders(folders);
+
+    if (folders.length === 0) {
+      setIsNewFolder(true);
+      setCanCancelNewFolder(false);
+      return;
+    }
 
     if (promptEntries.length > 0) {
       setPromptFolder(promptEntries[0].id);
@@ -363,16 +373,18 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
                       : ''
                   }
                 />
-                <Button
-                  variant="secondary"
-                  size="icon"
-                  onClick={() => {
-                    setIsNewFolder(false);
-                    setNewFolderName('New folder');
-                  }}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                {canCancelNewFolder && (
+                  <Button
+                    variant="secondary"
+                    size="icon"
+                    onClick={() => {
+                      setIsNewFolder(false);
+                      setNewFolderName('New folder');
+                    }}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             ) : (
               <Select value={promptFolder} onValueChange={handleFolderChange}>
