@@ -280,7 +280,7 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
 
   useEffect(() => {
     const handleEnter = (e: KeyboardEvent) => {
-      if (resolveRef.current && e.key === 'Enter' && e.ctrlKey && !invalid) {
+      if (resolveRef.current && e.key === 'Enter' && !invalid) {
         handleCreate();
       }
     };

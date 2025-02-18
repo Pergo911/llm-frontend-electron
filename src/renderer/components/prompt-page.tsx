@@ -202,7 +202,7 @@ export default function PromptPage() {
 
   useEffect(() => {
     const handleSaveShortcut = (e: KeyboardEvent) => {
-      if (e.key === 's' && (e.metaKey || e.ctrlKey)) {
+      if (e.key.toLowerCase() === 's' && e.ctrlKey) {
         e.preventDefault();
         handleSave();
       }

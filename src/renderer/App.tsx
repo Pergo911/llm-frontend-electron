@@ -83,7 +83,7 @@ export default function App() {
 
   useEffect(() => {
     const handleRefreshShortcut = (e: KeyboardEvent) => {
-      if ((e.ctrlKey && e.key === 'r') || e.key === 'F5') {
+      if ((e.ctrlKey && e.key.toLowerCase() === 'r') || e.key === 'F5') {
         e.preventDefault();
         refresh();
       }

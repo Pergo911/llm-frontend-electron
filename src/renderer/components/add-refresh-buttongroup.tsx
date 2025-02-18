@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { Loader2, Plus, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '../utils/utils';
@@ -7,13 +7,33 @@ import { useRefresh } from '../hooks/use-refresh';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { NewModal, NewModalRef } from './modal-new';
 
-const AddRefreshButtonGroup = () => {
+const AddRefreshButtonGroup = ({
+  registerShortcut,
+}: {
+  registerShortcut?: boolean;
+}) => {
   const refresh = useRefresh();
   const newModalRef = useRef<NewModalRef>(null);
 
   const handleAdd = useCallback(() => {
     newModalRef.current?.promptUser();
   }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        handleAdd();
+      }
+    };
+
+    if (registerShortcut) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [handleAdd, registerShortcut]);
 
   return (
     <>
