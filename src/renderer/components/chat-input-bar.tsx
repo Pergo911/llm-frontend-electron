@@ -14,6 +14,7 @@ const ChatInputBar = React.memo(
     isStreaming,
     onAbort,
     overrideCanSend,
+    noSendAs,
   }: {
     onSend: (t: string, as: 'user' | 'assistant') => void;
     onAddPrompt: () => void;
@@ -21,6 +22,7 @@ const ChatInputBar = React.memo(
     isStreaming: boolean;
     onAbort: () => void;
     overrideCanSend: boolean;
+    noSendAs?: boolean;
   }) => {
     const [value, setValue] = React.useState('');
     const [canSend, setCanSend] = React.useState(false);
@@ -107,29 +109,31 @@ const ChatInputBar = React.memo(
               Prompt
             </Button>
             <div className="flex items-center">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setSendAs(sendAs === 'user' ? 'assistant' : 'user');
-                    }}
-                    disabled={(overrideCanSend && !canSend) || isStreaming}
-                    className={cn(
-                      ((overrideCanSend && !canSend) || isStreaming) &&
-                        'hidden',
-                    )}
-                  >
-                    {sendAs === 'user' ? <User2 /> : <Bot />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top">
-                  {sendAs === 'user'
-                    ? 'Sending as user'
-                    : 'Sending as assistant'}
-                </TooltipContent>
-              </Tooltip>
+              {!noSendAs && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setSendAs(sendAs === 'user' ? 'assistant' : 'user');
+                      }}
+                      disabled={(overrideCanSend && !canSend) || isStreaming}
+                      className={cn(
+                        ((overrideCanSend && !canSend) || isStreaming) &&
+                          'hidden',
+                      )}
+                    >
+                      {sendAs === 'user' ? <User2 /> : <Bot />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    {sendAs === 'user'
+                      ? 'Sending as user'
+                      : 'Sending as assistant'}
+                  </TooltipContent>
+                </Tooltip>
+              )}
               <div className="w-2" />
               <Button
                 variant="default"

@@ -14,7 +14,13 @@ import { TooltipProvider } from './components/ui/tooltip';
 
 import { RefreshContext } from './hooks/use-refresh';
 
-function AppRoutes({ refreshKey }: { refreshKey: number }) {
+function AppRoutes({
+  refreshKey,
+  refreshSidebar,
+}: {
+  refreshKey: number;
+  refreshSidebar: () => void;
+}) {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -59,7 +65,10 @@ function AppRoutes({ refreshKey }: { refreshKey: number }) {
 
   return (
     <Routes>
-      <Route path="/" element={<HomePage key={refreshKey} />} />
+      <Route
+        path="/"
+        element={<HomePage key={refreshKey} refreshSidebar={refreshSidebar} />}
+      />
       <Route path="/c">
         <Route path=":id" element={<ChatPage key={refreshKey} />} />
       </Route>
@@ -79,6 +88,10 @@ export default function App() {
     setRefreshKey((prev) => prev + 1);
     sidebarRef.current?.refresh();
     titlebarRef.current?.refresh();
+  }, []);
+
+  const refreshSidebar = useCallback(() => {
+    sidebarRef.current?.refresh();
   }, []);
 
   useEffect(() => {
@@ -110,7 +123,10 @@ export default function App() {
               <AppSidebar ref={sidebarRef} />
               <SidebarInset className="min-w-0 bg-sidebar">
                 <TitleBar ref={titlebarRef} />
-                <AppRoutes refreshKey={refreshKey} />
+                <AppRoutes
+                  refreshKey={refreshKey}
+                  refreshSidebar={refreshSidebar}
+                />
               </SidebarInset>
             </SidebarProvider>
           </TooltipProvider>

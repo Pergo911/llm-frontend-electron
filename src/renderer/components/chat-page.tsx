@@ -1,7 +1,7 @@
 /* eslint-disable promise/always-return */
 /* eslint-disable promise/catch-or-return */
 /* eslint-disable no-nested-ternary */
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import {
   Chat,
@@ -63,6 +63,7 @@ const ChatTitle = memo(
 
 export default function ChatPage() {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [chat, setChat] = useState<Chat | null>(null);
   const [error, setError] = useState<string | null>(null);
   const nav = useNavigate();
@@ -472,6 +473,53 @@ export default function ChatPage() {
   const handleInputFocus = useCallback(() => {
     chatInputBarActionRef.current?.focus();
   }, []);
+
+  // Handle URL params received from the home page
+  useEffect(() => {
+    if (!chat) return;
+
+    const handleAddLocal = async (id: string) => {
+      const { prompt, error } =
+        await window.electron.fileOperations.getPromptById(id);
+
+      if (error || !prompt) {
+        setError(error);
+        return;
+      }
+
+      const { newChat, error: insertError } =
+        await ChatOperations.insertMessage(
+          chat,
+          prompt.type === 'user' ? 'user-prompt' : 'system-prompt',
+          id,
+        );
+
+      if (insertError || !newChat) {
+        setError(error);
+        return;
+      }
+
+      setChat(newChat);
+    };
+
+    if (searchParams.has('message')) {
+      const message = searchParams.get('message');
+
+      if (message) {
+        handleSend(message, 'user');
+        setSearchParams({}, { replace: true });
+      }
+    }
+
+    if (searchParams.has('prompt')) {
+      const prompt = searchParams.get('prompt');
+
+      if (prompt) {
+        handleAddLocal(prompt);
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [handleOnAddPrompt, handleSend, searchParams, setSearchParams, chat]);
 
   return (
     <div className="h-[calc(100vh-64px)]">
