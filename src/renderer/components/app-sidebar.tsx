@@ -73,8 +73,8 @@ export const AppSidebar = React.memo(
       return (
         <Sidebar {...props}>
           <SidebarHeader className="m-0 p-0">
-            <SidebarGroup>
-              <SidebarGroupContent className="flex items-center gap-0.5">
+            <SidebarGroup className="m-0 p-0 pl-2">
+              <SidebarGroupContent className="flex h-[40px] items-center gap-0.5">
                 <SidebarToggle callback={setPage} />
                 <AddRefreshButtonGroup registerShortcut />
               </SidebarGroupContent>

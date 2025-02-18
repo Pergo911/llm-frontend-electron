@@ -203,12 +203,12 @@ const ModelSelector = forwardRef<RefreshRef>((_, ref) => {
               <span className="hidden w-36 truncate text-left @xl/main:inline">
                 {selectedModel ? (
                   <>
-                    <span className="text-xs text-muted-foreground">
+                    {/* <span className="text-xs text-muted-foreground">
                       {selectedModel.includes('/') &&
                         selectedModel.split('/')[0]}
                     </span>
-                    <br />
-                    <span className="font-bold">
+                    <br /> */}
+                    <span>
                       {selectedModel.includes('/')
                         ? selectedModel.split('/')[1]
                         : selectedModel}
@@ -627,8 +627,8 @@ const TitleBar = forwardRef<RefreshRef>((_, ref) => {
     loadData();
   }, [location]);
   return (
-    <div className="draggable flex h-[64px] items-center gap-2 bg-sidebar p-2 pr-[145px] @container/main">
-      <SidebarTrigger className="my-auto" />
+    <div className="draggable flex h-[40px] items-center gap-2 bg-sidebar p-2 pr-[145px] @container/main">
+      <SidebarTrigger className="" />
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
