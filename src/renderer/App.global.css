@@ -88,6 +88,11 @@
     @apply outline-ring;
   }
 
+  div,
+  p {
+    @apply select-none;
+  }
+
   ::-webkit-scrollbar {
     @apply h-2 w-2;
   }
@@ -125,7 +130,12 @@
   }
 
   .markdown {
-    @apply prose prose-neutral !max-w-none dark:prose-invert;
+    @apply prose prose-neutral !max-w-none select-text dark:prose-invert;
+  }
+
+  .markdown div,
+  .markdown p {
+    @apply !select-text;
   }
 
   .markdown blockquote {

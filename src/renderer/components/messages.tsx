@@ -173,7 +173,7 @@ const UserMessageComponent = React.memo<{
             <div
               className={cn(
                 needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
-                'display-linebreak flex w-fit flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
+                'display-linebreak flex w-fit select-text flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
               )}
             >
               {m.content}

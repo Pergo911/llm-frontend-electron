@@ -31,7 +31,7 @@ const EmptyChatTitle = memo(
     return (
       <div className="flex h-full flex-col items-center justify-center gap-2 p-4">
         <MessageCircle className="h-16 w-16 ease-out animate-in fade-in slide-in-from-bottom" />
-        <h1 className="text-2xl font-bold ease-out animate-in fade-in slide-in-from-bottom">
+        <h1 className="select-text text-2xl font-bold ease-out animate-in fade-in slide-in-from-bottom">
           {title}
         </h1>
         <div className="text-muted-foreground ease-out animate-in fade-in">
@@ -50,7 +50,7 @@ const ChatTitle = memo(
     return (
       <div className="m-auto flex max-w-[800px] flex-col items-center justify-center gap-2 p-4">
         <MessageCircle className="h-16 w-16" />
-        <h1 className="text-2xl font-bold">{title}</h1>
+        <h1 className="select-text text-2xl font-bold">{title}</h1>
         <p className="text-muted-foreground">
           Created {formatTimestamp(timestamp)}
         </p>

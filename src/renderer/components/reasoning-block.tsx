@@ -51,7 +51,7 @@ const ReasoningBlock = ({
       </div>
       <div
         className={cn(
-          'overflow-y-auto p-4',
+          'select-text overflow-y-auto p-4',
           !isExpanded && ['max-h-[50px]', 'flex flex-col justify-end'],
         )}
       >

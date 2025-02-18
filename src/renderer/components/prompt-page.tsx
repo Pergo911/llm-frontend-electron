@@ -342,7 +342,9 @@ export default function PromptPage() {
               ) : (
                 <SquareTerminal className="mr-4 h-6 w-6 flex-shrink-0" />
               )}
-              <div className="mr-10 mt-0.5 w-fit">{prompt?.title}</div>
+              <div className="mr-10 mt-0.5 w-fit select-text">
+                {prompt?.title}
+              </div>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
