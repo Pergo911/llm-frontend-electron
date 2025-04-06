@@ -49,7 +49,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Input } from './ui/input';
 import { Slider } from './ui/slider';
-import AddRefreshButtonGroup from './add-refresh-buttongroup';
+import AddRefreshButtonGroup from './new-button';
 import { RefreshRef } from './app-sidebar';
 import { Separator } from './ui/separator';
 
@@ -627,8 +627,8 @@ const TitleBar = forwardRef<RefreshRef>((_, ref) => {
     loadData();
   }, [location]);
   return (
-    <div className="draggable flex h-[40px] items-center gap-2 bg-sidebar p-2 pr-[145px] @container/main">
-      <SidebarTrigger className="" />
+    <div className="draggable flex h-[48px] items-center gap-0.5 bg-sidebar p-2 pr-[145px] @container/main">
+      {sidebarClosed && <SidebarTrigger />}
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
@@ -645,7 +645,7 @@ const TitleBar = forwardRef<RefreshRef>((_, ref) => {
         <TooltipContent>Back</TooltipContent>
       </Tooltip>
       {sidebarClosed && <AddRefreshButtonGroup />}
-      <Breadcrumb className="min-w-0 flex-1">
+      <Breadcrumb className="mx-2 min-w-0 flex-1">
         {breadcrumbType === 'home' ? (
           <HomeBreadcrumb />
         ) : breadcrumbType === 'chat' ? (

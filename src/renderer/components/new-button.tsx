@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2, Plus, RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import { cn } from '../utils/utils';
@@ -6,14 +6,13 @@ import { cn } from '../utils/utils';
 import { useRefresh } from '../hooks/use-refresh';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { NewModal, NewModalRef } from './modal-new';
+import TooltipHotkey from './ui/tooltip-hotkey';
+import { useSidebar } from './ui/sidebar';
 
-const AddRefreshButtonGroup = ({
-  registerShortcut,
-}: {
-  registerShortcut?: boolean;
-}) => {
-  const refresh = useRefresh();
+const NewButton = ({ registerShortcut }: { registerShortcut?: boolean }) => {
   const newModalRef = useRef<NewModalRef>(null);
+  const sidebarOpen = useSidebar().state === 'expanded';
+  const [tooltipOpen, setTooptipOpen] = useState<boolean>(false);
 
   const handleAdd = useCallback(() => {
     newModalRef.current?.promptUser();
@@ -37,18 +36,23 @@ const AddRefreshButtonGroup = ({
 
   return (
     <>
-      <Tooltip>
+      <Tooltip
+        open={tooltipOpen}
+        onOpenChange={(v) => {
+          if (sidebarOpen) return;
+          setTooptipOpen(v);
+        }}
+      >
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="sm" onClick={refresh}>
-            <RefreshCw className="h-4 w-4 flex-shrink-0" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Refresh all</TooltipContent>
-      </Tooltip>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="ghost" size="sm" onClick={handleAdd}>
+          <Button
+            variant={
+              cn(sidebarOpen ? 'default' : 'ghost') as 'default' | 'ghost'
+            }
+            size="sm"
+            onClick={handleAdd}
+          >
             <Plus className="h-4 w-4 flex-shrink-0" />
+            {sidebarOpen && 'New'}
           </Button>
         </TooltipTrigger>
         <TooltipContent>New</TooltipContent>
@@ -58,4 +62,4 @@ const AddRefreshButtonGroup = ({
   );
 };
 
-export default AddRefreshButtonGroup;
+export default NewButton;

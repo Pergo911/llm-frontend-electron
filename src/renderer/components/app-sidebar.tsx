@@ -8,6 +8,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from '@/renderer/components/ui/sidebar';
 import {
   ChatsSidebarContent,
@@ -21,8 +22,9 @@ import { SidebarToggle } from './sidebar-toggle';
 import { Dialog, DialogContent, DialogTrigger } from './ui/dialog';
 import { SettingsModal } from './modal-settings';
 import { Button } from './ui/button';
-import AddRefreshButtonGroup from './add-refresh-buttongroup';
 import { useRefresh } from '../hooks/use-refresh';
+import NewButton from './new-button';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 // Define the ref interface
 export interface RefreshRef {
@@ -72,14 +74,20 @@ export const AppSidebar = React.memo(
 
       return (
         <Sidebar {...props}>
+          <SidebarGroup className="m-0 p-0 pl-2">
+            <SidebarGroupContent className="flex h-[48px] items-center justify-between gap-0.5">
+              <SidebarTrigger />
+              <NewButton registerShortcut />
+            </SidebarGroupContent>
+          </SidebarGroup>
           <SidebarHeader className="m-0 p-0">
-            <SidebarGroup className="m-0 p-0 pl-2">
-              <SidebarGroupContent className="flex h-[40px] items-center gap-0.5">
+            <SidebarGroup className="py-0">
+              <SidebarGroupContent>
                 <SidebarToggle callback={setPage} />
-                <AddRefreshButtonGroup registerShortcut />
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarHeader>
+
           {page === 'chat' ? (
             <ChatsSidebarContent data={chatData} />
           ) : (
@@ -87,8 +95,8 @@ export const AppSidebar = React.memo(
           )}
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu>
-                <SidebarMenuItem>
+              <SidebarMenu className="flex-row">
+                <SidebarMenuItem className="flex-1">
                   <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
                     <DialogTrigger asChild>
                       <SidebarMenuButton>
@@ -103,6 +111,16 @@ export const AppSidebar = React.memo(
                       />
                     </DialogContent>
                   </Dialog>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SidebarMenuButton onClick={refresh}>
+                        <RefreshCw className="h-4 w-4 flex-shrink-0" />
+                      </SidebarMenuButton>
+                    </TooltipTrigger>
+                    <TooltipContent>Refresh all</TooltipContent>
+                  </Tooltip>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>

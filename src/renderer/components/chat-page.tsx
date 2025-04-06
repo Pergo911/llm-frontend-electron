@@ -522,7 +522,7 @@ export default function ChatPage() {
   }, [handleOnAddPrompt, handleSend, searchParams, setSearchParams, chat]);
 
   return (
-    <div className="h-[calc(100vh-40px)]">
+    <div className="h-[calc(100vh-48px)]">
       <div className="flex h-full flex-col rounded-t-xl bg-background">
         <div className="h-full overflow-y-auto" ref={scrollRef}>
           {chat ? (
