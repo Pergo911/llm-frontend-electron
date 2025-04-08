@@ -121,7 +121,7 @@ export default function App() {
           <TooltipProvider skipDelayDuration={0}>
             <SidebarProvider>
               <AppSidebar ref={sidebarRef} />
-              <SidebarInset className="min-w-0 bg-sidebar">
+              <SidebarInset className="bg-background-dim min-w-0">
                 <TitleBar ref={titlebarRef} />
                 <AppRoutes
                   refreshKey={refreshKey}

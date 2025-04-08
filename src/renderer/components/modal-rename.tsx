@@ -127,7 +127,7 @@ const RenameModal = forwardRef<RenameModalRef>((_, ref) => {
         />
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary" onClick={handleDismiss}>
+            <Button variant="outline" onClick={handleDismiss}>
               Cancel
             </Button>
           </DialogClose>

@@ -16,7 +16,7 @@ import { registerFileOperations } from './file-operations';
 let mainWindow: BrowserWindow | null = null;
 
 let titleBarColors = {
-  background: 'hsla(240, 5.9%, 10%, 1)',
+  background: 'hsla(100, 10%, 11.8%, 1)',
   symbol: 'hsla(0, 0%, 95%, 1)',
 };
 

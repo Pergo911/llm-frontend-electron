@@ -18,45 +18,39 @@ import { EditMessageModal, EditMessageModalRef } from './modal-edit';
 import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
 import { Button } from './ui/button';
 
-const EmptyChatTitle = memo(
+const ChatTitle = memo(
   ({
+    isChatEmpty,
     title,
-    onInputFocus,
+    timestamp,
     onPromptAdd,
   }: {
+    isChatEmpty: boolean;
     title: string;
-    onInputFocus: () => void;
+    timestamp: number;
     onPromptAdd: () => void;
   }) => {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-2 p-4">
-        <MessageCircle className="h-16 w-16 ease-out animate-in fade-in slide-in-from-bottom" />
-        <h1 className="select-text text-2xl font-bold ease-out animate-in fade-in slide-in-from-bottom">
-          {title}
-        </h1>
-        <div className="text-muted-foreground ease-out animate-in fade-in">
-          <span>Start typing or </span>
-          <Button variant="outline" onClick={onPromptAdd}>
-            Add a prompt
-          </Button>
+      <>
+        <div className="m-auto flex max-w-[800px] flex-col items-start px-8 py-4">
+          <h1 className="select-text text-3xl font-bold text-primary ease-out animate-in fade-in slide-in-from-top">
+            {title}
+          </h1>
+          <p className="text-xs text-muted-foreground ease-out animate-in fade-in slide-in-from-top">
+            Created{' '}
+            <span className="font-bold">{formatTimestamp(timestamp)}</span>
+          </p>
         </div>
-      </div>
-    );
-  },
-);
 
-const ChatTitle = memo(
-  ({ title, timestamp }: { title: string; timestamp: number }) => {
-    return (
-      <div className="m-auto flex max-w-[800px] flex-col items-center justify-center gap-2 p-4">
-        <MessageCircle className="h-16 w-16" />
-        <h1 className="select-text text-2xl font-bold">{title}</h1>
-        <p className="text-muted-foreground">
-          Created {formatTimestamp(timestamp)}
-        </p>
-        <div className="h-5 min-w-full max-w-[700px] bg-gradient-to-r from-transparent via-sidebar-border to-transparent bg-[length:100%_1px] bg-bottom bg-no-repeat" />
-        <div className="h-5" />
-      </div>
+        {isChatEmpty && (
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-muted-foreground">
+            <span>Start typing or </span>
+            <Button variant="outline" onClick={onPromptAdd}>
+              Add a prompt
+            </Button>
+          </div>
+        )}
+      </>
     );
   },
 );
@@ -470,9 +464,9 @@ export default function ChatPage() {
     [chat],
   );
 
-  const handleInputFocus = useCallback(() => {
+  const handleInputFocus = () => {
     chatInputBarActionRef.current?.focus();
-  }, []);
+  };
 
   // Handle URL params received from the home page
   useEffect(() => {
@@ -523,31 +517,28 @@ export default function ChatPage() {
 
   return (
     <div className="h-[calc(100vh-48px)]">
-      <div className="flex h-full flex-col rounded-t-xl bg-background">
+      <div className="flex h-full flex-col overflow-hidden rounded-t-3xl bg-background">
         <div className="h-full overflow-y-auto" ref={scrollRef}>
           {chat ? (
-            chat.messages.length === 0 ? (
-              <EmptyChatTitle
-                title={chat.title}
-                onInputFocus={handleInputFocus}
+            <>
+              <ChatTitle
+                isChatEmpty={chat.messages.length === 0}
                 onPromptAdd={handleOnAddPrompt}
+                title={chat.title}
+                timestamp={chat.timestamp}
               />
-            ) : (
-              <>
-                <ChatTitle title={chat.title} timestamp={chat.timestamp} />
-                <Messages
-                  messages={chat.messages}
-                  onMessageEdit={handleOnMessageEdit}
-                  onSwapPrompt={handleOnSwapPrompt}
-                  onMessageDelete={handleOnMessageDelete}
-                  onSetActiveChoice={handleOnSetActiveChoice}
-                  onMessageRegen={handleOnMessageRegen}
-                  onNeedsScroll={scrollToBottom}
-                  isStreaming={isStreaming}
-                  streamHandle={streamHandleRef}
-                />
-              </>
-            )
+              <Messages
+                messages={chat.messages}
+                onMessageEdit={handleOnMessageEdit}
+                onSwapPrompt={handleOnSwapPrompt}
+                onMessageDelete={handleOnMessageDelete}
+                onSetActiveChoice={handleOnSetActiveChoice}
+                onMessageRegen={handleOnMessageRegen}
+                onNeedsScroll={scrollToBottom}
+                isStreaming={isStreaming}
+                streamHandle={streamHandleRef}
+              />
+            </>
           ) : null}
         </div>
         <ChatInputBar

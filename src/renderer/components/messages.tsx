@@ -87,7 +87,7 @@ const UserMessageComponent = React.memo<{
             </PopoverTrigger>
             <PopoverContent
               side="top"
-              className="rounded-md border-0 bg-card p-4 text-xs drop-shadow-md dark:border-[0.5px]"
+              className="bg-background-dim border-[0.5px] border-border p-4 text-xs drop-shadow-md"
               onCloseAutoFocus={(e) => {
                 if (shouldUnfocusDelete.current) {
                   e.preventDefault();
@@ -105,7 +105,7 @@ const UserMessageComponent = React.memo<{
               <div className="flex w-full justify-end gap-2">
                 <PopoverClose asChild>
                   <Button
-                    variant="secondary"
+                    variant="outline"
                     onMouseDown={() => {
                       shouldUnfocusDelete.current = true;
                     }}
@@ -154,7 +154,7 @@ const UserMessageComponent = React.memo<{
             </PopoverTrigger>
             <PopoverContent
               side="top"
-              className="w-fit rounded-md border-0 bg-card p-2 text-xs drop-shadow-md dark:border-[0.5px]"
+              className="bg-background-dim w-fit border-[0.5px] border-border p-2 text-xs drop-shadow-md"
               onCloseAutoFocus={(e) => {
                 if (shouldUnfocusInfo.current) {
                   e.preventDefault();
@@ -199,7 +199,7 @@ const UserMessageComponent = React.memo<{
               }}
             >
               <ContextMenuSubTrigger
-                className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
+                className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground data-[state=open]:bg-destructive data-[state=open]:text-destructive-foreground"
                 onClick={() => setContextDeleteOpen(true)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -222,8 +222,8 @@ const UserMessageComponent = React.memo<{
                 </ContextMenuSubContent>
               </ContextMenuPortal>
             </ContextMenuSub>
-            <Separator />
-            <div className="p-2 text-xs text-muted-foreground">
+            <Separator className="my-1" />
+            <div className="p-2 text-xs leading-none text-muted-foreground">
               Sent {formatTimestamp(m.timestamp)}
             </div>
           </ContextMenuContent>
@@ -333,7 +333,7 @@ const AssistantMessageComponent = React.memo<{
               }}
             >
               <ContextMenuSubTrigger
-                className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
+                className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground data-[state=open]:bg-destructive data-[state=open]:text-destructive-foreground"
                 onClick={() => setContextDeleteOpen(true)}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -358,10 +358,10 @@ const AssistantMessageComponent = React.memo<{
             </ContextMenuSub>
             {m.choices.length > 1 && (
               <>
-                <Separator />
-                <div className="flex items-center justify-between p-2">
+                <Separator className="my-1" />
+                <div className="flex items-center justify-between">
                   <Button
-                    variant="actionButton"
+                    variant="ghost"
                     size="icon"
                     disabled={m.activeChoice === 0}
                     onClick={handlePrevChoice}
@@ -372,7 +372,7 @@ const AssistantMessageComponent = React.memo<{
                     {m.activeChoice + 1} / {m.choices.length}
                   </span>
                   <Button
-                    variant="actionButton"
+                    variant="ghost"
                     size="icon"
                     disabled={m.activeChoice === m.choices.length - 1}
                     onClick={handleNextChoice}
@@ -382,8 +382,8 @@ const AssistantMessageComponent = React.memo<{
                 </div>
               </>
             )}
-            <Separator />
-            <div className="p-2 text-xs text-muted-foreground">
+            <Separator className="my-1" />
+            <div className="p-2 text-xs leading-none text-muted-foreground">
               Sent {formatTimestamp(m.choices[m.activeChoice].timestamp)}
             </div>
           </ContextMenuContent>
@@ -433,7 +433,7 @@ const AssistantMessageComponent = React.memo<{
               </PopoverTrigger>
               <PopoverContent
                 side="top"
-                className="w-fit rounded-md border-0 bg-card p-2 text-xs drop-shadow-md dark:border-[0.5px]"
+                className="bg-background-dim w-fit border-[0.5px] border-border p-2 text-xs drop-shadow-md"
                 onCloseAutoFocus={(e) => {
                   if (shouldUnfocusInfo.current) {
                     e.preventDefault();
@@ -462,7 +462,7 @@ const AssistantMessageComponent = React.memo<{
               </PopoverTrigger>
               <PopoverContent
                 side="top"
-                className="rounded-md border-0 bg-card p-4 text-xs drop-shadow-md dark:border-[0.5px]"
+                className="bg-background-dim border-[0.5px] border-border p-4 text-xs drop-shadow-md"
                 onCloseAutoFocus={(e) => {
                   if (shouldUnfocusDelete.current) {
                     e.preventDefault();
@@ -480,7 +480,7 @@ const AssistantMessageComponent = React.memo<{
                 <div className="flex w-full justify-end gap-2">
                   <PopoverClose asChild>
                     <Button
-                      variant="secondary"
+                      variant="outline"
                       onMouseDown={() => {
                         shouldUnfocusDelete.current = true;
                       }}
@@ -567,7 +567,7 @@ const PromptMessageComponent = React.memo(
                 </PopoverTrigger>
                 <PopoverContent
                   side="top"
-                  className="rounded-md border-0 bg-card p-4 text-xs drop-shadow-md dark:border-[0.5px]"
+                  className="bg-background-dim border-[0.5px] border-border p-4 text-xs drop-shadow-md"
                   onCloseAutoFocus={(e) => {
                     if (shouldUnfocusDelete.current) {
                       e.preventDefault();
@@ -585,7 +585,7 @@ const PromptMessageComponent = React.memo(
                   <div className="flex w-full justify-end gap-2">
                     <PopoverClose asChild>
                       <Button
-                        variant="secondary"
+                        variant="outline"
                         onMouseDown={() => {
                           shouldUnfocusDelete.current = true;
                         }}
@@ -619,7 +619,7 @@ const PromptMessageComponent = React.memo(
               <Link
                 to={`/p/${m.promptId}`}
                 className={cn(
-                  'group/promptbox flex gap-2 rounded-lg border border-sidebar-border bg-card p-2 text-card-foreground hover:bg-accent',
+                  'group/promptbox hover:bg-card-hover bg-background-dim flex gap-2 rounded-xl border-[0.5px] border-border p-4 text-card-foreground',
                   disabled && 'pointer-events-none opacity-50',
                 )}
                 aria-disabled={disabled}
@@ -673,7 +673,7 @@ const PromptMessageComponent = React.memo(
                 }}
               >
                 <ContextMenuSubTrigger
-                  className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
+                  className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground data-[state=open]:bg-destructive data-[state=open]:text-destructive-foreground"
                   onClick={() => setContextDeleteOpen(true)}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />

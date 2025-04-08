@@ -97,9 +97,9 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
         <DialogHeader>
           <DialogTitle>Edit message</DialogTitle>
         </DialogHeader>
-        <div className="flex max-h-[300px] overflow-y-auto rounded-xl bg-card text-card-foreground">
+        <div className="flex max-h-[300px] overflow-y-auto rounded-3xl bg-card text-card-foreground">
           <Textarea
-            className="resize-none border-none shadow-none focus:outline-none focus-visible:ring-0"
+            className="min-h-0 resize-none border-none px-4 py-2 shadow-none focus:outline-none focus-visible:ring-0"
             spellCheck="false"
             value={textareaValue}
             onChange={(e) => {
@@ -113,11 +113,12 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
                 handleConfirm();
               }
             }}
+            rows={1}
           />
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary" onClick={handleDismiss}>
+            <Button variant="outline" onClick={handleDismiss}>
               Cancel
             </Button>
           </DialogClose>

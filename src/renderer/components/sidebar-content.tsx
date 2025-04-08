@@ -129,7 +129,6 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
     <>
       <SidebarContent>
         <SidebarGroup>
-          {/* <SidebarGroupLabel>All chats</SidebarGroupLabel> */}
           <SidebarGroupContent>
             <SidebarMenu>
               {data.length === 0 && (
@@ -408,7 +407,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                       Copy ID
                     </DropdownMenuItem>
                     <DropdownMenuSub>
-                      <DropdownMenuSubTrigger className="data-[state=open]:bg-desctuctive text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground data-[state=open]:text-destructive-foreground">
+                      <DropdownMenuSubTrigger className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground data-[state=open]:bg-destructive data-[state=open]:text-destructive-foreground">
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuSubTrigger>

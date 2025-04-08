@@ -28,13 +28,13 @@ export function SidebarToggle({
             callback(p);
           }}
         >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-foreground text-primary-foreground">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
             {page === 'chat' ? <MessageCircle /> : <Notebook />}
           </div>
           <div className="grid flex-1 text-left text-lg font-bold leading-tight">
             {page === 'chat' ? 'Chats' : 'Prompts'}
           </div>
-          <ArrowUpDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:scale-110 group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground group-active/button:translate-y-1" />
+          <ArrowUpDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:scale-110 group-hover/button:text-foreground group-focus/button:text-foreground group-active/button:translate-y-1" />
         </SidebarMenuButton>
       </TooltipTrigger>
       <TooltipContent side="right">

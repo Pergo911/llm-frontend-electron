@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { Config } from '@/common/types';
 import { toast } from 'sonner';
-import { File, FileJson, SettingsIcon } from 'lucide-react';
+import { File, FileJson, Monitor, Moon, SettingsIcon, Sun } from 'lucide-react';
 import {
   DialogClose,
   DialogContent,
@@ -20,6 +20,7 @@ import {
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { useTheme } from './theme-provider';
+import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
 
 export const SettingsModal = memo(
   ({
@@ -142,45 +143,52 @@ export const SettingsModal = memo(
           </DialogTitle>
         </DialogHeader>
         <div className="flex max-h-[400px] flex-col gap-4 overflow-y-auto pl-[1px] pr-2">
-          <div className="flex flex-col gap-2">
-            <Label>Theme</Label>
-            <Select
-              value={theme}
-              onValueChange={(value) => {
-                setTheme(value as Config['theme']);
-                setAppTheme(value as Config['theme']);
-              }}
-            >
-              <SelectTrigger className="w-52">
-                <SelectValue placeholder="Select a theme" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="system">System</SelectItem>
-                <SelectItem value="light">Light</SelectItem>
-                <SelectItem value="dark">Dark</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex flex-col gap-2">
-            <Label>System role name</Label>
-            <Select
-              value={useLegacyRoleNames ? 'true' : 'false'}
-              onValueChange={(value) => setUseLegacyRoleNames(value === 'true')}
-            >
-              <SelectTrigger className="w-52">
-                <SelectValue placeholder="Select..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="false">
-                  <span className="font-mono">&quot;developer&quot;</span>{' '}
-                  <span className="text-muted-foreground">(Default)</span>
-                </SelectItem>
-                <SelectItem value="true">
-                  <span className="font-mono">&quot;system&quot;</span>{' '}
-                  <span className="text-muted-foreground">(Legacy)</span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex gap-2">
+            <div className="flex flex-1 flex-col gap-2">
+              <Label>System role name</Label>
+              <Select
+                value={useLegacyRoleNames ? 'true' : 'false'}
+                onValueChange={(value) =>
+                  setUseLegacyRoleNames(value === 'true')
+                }
+              >
+                <SelectTrigger className="w-52">
+                  <SelectValue placeholder="Select..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="false">
+                    <span className="font-mono">&quot;developer&quot;</span>{' '}
+                    <span className="text-muted-foreground">(Default)</span>
+                  </SelectItem>
+                  <SelectItem value="true">
+                    <span className="font-mono">&quot;system&quot;</span>{' '}
+                    <span className="text-muted-foreground">(Legacy)</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex flex-1 flex-col gap-2">
+              <Label>Theme</Label>
+              <Tabs
+                value={theme}
+                onValueChange={(v) => {
+                  setTheme(v as 'system' | 'light' | 'dark');
+                  setAppTheme(v as 'system' | 'light' | 'dark');
+                }}
+              >
+                <TabsList>
+                  <TabsTrigger value="system">
+                    <Monitor className="h-4 w-4 flex-shrink-0" />
+                  </TabsTrigger>
+                  <TabsTrigger value="light">
+                    <Sun className="h-4 w-4 flex-shrink-0" />
+                  </TabsTrigger>
+                  <TabsTrigger value="dark">
+                    <Moon className="h-4 w-4 flex-shrink-0" />
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
           <div className="flex flex-col gap-2">
             <Label>Base URL</Label>
@@ -202,7 +210,7 @@ export const SettingsModal = memo(
           <div className="flex flex-col gap-2">
             <Label>Savefile path</Label>
             <div className="flex gap-2">
-              <div className="flex h-9 w-full flex-[4] items-center rounded-md border border-input bg-transparent px-3 py-1 shadow-sm transition-colors md:text-sm">
+              <div className="flex h-9 w-full flex-[4] items-center rounded-xl border border-border bg-transparent px-3 py-1 shadow-sm transition-colors md:text-sm">
                 <FileJson className="mr-2 h-4 w-4" />
                 {saveFilePath}
               </div>
@@ -225,7 +233,7 @@ export const SettingsModal = memo(
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button className="w-fit" variant="secondary">
+            <Button className="w-fit" variant="outline">
               Cancel
             </Button>
           </DialogClose>

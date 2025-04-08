@@ -221,7 +221,7 @@ const ModelSelector = forwardRef<RefreshRef>((_, ref) => {
                 )}
               </span>
 
-              <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground" />
+              <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-foreground group-focus/button:text-foreground" />
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
@@ -441,7 +441,7 @@ const GenSettings = forwardRef<RefreshRef>((_, ref) => {
                 )}
                 <SlidersHorizontal />
               </div>
-              <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-secondary-foreground group-focus/button:text-secondary-foreground" />
+              <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-foreground group-focus/button:text-foreground" />
             </Button>
           </PopoverTrigger>
         </TooltipTrigger>
@@ -627,7 +627,7 @@ const TitleBar = forwardRef<RefreshRef>((_, ref) => {
     loadData();
   }, [location]);
   return (
-    <div className="draggable flex h-[48px] items-center gap-0.5 bg-sidebar p-2 pr-[145px] @container/main">
+    <div className="draggable bg-background-dim flex h-[48px] items-center gap-0.5 p-2 pr-[145px] @container/main">
       {sidebarClosed && <SidebarTrigger />}
       <Tooltip>
         <TooltipTrigger asChild>

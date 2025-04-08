@@ -86,9 +86,9 @@ const ChatInputBar = React.memo(
       // Little area at the bottom
       <div className="flex w-full flex-1 flex-grow-0 justify-center bg-background p-4 pt-0">
         {/* Input box itself */}
-        <div className="z-10 flex max-h-[300px] w-full max-w-[800px] flex-col rounded-xl bg-card text-card-foreground drop-shadow-md">
+        <div className="bg-background-dim z-10 flex max-h-[300px] w-full max-w-[800px] flex-col rounded-3xl p-4 text-card-foreground drop-shadow-md">
           <Textarea
-            className="h-auto resize-none border-none pb-0 pt-4 shadow-none focus:outline-none focus-visible:ring-0"
+            className="h-auto min-h-0 resize-none rounded-none border-none p-0 pb-2 shadow-none focus:outline-none focus-visible:ring-0"
             placeholder="Message here..."
             spellCheck="false"
             value={value}
@@ -96,10 +96,11 @@ const ChatInputBar = React.memo(
               setValue(e.target.value);
               autoHeight();
             }}
+            rows={1}
             onKeyDown={handleKeyDown}
             ref={textareaRef}
           />
-          <div className="flex w-full justify-between p-2">
+          <div className="flex w-full justify-between pt-2">
             <Button
               variant="ghost"
               className="text-sm text-muted-foreground hover:text-foreground focus:text-foreground"
@@ -122,6 +123,7 @@ const ChatInputBar = React.memo(
                       className={cn(
                         ((overrideCanSend && !canSend) || isStreaming) &&
                           'hidden',
+                        'text-muted-foreground',
                       )}
                     >
                       {sendAs === 'user' ? <User2 /> : <Bot />}
@@ -138,7 +140,7 @@ const ChatInputBar = React.memo(
               <Button
                 variant="default"
                 size="icon"
-                className="rounded-full"
+                className="rounded-xl"
                 disabled={!(canSend || isStreaming || overrideCanSend)}
                 onClick={!isStreaming ? handleSend : onAbort}
               >

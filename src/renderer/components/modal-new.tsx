@@ -403,6 +403,7 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
                         {folder.title}
                       </SelectItem>
                     ))}
+                    <div className="h-1" />
                   </div>
                   <SelectSeparator className="mt-0" />
                   <SelectItem value="$new">
@@ -442,7 +443,7 @@ const NewModal = forwardRef<NewModalRef>((_, ref) => {
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="secondary" onClick={() => handleClose()}>
+            <Button variant="outline" onClick={() => handleClose()}>
               Cancel
             </Button>
           </DialogClose>

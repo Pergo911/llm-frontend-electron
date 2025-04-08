@@ -113,14 +113,9 @@ export const AppSidebar = React.memo(
                   </Dialog>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SidebarMenuButton onClick={refresh}>
-                        <RefreshCw className="h-4 w-4 flex-shrink-0" />
-                      </SidebarMenuButton>
-                    </TooltipTrigger>
-                    <TooltipContent>Refresh all</TooltipContent>
-                  </Tooltip>
+                  <SidebarMenuButton onClick={refresh}>
+                    <RefreshCw className="h-4 w-4 flex-shrink-0" />
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>

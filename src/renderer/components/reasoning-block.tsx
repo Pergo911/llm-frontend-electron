@@ -19,16 +19,11 @@ const ReasoningBlock = ({
   return (
     <div
       className={cn(
-        'display-linebreak w-full overflow-hidden rounded-xl bg-card text-xs italic text-muted-foreground',
+        'display-linebreak bg-background-dim w-full overflow-hidden rounded-3xl border-2 border-card text-xs italic text-muted-foreground',
         className,
       )}
     >
-      <div
-        className={cn(
-          'flex items-center justify-between bg-accent px-4 text-base font-bold not-italic leading-tight text-accent-foreground',
-          !isExpanded && 'drop-shadow-xl',
-        )}
-      >
+      <div className="flex items-center justify-between bg-card px-4 text-base font-bold not-italic leading-tight text-card-foreground drop-shadow-xl">
         {isStreaming ? (
           <span className="animate-pulse">Thinking...</span>
         ) : (
@@ -36,7 +31,7 @@ const ReasoningBlock = ({
         )}
         <Button
           variant="actionButton"
-          className="text-muted-foreground hover:text-accent-foreground focus:text-accent-foreground"
+          className="text-muted-foreground hover:text-card-foreground focus:text-card-foreground"
           size="icon"
           onClick={() => setIsExpanded((prev) => !prev)}
           onMouseUp={(e) => e.currentTarget.blur()}
@@ -51,7 +46,7 @@ const ReasoningBlock = ({
       </div>
       <div
         className={cn(
-          'select-text overflow-y-auto p-4',
+          'select-text overflow-y-auto p-6',
           !isExpanded && ['max-h-[50px]', 'flex flex-col justify-end'],
         )}
       >

@@ -80,7 +80,9 @@ const electronHandler = {
     setWindowControlsTheme: (theme: 'dark' | 'light') => {
       ipcRenderer.send('update-titlebar-colors', {
         background:
-          theme === 'dark' ? 'hsla(240, 5.9%, 10%, 1)' : 'hsla(0, 0%, 98%, 1)',
+          theme === 'dark'
+            ? 'hsla(100, 10%, 11.8%, 1)'
+            : 'hsla(80, 22%, 92%, 1)',
         symbol:
           theme === 'dark'
             ? 'hsla(240, 4.8%, 95.9%, 1)'

@@ -215,17 +215,20 @@ export default function PromptPage() {
 
   if (!prompt) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-t-xl bg-background p-4">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 rounded-t-3xl bg-background p-4">
         <div className="h-fit w-fit">{error || 'Loading...'}</div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center gap-4 rounded-t-xl bg-background p-4">
+    <div className="flex flex-1 flex-col items-center gap-4 rounded-t-3xl bg-background p-4">
       {/* Use this to adjust max width */}
       <div className="flex h-full w-full max-w-[800px] flex-col gap-4">
         <div className="flex items-center gap-2 px-4 text-sm text-muted-foreground @container">
+          <span className="hidden whitespace-nowrap @[500px]:inline">
+            Folder
+          </span>
           <Button
             variant="outline"
             className="group w-44 justify-start"
@@ -278,7 +281,8 @@ export default function PromptPage() {
               <TooltipContent side="bottom">Delete prompt</TooltipContent>
               <PopoverContent
                 side="top"
-                className="rounded-md border-0 bg-card p-4 text-xs drop-shadow-md dark:border-[0.5px]"
+                align="end"
+                className="bg-background-dim border-[0.5px] border-border p-4 text-xs drop-shadow-md"
               >
                 <div>
                   <div className="text-lg font-bold">Delete?</div>
@@ -290,7 +294,7 @@ export default function PromptPage() {
                 <div className="h-4" />
                 <div className="flex w-full justify-end gap-2">
                   <PopoverClose asChild>
-                    <Button variant="secondary">Cancel</Button>
+                    <Button variant="outline">Cancel</Button>
                   </PopoverClose>
                   <Button variant="destructive" onClick={handleDeletePrompt}>
                     Confirm
@@ -359,7 +363,7 @@ export default function PromptPage() {
                 <TooltipContent side="bottom">Rename</TooltipContent>
               </Tooltip>
             </div>
-            <div className="m-0 ml-14 mt-0.5 p-0 text-sm text-muted-foreground">
+            <div className="m-0 ml-14 mt-0.5 p-0 text-xs text-muted-foreground">
               <span>Created </span>
               <span className="font-bold">
                 {formatTimestamp(prompt.timestamp)}
