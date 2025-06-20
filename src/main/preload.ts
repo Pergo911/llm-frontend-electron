@@ -81,8 +81,8 @@ const electronHandler = {
       ipcRenderer.send('update-titlebar-colors', {
         background:
           theme === 'dark'
-            ? 'hsla(100, 10%, 11.8%, 1)'
-            : 'hsla(80, 22%, 92%, 1)',
+            ? 'hsla(100, 10%, 11.8%, 0)'
+            : 'hsla(80, 22%, 92%, 0)',
         symbol:
           theme === 'dark'
             ? 'hsla(240, 4.8%, 95.9%, 1)'

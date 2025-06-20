@@ -16,7 +16,7 @@ import { registerFileOperations } from './file-operations';
 let mainWindow: BrowserWindow | null = null;
 
 let titleBarColors = {
-  background: 'hsla(100, 10%, 11.8%, 1)',
+  background: 'hsla(100, 10%, 11.8%, 0)',
   symbol: 'hsla(0, 0%, 95%, 1)',
 };
 
@@ -127,8 +127,6 @@ const createWindow = async () => {
     } else {
       mainWindow.show();
     }
-
-    mainWindow.removeMenu();
   });
 
   mainWindow.on('closed', () => {
@@ -140,10 +138,6 @@ const createWindow = async () => {
     return { action: 'deny' };
   });
 };
-
-/**
- * Add event listeners...
- */
 
 app.on('window-all-closed', () => {
   app.quit();
