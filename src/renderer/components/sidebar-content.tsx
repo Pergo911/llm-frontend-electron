@@ -21,9 +21,10 @@ import {
   Trash2,
   Edit2,
   Copy,
+  Layers2,
 } from 'lucide-react';
 import { ChatEntry, PromptEntry } from '@/common/types';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 import {
@@ -50,6 +51,7 @@ const TOOLTIP_DELAY = 700;
 
 export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
   const refresh = useRefresh();
+  const navigate = useNavigate();
   const renameModalRef = useRef<RenameModalRef>(null);
 
   const handleDelete = useCallback(
@@ -125,6 +127,28 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
     [handleCopyID],
   );
 
+  const handleDuplicate = useCallback(
+    async (id: string) => {
+      const { id: newId, error } =
+        await window.electron.fileOperations.duplicate('chat', id);
+
+      if (error) {
+        toast.error(`Error duplicating chat: ${error}`);
+      } else {
+        navigate(`/c/${newId}`);
+        refresh();
+      }
+    },
+    [navigate, refresh],
+  );
+
+  const handleDuplicateClick = useCallback(
+    (id: string) => () => {
+      handleDuplicate(id);
+    },
+    [handleDuplicate],
+  );
+
   return (
     <>
       <SidebarContent>
@@ -171,6 +195,10 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
                         <Edit2 className="mr-2 h-4 w-4" />
                         Rename
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleDuplicateClick(item.id)}>
+                        <Layers2 className="mr-2 h-4 w-4" />
+                        Duplicate
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleCopyIDClick(item.id)}>
                         <Copy className="mr-2 h-4 w-4" />
                         Copy ID
@@ -197,6 +225,7 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
 
 export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
   const refresh = useRefresh();
+  const navigate = useNavigate();
   const renameModalRef = useRef<RenameModalRef>(null);
 
   const handleDelete = useCallback(
@@ -293,6 +322,28 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
     [handleCopyID],
   );
 
+  const handleDuplicate = useCallback(
+    async (id: string) => {
+      const { id: newId, error } =
+        await window.electron.fileOperations.duplicate('prompt', id);
+
+      if (error) {
+        toast.error(`Error duplicating prompt: ${error}`);
+      } else {
+        navigate(`/p/${newId}`);
+        refresh();
+      }
+    },
+    [navigate, refresh],
+  );
+
+  const handleDuplicateClick = useCallback(
+    (id: string) => () => {
+      handleDuplicate(id);
+    },
+    [handleDuplicate],
+  );
+
   return (
     <SidebarContent>
       <SidebarGroup>
@@ -369,6 +420,12 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                             >
                               <Edit2 className="mr-2 h-4 w-4" />
                               Rename
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={handleDuplicateClick(item.id)}
+                            >
+                              <Layers2 className="mr-2 h-4 w-4" />
+                              Duplicate
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={handleCopyIDClick(item.id)}

@@ -391,6 +391,73 @@ async function remove(itemType: 'chat' | 'prompt' | 'folder', id: string) {
   }
 }
 
+async function duplicate(
+  itemType: 'chat' | 'prompt',
+  id: string,
+): Promise<{ id: string | null; error: string | null }> {
+  const { saveFile, error } = await getSaveFile();
+
+  if (error || !saveFile) {
+    return { id: null, error };
+  }
+
+  if (itemType === 'chat') {
+    const existingChatIndex = saveFile.chats.findIndex((c) => c.id === id);
+    let existingChat: Chat | undefined;
+    if (existingChatIndex !== -1) {
+      existingChat = saveFile.chats[existingChatIndex];
+    }
+
+    if (!existingChat) {
+      return { id: null, error: 'Chat not found' };
+    }
+
+    const newId = generateUUID('c');
+    const duplicatedChat: Chat = {
+      ...existingChat,
+      id: newId,
+      title: `${existingChat.title} (Copy)`,
+      timestamp: Date.now(),
+    };
+
+    saveFile.chats.splice(existingChatIndex, 0, duplicatedChat);
+    id = newId;
+  } else if (itemType === 'prompt') {
+    const existingPromptId = saveFile.prompts.findIndex((p) => p.id === id);
+    let existingPrompt: Prompt | undefined;
+    if (existingPromptId !== -1) {
+      existingPrompt = saveFile.prompts[existingPromptId];
+    }
+
+    if (!existingPrompt) {
+      return { id: null, error: 'Prompt not found' };
+    }
+
+    const newId = generateUUID('p');
+    const duplicatedPrompt: Prompt = {
+      ...existingPrompt,
+      id: newId,
+      title: `${existingPrompt.title} (Copy)`,
+      timestamp: Date.now(),
+    };
+
+    saveFile.prompts.splice(existingPromptId, 0, duplicatedPrompt);
+    id = newId;
+  }
+
+  try {
+    await writeFile(
+      // @ts-ignore
+      store.get('saveFilePath') as string,
+      JSON.stringify(saveFile, null, 2),
+      'utf-8',
+    );
+    return { id, error: null };
+  } catch (e) {
+    return { id: null, error: (e as Error).message };
+  }
+}
+
 export const registerFileOperations = () => {
   ipcMain.handle('get-config', () => {
     return getConfig();
@@ -458,6 +525,13 @@ export const registerFileOperations = () => {
     'remove',
     (_event, itemType: 'chat' | 'prompt' | 'folder', id: string) => {
       return remove(itemType, id);
+    },
+  );
+
+  ipcMain.handle(
+    'duplicate',
+    (_event, itemType: 'chat' | 'prompt', id: string) => {
+      return duplicate(itemType, id);
     },
   );
 };

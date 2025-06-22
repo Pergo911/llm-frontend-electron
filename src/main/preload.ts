@@ -75,6 +75,11 @@ const electronHandler = {
       ipcRenderer.invoke('remove', itemType, id) as Promise<{
         error: string | null;
       }>,
+    duplicate: (itemType: 'chat' | 'prompt', id: string) =>
+      ipcRenderer.invoke('duplicate', itemType, id) as Promise<{
+        id: string | null;
+        error: string | null;
+      }>,
   },
   windowStyle: {
     setWindowControlsTheme: (theme: 'dark' | 'light') => {
