@@ -332,16 +332,15 @@ export default function ChatPage() {
       if (finalMessage !== null) {
         if (finalMessage === '') {
           setChat(chatCopy);
-          return;
+        } else {
+          const { newChat: finalChat, error: insertError } =
+            await ChatOperations.insertChoice(chatCopy, id, finalMessage);
+          if (insertError || !finalChat) {
+            setError(insertError || "Couldn't write regenerated response.");
+            return;
+          }
+          setChat(finalChat);
         }
-
-        const { newChat: finalChat, error: insertError } =
-          await ChatOperations.insertChoice(chatCopy, id, finalMessage);
-        if (insertError || !finalChat) {
-          setError(insertError || "Couldn't write regenerated response.");
-          return;
-        }
-        setChat(finalChat);
       }
       if (
         finishReason &&
