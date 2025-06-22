@@ -105,6 +105,7 @@
 
   .display-linebreak {
     white-space: pre-line;
+    word-break: break-word;
   }
 
   .markdown {

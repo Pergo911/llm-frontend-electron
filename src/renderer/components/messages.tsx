@@ -173,7 +173,7 @@ const UserMessageComponent = React.memo<{
             <div
               className={cn(
                 needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
-                'display-linebreak flex w-fit select-text flex-col gap-0.5 break-all rounded-3xl bg-card px-4 py-2 text-card-foreground',
+                'display-linebreak flex select-text flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
               )}
             >
               {m.content}
@@ -303,7 +303,7 @@ const AssistantMessageComponent = React.memo<{
             <div className="h-0.5" />
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
-              className="markdown break-all px-4 py-2"
+              className="markdown break-words px-4 py-2"
             >
               {text.reasoningEnd}
             </ReactMarkdown>
