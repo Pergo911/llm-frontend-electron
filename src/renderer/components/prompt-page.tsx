@@ -282,7 +282,7 @@ export default function PromptPage() {
               <PopoverContent
                 side="top"
                 align="end"
-                className="bg-background-dim border-[0.5px] border-border p-4 text-xs drop-shadow-md"
+                className="border-[0.5px] border-border bg-background-dim p-4 text-xs drop-shadow-md"
               >
                 <div>
                   <div className="text-lg font-bold">Delete?</div>
@@ -346,9 +346,7 @@ export default function PromptPage() {
               ) : (
                 <SquareTerminal className="mr-4 h-6 w-6 flex-shrink-0" />
               )}
-              <div className="mr-10 mt-0.5 w-fit select-text">
-                {prompt?.title}
-              </div>
+              <div className="mr-10 mt-0.5 w-fit">{prompt?.title}</div>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

@@ -26,6 +26,8 @@
     --scrollbar: rgb(216 219 210);
     --scrollbar-hover: rgb(226 229 220);
     --radius: 0.5rem;
+    --selection: var(--primary-foreground);
+    --selection-bg: rgb(150 180 150);
   }
 
   .dark {
@@ -51,6 +53,8 @@
     --scrollbar: rgb(156 159 150);
     --scrollbar-hover: rgb(186 189 180);
     --radius: 0.5rem;
+    --selection: var(--primary-foreground);
+    --selection-bg: var(--primary);
   }
 }
 
@@ -140,5 +144,10 @@
 
   .markdown p {
     @apply !text-foreground;
+  }
+
+  ::selection {
+    background-color: var(--selection-bg);
+    color: var(--selection);
   }
 }

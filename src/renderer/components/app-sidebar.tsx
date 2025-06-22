@@ -74,7 +74,7 @@ export const AppSidebar = React.memo(
 
       return (
         <Sidebar {...props}>
-          <SidebarGroup className="m-0 p-0 pl-2">
+          <SidebarGroup className="draggable m-0 p-0 pl-2">
             <SidebarGroupContent className="flex h-[48px] items-center justify-between gap-0.5">
               <SidebarTrigger />
               <NewButton registerShortcut />

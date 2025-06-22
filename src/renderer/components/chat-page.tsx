@@ -33,7 +33,7 @@ const ChatTitle = memo(
     return (
       <>
         <div className="m-auto flex max-w-[800px] flex-col items-start px-8 py-4">
-          <h1 className="select-text text-3xl font-bold text-primary ease-out animate-in fade-in slide-in-from-top">
+          <h1 className="text-3xl font-bold text-primary ease-out animate-in fade-in slide-in-from-top">
             {title}
           </h1>
           <p className="text-xs text-muted-foreground ease-out animate-in fade-in slide-in-from-top">
@@ -329,7 +329,12 @@ export default function ChatPage() {
         setChat(chatCopy);
         return;
       }
-      if (finalMessage) {
+      if (finalMessage !== null) {
+        if (finalMessage === '') {
+          setChat(chatCopy);
+          return;
+        }
+
         const { newChat: finalChat, error: insertError } =
           await ChatOperations.insertChoice(chatCopy, id, finalMessage);
         if (insertError || !finalChat) {
