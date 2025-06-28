@@ -49,8 +49,7 @@ const UserMessageComponent = React.memo<{
   m: Message;
   onMessageEdit: (toEdit: string, id: string) => void;
   onMessageDelete: (id: string) => void;
-  needsAnimate?: boolean;
-}>(({ m, onMessageEdit, onMessageDelete, needsAnimate }) => {
+}>(({ m, onMessageEdit, onMessageDelete }) => {
   const [infoOpen, setInfoOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const shouldUnfocusInfo = React.useRef(false);
@@ -170,12 +169,7 @@ const UserMessageComponent = React.memo<{
         {/* Message bubble */}
         <ContextMenu>
           <ContextMenuTrigger>
-            <div
-              className={cn(
-                needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
-                'display-linebreak flex select-text flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground',
-              )}
-            >
+            <div className="display-linebreak flex select-text flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground">
               {m.content}
             </div>
           </ContextMenuTrigger>
@@ -507,7 +501,6 @@ const PromptMessageComponent = React.memo(
     isConcat,
     onMessageDelete,
     onSwapPrompt,
-    needsAnimate,
   }: {
     m: PromptMessage;
     isConcat: boolean;
@@ -517,7 +510,6 @@ const PromptMessageComponent = React.memo(
       newId: string,
       newType: 'user' | 'system',
     ) => void;
-    needsAnimate?: boolean;
   }) => {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
@@ -543,12 +535,7 @@ const PromptMessageComponent = React.memo(
     return (
       <div className="group/textbox flex w-full flex-col items-end">
         {isConcat && <div className="text-muted-foreground">+</div>}
-        <div
-          className={cn(
-            needsAnimate && 'animate-in fade-in slide-in-from-bottom-3',
-            'flex w-fit max-w-[400px] gap-0.5',
-          )}
-        >
+        <div className="flex w-fit max-w-[400px] gap-0.5">
           {/* Action buttons */}
           <div className="flex items-center justify-end gap-0.5 text-xs text-muted-foreground">
             <div className="flex items-center">
@@ -824,7 +811,6 @@ const Messages = React.memo(
     const [displayMessages, setDisplayMessages] = React.useState<
       Array<DisplayMessage>
     >([]);
-    const needsAnimate = React.useRef<boolean>(false);
     const willNeedScroll = React.useRef<boolean>(false);
     const prevMRef = React.useRef<PromptMessage['type'] | null>(null);
 
@@ -847,13 +833,6 @@ const Messages = React.memo(
           willNeedScroll.current = true;
         }
 
-        // Animates new messages
-        if (
-          displayMessages.length !== 0 &&
-          displayMessages.length < resolvedMessages.length
-        ) {
-          needsAnimate.current = true;
-        }
         setDisplayMessages(resolvedMessages);
       };
 
@@ -890,7 +869,6 @@ const Messages = React.memo(
                 m={m.item as Message}
                 onMessageEdit={onMessageEdit}
                 onMessageDelete={onMessageDelete}
-                needsAnimate={needsAnimate.current}
               />
             );
           }
@@ -927,7 +905,6 @@ const Messages = React.memo(
                 isConcat={isConcat}
                 onMessageDelete={onMessageDelete}
                 onSwapPrompt={onSwapPrompt}
-                needsAnimate={needsAnimate.current}
               />
             );
           }

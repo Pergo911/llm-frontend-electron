@@ -64,6 +64,7 @@ const buildDisplayMessages = async (
           await window.electron.fileOperations.getPromptById(m.promptId);
 
         if (error || !prompt) {
+          if (error) toast.error(error);
           toast.warning(`Couldn't find prompt ${m.promptId}`);
 
           return {

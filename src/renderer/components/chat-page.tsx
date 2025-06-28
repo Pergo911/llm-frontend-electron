@@ -33,10 +33,8 @@ const ChatTitle = memo(
     return (
       <>
         <div className="m-auto flex max-w-[800px] flex-col items-start px-8 py-4">
-          <h1 className="text-3xl font-bold text-primary ease-out animate-in fade-in slide-in-from-top">
-            {title}
-          </h1>
-          <p className="text-xs text-muted-foreground ease-out animate-in fade-in slide-in-from-top">
+          <h1 className="text-3xl font-bold text-primary">{title}</h1>
+          <p className="text-xs text-muted-foreground">
             Created{' '}
             <span className="font-bold">{formatTimestamp(timestamp)}</span>
           </p>
