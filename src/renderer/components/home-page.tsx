@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { ChatInputBarActions } from '@/common/types';
+import {
+  ChatInputBarActions,
+  ResolvedFolder,
+  SaveFileController,
+} from '@/common/types';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -9,9 +13,11 @@ import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
 import { NewModal, NewModalRef } from './modal-new';
 
 export default function HomePage({
-  refreshSidebar,
+  controller,
+  folders,
 }: {
-  refreshSidebar: () => void;
+  controller: SaveFileController;
+  folders: ResolvedFolder[];
 }) {
   const navigate = useNavigate();
 
@@ -32,29 +38,27 @@ export default function HomePage({
   }, []);
 
   // Forwards to /c/[id] page with the payload as query params
-  const handleForward = useCallback(async () => {
+  const handleForward = useCallback(() => {
     const message = input.current;
     const prompt = promptId.current;
 
-    const { id, error } = await window.electron.fileOperations.create(
-      'chat',
+    const { error, newId } = controller.chats.add(
       message ? message.substring(0, 25) : 'New chat',
     );
 
-    if (error || !id) {
+    if (error || !newId) {
       toast.error(error || 'Failed to create chat');
       return;
     }
 
-    const base = `/c/${id}`;
+    const base = `/c/${newId}`;
     const queryMessage = message
       ? `?message=${encodeURIComponent(message)}`
       : '';
     const queryPrompt = prompt ? `?prompt=${prompt}` : '';
 
-    refreshSidebar();
     navigate(base + queryMessage + queryPrompt, { replace: true });
-  }, [navigate, refreshSidebar]);
+  }, [controller.chats, navigate]);
 
   const handleSend = useCallback(
     (t: string) => {
@@ -102,9 +106,11 @@ export default function HomePage({
         onAbort={() => {}}
         overrideCanSend={false}
         noSendAs
+        reasoningSelect={null}
+        onReasoningToggle={() => {}}
       />
-      <PromptSelectModal ref={promptSelectModalRef} />
-      <NewModal ref={newModalRef} />
+      <PromptSelectModal ref={promptSelectModalRef} folders={folders} />
+      <NewModal ref={newModalRef} controller={controller} folders={folders} />
     </div>
   );
 }

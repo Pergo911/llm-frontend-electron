@@ -1,13 +1,14 @@
 /* eslint-disable promise/always-return */
 /* eslint-disable promise/catch-or-return */
 /* eslint-disable camelcase */
-/* eslint-disable no-use-before-define */
 /* eslint-disable no-nested-ternary */
 import React, {
   forwardRef,
+  memo,
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
 } from 'react';
 import {
   ArrowLeft,
@@ -16,17 +17,25 @@ import {
   ChevronDown,
   CircleAlert,
   Folder,
+  Lightbulb,
   Loader2,
   MessageCircle,
   Notebook,
-  Plus,
-  RefreshCw,
   SlidersHorizontal,
   SquareTerminal,
   TriangleAlert,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import {
+  Chat,
+  ModelsController,
+  OpenRouterModel,
+  ResolvedChat,
+  ResolvedFolder,
+  ResolvedPrompt,
+  SaveFileController,
+} from '@/common/types';
 import { SidebarTrigger, useSidebar } from './ui/sidebar';
 import { Button } from './ui/button';
 import {
@@ -35,277 +44,224 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from './ui/breadcrumb';
-import { ChatOperations } from '../utils/chat-operations';
-import { cn } from '../utils/utils';
-import { Popover, PopoverTrigger, PopoverContent } from './ui/popover';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import NewButton from './new-button';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import {
   Command,
-  CommandInput,
-  CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandInput,
   CommandItem,
+  CommandList,
 } from './ui/command';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+import { cn } from '../utils/utils';
 import { Input } from './ui/input';
 import { Slider } from './ui/slider';
-import AddRefreshButtonGroup from './new-button';
-import { RefreshRef } from './app-sidebar';
-import { Separator } from './ui/separator';
 
-// Used to display home icon, kept for consistency
-const HomeBreadcrumb = () => {
-  return null;
-};
+const ModelSelector = memo(
+  ({
+    models,
+    loading,
+    error,
+    controller,
+  }: {
+    models: OpenRouterModel[] | null;
+    loading: boolean;
+    error: string | null;
+    controller: ModelsController;
+  }) => {
+    const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+    const [isContentReady, setIsContentReady] = React.useState(false);
 
-const ChatBreadcrumb = ({ chatData }: { chatData: string | undefined }) => {
-  return (
-    <BreadcrumbList>
-      {/* Ellipsis */}
-      <BreadcrumbItem className="w-full min-w-0">
-        <MessageCircle className="h-4 w-4 flex-shrink-0" />
-        <span className="truncate">{chatData}</span>
-      </BreadcrumbItem>
-    </BreadcrumbList>
-  );
-};
+    const handleModelSelect = useCallback(
+      async (modelId: string) => {
+        if (!models) return;
 
-const PromptBreadcrumb = ({
-  promptData,
-}: {
-  promptData:
-    | { folder: string; name: string; type: 'user' | 'system' }
-    | undefined;
-}) => {
-  return (
-    <BreadcrumbList className="flex flex-nowrap">
-      {/* Folder */}
-      <BreadcrumbItem className="hidden max-w-40 @2xl/main:flex">
-        <Folder className="h-4 w-4 flex-shrink-0" />
-        <span className="truncate">{promptData?.folder ?? ''}</span>
-      </BreadcrumbItem>
+        // Retrieve model object based on ID
+        const model = models.find((m) => m.id === modelId);
+        if (!model) return;
 
-      <BreadcrumbSeparator className="hidden @2xl/main:block" />
+        // Call select fn
+        const { error } = await controller.select(model);
 
-      {/* Ellipsis */}
-      <BreadcrumbItem className="w-full min-w-0">
-        {promptData?.type === 'user' ? (
-          <Notebook className="h-4 w-4 flex-shrink-0" />
-        ) : (
-          <SquareTerminal className="h-4 w-4 flex-shrink-0" />
-        )}
-        <span className="truncate">{promptData?.name ?? ''}</span>
-      </BreadcrumbItem>
-    </BreadcrumbList>
-  );
-};
+        if (error) toast.error(error);
+      },
+      [controller, models],
+    );
 
-const ErrorOrLoadingBreadcrumb = ({ error }: { error: string | null }) => {
-  return (
-    <BreadcrumbList>
-      <BreadcrumbItem>
-        {error ? (
-          <div className="min-w-0 max-w-40">
-            <TriangleAlert className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate">{error}</span>
-          </div>
-        ) : (
-          <div className="animate-pulse">Loading...</div>
-        )}
-      </BreadcrumbItem>
-    </BreadcrumbList>
-  );
-};
+    const handleRefresh = useCallback(() => {
+      controller.reload();
+    }, [controller]);
 
-const ModelSelector = forwardRef<RefreshRef>((_, ref) => {
-  const [models, setModels] = React.useState<string[]>([]);
-  const [selectedModel, setSelectedModel] = React.useState<string | null>(null);
-  const [open, setOpen] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
+    useEffect(() => {
+      if (error) toast.error(error);
+    }, [error]);
 
-  useEffect(() => {
-    const loadModels = async () => {
-      const { models, error } = await ChatOperations.getModels();
-
-      if (error || !models) {
-        setError(error || "Couldn't get models.");
-        setLoading(false);
-        return;
+    // Render content asynchronously when popover opens
+    useEffect(() => {
+      if (isPopoverOpen && !isContentReady) {
+        // Use setTimeout to defer heavy rendering until after the popover opens
+        const timer = setTimeout(() => {
+          setIsContentReady(true);
+        }, 0);
+        return () => clearTimeout(timer);
       }
+      if (!isPopoverOpen) {
+        // Timer here to wait until animation finishes
+        const timer = setTimeout(() => {
+          setIsContentReady(false);
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+      return undefined;
+    }, [isPopoverOpen, isContentReady]);
 
-      setError(null);
-      setModels(models);
-      setSelectedModel(models[0]);
-      setLoading(false);
-    };
+    const selectedModel = useMemo(() => (models ? models[0] : null), [models]);
 
-    if (loading) loadModels();
-  }, [loading]);
-
-  const handleModelSelect = async (model: string) => {
-    setSelectedModel(model);
-
-    const { error } = await ChatOperations.selectModel(model);
-
-    if (error) {
-      setSelectedModel(null);
-      setError(error);
-    }
-
-    setLoading(true);
-  };
-
-  const handleRefresh = useCallback(() => {
-    setLoading(true);
-  }, []);
-
-  useImperativeHandle(ref, () => ({ refresh: handleRefresh }));
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-    }
-  }, [error]);
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              aria-label="Model selector"
-              aria-expanded={open}
-              role="combobox"
-              className="group/button non-draggable justify-start"
-              variant="ghost"
-              size="sm"
-            >
-              {loading ? (
-                <Loader2 className="animate-spin text-muted-foreground repeat-infinite" />
-              ) : (
-                <div className="relative flex items-center gap-0.5">
-                  {error && (
-                    <>
-                      <div className="absolute right-0 top-0 h-2 w-2 animate-pulse rounded-full bg-red-500" />
-                      <div className="absolute right-0 top-0 h-2 w-2 animate-ping rounded-full bg-red-500" />
-                    </>
-                  )}
-
-                  {error ? (
-                    <CircleAlert className="text-red-600 dark:text-red-400" />
-                  ) : (
-                    <Brain />
-                  )}
-                </div>
-              )}
-
-              <span className="hidden w-36 truncate text-left @xl/main:inline">
-                {selectedModel ? (
-                  <>
-                    {/* <span className="text-xs text-muted-foreground">
-                      {selectedModel.includes('/') &&
-                        selectedModel.split('/')[0]}
-                    </span>
-                    <br /> */}
-                    <span>
-                      {selectedModel.includes('/')
-                        ? selectedModel.split('/')[1]
-                        : selectedModel}
-                    </span>
-                  </>
-                ) : loading ? (
-                  'Loading...'
+    return (
+      <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <PopoverTrigger asChild>
+              <Button
+                aria-label="Model selector"
+                role="combobox"
+                className="group/button non-draggable justify-start"
+                variant="ghost"
+                size="sm"
+              >
+                {loading ? (
+                  <Loader2 className="animate-spin text-muted-foreground repeat-infinite" />
                 ) : (
-                  'No model selected!'
+                  <div className="relative flex items-center gap-0.5">
+                    {error && (
+                      <>
+                        <div className="absolute right-0 top-0 h-2 w-2 animate-pulse rounded-full bg-red-500" />
+                        <div className="absolute right-0 top-0 h-2 w-2 animate-ping rounded-full bg-red-500" />
+                      </>
+                    )}
+
+                    {error ? (
+                      <CircleAlert className="text-red-600 dark:text-red-400" />
+                    ) : (
+                      <Brain />
+                    )}
+                  </div>
                 )}
-              </span>
 
-              <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-foreground group-focus/button:text-foreground" />
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" align="end">
-          {selectedModel ? (
-            <>
-              <span>Using model: </span>
-              <span className="font-bold">{selectedModel}</span>
-            </>
-          ) : (
-            'No model selected!'
-          )}
-        </TooltipContent>
-      </Tooltip>
-      <PopoverContent
-        className="non-draggable w-[300px] p-0"
-        side="bottom"
-        align="end"
-      >
-        <Command>
-          <CommandInput
-            placeholder="Search models..."
-            disabled={!!error}
-            onRefreshClick={handleRefresh}
-          />
-          <CommandList>
-            <CommandEmpty>
-              {error ? (
-                <div className="p-4 leading-loose text-red-600 dark:text-red-400">
-                  <CircleAlert className="inline" />
-                  <br />
-                  {error}
-                  <br />
-                  <span className="text-xs text-muted-foreground">
-                    Check settings for insufficient configuration.
-                  </span>
+                <span className="hidden w-36 truncate text-left @xl/main:inline">
+                  {selectedModel
+                    ? selectedModel.name
+                    : loading
+                      ? 'Loading...'
+                      : 'No model selected!'}
+                </span>
+
+                <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-foreground group-focus/button:text-foreground" />
+              </Button>
+            </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="end">
+            {selectedModel ? (
+              <>
+                <span>Using model: </span>
+                <span className="font-bold">{selectedModel.name}</span>
+              </>
+            ) : (
+              'No model selected!'
+            )}
+          </TooltipContent>
+        </Tooltip>
+        <PopoverContent
+          className="non-draggable w-[300px] p-0"
+          side="bottom"
+          align="end"
+        >
+          <Command>
+            <CommandInput
+              placeholder="Search models..."
+              disabled={!!error}
+              onRefreshClick={handleRefresh}
+            />
+            <CommandList className="flex h-[300px] flex-col">
+              {!isContentReady ? (
+                <div className="flex h-[300px] items-center justify-center">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                 </div>
-              ) : loading ? (
-                <Loader2 className="inline animate-spin repeat-infinite" />
               ) : (
-                'No models found.'
+                <>
+                  <CommandEmpty className="flex h-[300px] flex-col items-center justify-center text-muted-foreground">
+                    {error ? (
+                      <>
+                        <div className="p-4 text-center leading-loose text-red-600 dark:text-red-400">
+                          <CircleAlert className="inline" />
+                          <br />
+                          {error}
+                          <br />
+                        </div>
+                        <span className="text-xs">
+                          Check settings for insufficient configuration.
+                        </span>
+                      </>
+                    ) : loading ? (
+                      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                    ) : (
+                      <span className="text-xs">No models found.</span>
+                    )}
+                  </CommandEmpty>
+                  {models && (
+                    <CommandGroup>
+                      {models.map((model) => {
+                        return (
+                          <CommandItem
+                            key={model.id}
+                            value={model.id}
+                            onSelect={handleModelSelect}
+                            className="py-2"
+                          >
+                            {loading ? (
+                              <Loader2
+                                className={cn(
+                                  'invisible mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-muted-foreground',
+                                  model.id === selectedModel?.id && 'visible',
+                                )}
+                              />
+                            ) : (
+                              <Check
+                                className={cn(
+                                  'invisible mt-0.5 h-4 w-4 flex-shrink-0',
+                                  model.id === selectedModel?.id && 'visible',
+                                )}
+                              />
+                            )}
+                            <span
+                              className={cn(
+                                model.id === selectedModel?.id && 'font-bold',
+                                'w-full truncate',
+                              )}
+                            >
+                              {model.name}
+                            </span>
+                            {model.reasoning && (
+                              <Lightbulb className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                            )}
+                          </CommandItem>
+                        );
+                      })}
+                    </CommandGroup>
+                  )}
+                </>
               )}
-            </CommandEmpty>
-            <CommandGroup>
-              {models &&
-                models.map((model) => {
-                  return (
-                    <CommandItem
-                      key={model}
-                      value={model}
-                      onSelect={handleModelSelect}
-                    >
-                      {loading ? (
-                        <Loader2
-                          className={cn(
-                            'mr-2 h-4 w-4 animate-spin text-muted-foreground opacity-0 repeat-infinite',
-                            model === selectedModel && 'opacity-100',
-                          )}
-                        />
-                      ) : (
-                        <Check
-                          className={cn(
-                            'mr-2 h-4 w-4 opacity-0 transition-opacity duration-100 ease-in-out',
-                            model === selectedModel && 'opacity-100',
-                          )}
-                        />
-                      )}
-                      <span
-                        className={cn(model === selectedModel && 'font-bold')}
-                      >
-                        {model}
-                      </span>
-                    </CommandItem>
-                  );
-                })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-});
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    );
+  },
+);
 
-const GenSettings = forwardRef<RefreshRef>((_, ref) => {
+const GenSettings = memo(() => {
   const [max_tokens, setMaxTokens] = React.useState(4096);
   const [max_tokensInvalid, setMaxTokensInvalid] = React.useState(false);
   const [top_p, setTopP] = React.useState(0.9);
@@ -352,12 +308,6 @@ const GenSettings = forwardRef<RefreshRef>((_, ref) => {
       setError(null);
     }
   }, [error]);
-
-  const handleRefresh = useCallback(() => {
-    setLoading(true);
-  }, []);
-
-  useImperativeHandle(ref, () => ({ refresh: handleRefresh }));
 
   const validateInputs = useCallback(() => {
     // Max tokens validation
@@ -561,105 +511,192 @@ const GenSettings = forwardRef<RefreshRef>((_, ref) => {
   );
 });
 
-const TitleBar = forwardRef<RefreshRef>((_, ref) => {
-  const navigation = useNavigate();
-  const location = useLocation();
-  const [breadcrumbType, setBreadCrumbType] = React.useState<
-    'home' | 'chat' | 'prompt' | null
-  >(null);
-  const [chatData, setChatData] = React.useState<string | undefined>();
-  const [promptData, setPromptData] = React.useState<
-    | {
-        folder: string;
-        name: string;
-        type: 'user' | 'system';
-      }
-    | undefined
-  >();
-  const [error, setError] = React.useState<string | null>(null);
-  const sidebarClosed = useSidebar().state === 'collapsed';
-  const modelSelectorRef = React.useRef<RefreshRef>(null);
-  const genSettingsRef = React.useRef<RefreshRef>(null);
+// Used to display home icon, kept for consistency
+const HomeBreadcrumb = () => {
+  return null;
+};
 
-  useImperativeHandle(ref, () => ({
-    refresh: () => {
-      modelSelectorRef.current?.refresh();
-      genSettingsRef.current?.refresh();
-    },
-  }));
-
-  useEffect(() => {
-    const loadData = async () => {
-      const locList = location.pathname.split('/').filter((x) => x !== '');
-      if (locList.length === 0) {
-        setBreadCrumbType('home');
-        return;
-      }
-      if (locList.length === 2 && locList[0] === 'c') {
-        const { chat, error } =
-          await window.electron.fileOperations.getChatById(locList[1]);
-        if (error || !chat) {
-          setError(error || 'Chat not found');
-          return;
-        }
-        setBreadCrumbType('chat');
-        setChatData(chat.title);
-        return;
-      }
-      if (locList.length === 2 && locList[0] === 'p') {
-        const { prompt, folder, error } =
-          await window.electron.fileOperations.getPromptById(locList[1]);
-        if (error || !prompt || !folder) {
-          setError(error || 'Prompt not found');
-          return;
-        }
-        setBreadCrumbType('prompt');
-        setPromptData({
-          folder: folder.title,
-          name: prompt.title,
-          type: prompt.type,
-        });
-        return;
-      }
-      setError('Unknown URL');
-      setBreadCrumbType(null);
-    };
-    loadData();
-  }, [location]);
+const ChatBreadcrumb = ({ chatData }: { chatData: string | undefined }) => {
   return (
-    <div className="draggable bg-background-dim flex h-[48px] items-center gap-0.5 p-2 pr-[145px] @container/main">
-      {sidebarClosed && <SidebarTrigger />}
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              navigation(-1);
-            }}
-            disabled={location.key === 'default'}
-          >
-            <ArrowLeft className="my-auto" />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>Back</TooltipContent>
-      </Tooltip>
-      {sidebarClosed && <AddRefreshButtonGroup />}
-      <Breadcrumb className="mx-2 min-w-0 flex-1">
-        {breadcrumbType === 'home' ? (
-          <HomeBreadcrumb />
-        ) : breadcrumbType === 'chat' ? (
-          <ChatBreadcrumb chatData={chatData} />
-        ) : breadcrumbType === 'prompt' ? (
-          <PromptBreadcrumb promptData={promptData} />
-        ) : (
-          <ErrorOrLoadingBreadcrumb error={error} />
-        )}
-      </Breadcrumb>
-      <ModelSelector ref={modelSelectorRef} />
-      <GenSettings ref={genSettingsRef} />
-    </div>
+    <BreadcrumbList>
+      {/* Ellipsis */}
+      <BreadcrumbItem className="w-full min-w-0">
+        <MessageCircle className="h-4 w-4 flex-shrink-0" />
+        <span className="truncate">{chatData}</span>
+      </BreadcrumbItem>
+    </BreadcrumbList>
   );
-});
+};
+
+const PromptBreadcrumb = ({
+  promptData,
+}: {
+  promptData:
+    | { folder: string; name: string; type: 'user-prompt' | 'system-prompt' }
+    | undefined;
+}) => {
+  return (
+    <BreadcrumbList className="flex flex-nowrap">
+      {/* Folder */}
+      <BreadcrumbItem className="hidden max-w-40 @2xl/main:flex">
+        <Folder className="h-4 w-4 flex-shrink-0" />
+        <span className="truncate">{promptData?.folder ?? ''}</span>
+      </BreadcrumbItem>
+
+      <BreadcrumbSeparator className="hidden @2xl/main:block" />
+
+      {/* Ellipsis */}
+      <BreadcrumbItem className="w-full min-w-0">
+        {promptData?.type === 'user-prompt' ? (
+          <Notebook className="h-4 w-4 flex-shrink-0" />
+        ) : (
+          <SquareTerminal className="h-4 w-4 flex-shrink-0" />
+        )}
+        <span className="truncate">{promptData?.name ?? ''}</span>
+      </BreadcrumbItem>
+    </BreadcrumbList>
+  );
+};
+
+const ErrorOrLoadingBreadcrumb = ({ error }: { error: string | null }) => {
+  return (
+    <BreadcrumbList>
+      <BreadcrumbItem>
+        {error ? (
+          <div className="min-w-0 max-w-40">
+            <TriangleAlert className="h-4 w-4 flex-shrink-0" />
+            <span className="truncate">{error}</span>
+          </div>
+        ) : (
+          <div className="animate-pulse">Loading...</div>
+        )}
+      </BreadcrumbItem>
+    </BreadcrumbList>
+  );
+};
+
+type TitleBarProps = {
+  chats: ResolvedChat[];
+  prompts: ResolvedPrompt[];
+  folders: ResolvedFolder[];
+  models: OpenRouterModel[] | null;
+  loading: boolean;
+  modelsError: string | null;
+  modelsController: ModelsController;
+  saveFileController: SaveFileController;
+};
+
+const TitleBar = memo(
+  ({
+    chats,
+    prompts,
+    folders,
+    modelsController,
+    saveFileController,
+    models,
+    loading,
+    modelsError,
+  }: TitleBarProps) => {
+    const navigation = useNavigate();
+    const location = useLocation();
+    const [breadcrumbType, setBreadCrumbType] = React.useState<
+      'home' | 'chat' | 'prompt' | null
+    >(null);
+    const [chatData, setChatData] = React.useState<string | undefined>();
+    const [promptData, setPromptData] = React.useState<
+      | {
+          folder: string;
+          name: string;
+          type: 'user-prompt' | 'system-prompt';
+        }
+      | undefined
+    >();
+    const [error, setError] = React.useState<string | null>(null);
+    const sidebarClosed = useSidebar().state === 'collapsed';
+
+    useEffect(() => {
+      const loadData = () => {
+        const locList = location.pathname.split('/').filter((x) => x !== '');
+        if (locList.length === 0) {
+          setBreadCrumbType('home');
+          return;
+        }
+        if (locList.length === 2 && locList[0] === 'c') {
+          const chat = chats.find((c) => c.id === locList[1]);
+
+          if (!chat) {
+            setError(error || 'Chat not found');
+            return;
+          }
+          setBreadCrumbType('chat');
+          setChatData(chat.title);
+          return;
+        }
+        if (locList.length === 2 && locList[0] === 'p') {
+          const prompt = prompts.find((p) => p.id === locList[1]);
+
+          if (!prompt) {
+            setError(error || 'Prompt not found');
+            return;
+          }
+
+          setBreadCrumbType('prompt');
+          setPromptData({
+            folder: prompt.folder?.name ?? 'No folder',
+            name: prompt.title,
+            type: prompt.type,
+          });
+          return;
+        }
+        setError('Unknown URL');
+        setBreadCrumbType(null);
+      };
+      loadData();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [location, chats, prompts]);
+
+    return (
+      <div className="draggable flex h-[48px] items-center gap-0.5 bg-background-dim p-2 pr-[145px] @container/main">
+        {sidebarClosed && <SidebarTrigger />}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                navigation(-1);
+              }}
+              disabled={location.key === 'default'}
+            >
+              <ArrowLeft className="my-auto" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Back</TooltipContent>
+        </Tooltip>
+        {sidebarClosed && (
+          <NewButton controller={saveFileController} folders={folders} />
+        )}
+        <Breadcrumb className="mx-2 min-w-0 flex-1">
+          {breadcrumbType === 'home' ? (
+            <HomeBreadcrumb />
+          ) : breadcrumbType === 'chat' ? (
+            <ChatBreadcrumb chatData={chatData} />
+          ) : breadcrumbType === 'prompt' ? (
+            <PromptBreadcrumb promptData={promptData} />
+          ) : (
+            <ErrorOrLoadingBreadcrumb error={error} />
+          )}
+        </Breadcrumb>
+        <ModelSelector
+          controller={modelsController}
+          error={modelsError}
+          loading={loading}
+          models={models}
+        />
+        <GenSettings />
+      </div>
+    );
+  },
+);
 
 export default TitleBar;

@@ -1,15 +1,21 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Loader2, Plus, RefreshCw } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Plus } from 'lucide-react';
+import { ResolvedFolder, SaveFileController } from '@/common/types';
 import { Button } from './ui/button';
 import { cn } from '../utils/utils';
-// eslint-disable-next-line import/no-cycle
-import { useRefresh } from '../hooks/use-refresh';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { NewModal, NewModalRef } from './modal-new';
-import TooltipHotkey from './ui/tooltip-hotkey';
 import { useSidebar } from './ui/sidebar';
 
-const NewButton = ({ registerShortcut }: { registerShortcut?: boolean }) => {
+const NewButton = ({
+  registerShortcut,
+  controller,
+  folders,
+}: {
+  registerShortcut?: boolean;
+  controller: SaveFileController;
+  folders: ResolvedFolder[];
+}) => {
   const newModalRef = useRef<NewModalRef>(null);
   const sidebarOpen = useSidebar().state === 'expanded';
   const [tooltipOpen, setTooptipOpen] = useState<boolean>(false);
@@ -57,7 +63,7 @@ const NewButton = ({ registerShortcut }: { registerShortcut?: boolean }) => {
         </TooltipTrigger>
         <TooltipContent>New</TooltipContent>
       </Tooltip>
-      <NewModal ref={newModalRef} />
+      <NewModal ref={newModalRef} controller={controller} folders={folders} />
     </>
   );
 };

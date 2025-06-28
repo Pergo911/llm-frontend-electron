@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { Config } from '@/common/types';
 import { toast } from 'sonner';
-import { File, FileJson, Monitor, Moon, SettingsIcon, Sun } from 'lucide-react';
+import { FileJson, Monitor, Moon, SettingsIcon, Sun } from 'lucide-react';
 import {
   DialogClose,
   DialogContent,
@@ -21,14 +21,17 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { useTheme } from './theme-provider';
 import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
+import { cn } from '../utils/utils';
 
 export const SettingsModal = memo(
   ({
     triggerRefresh,
     onSetOpen,
+    open,
   }: {
     triggerRefresh: () => void;
     onSetOpen: (v: boolean) => void;
+    open: boolean;
   }) => {
     const { setTheme: setAppTheme } = useTheme();
     const [theme, setTheme] = useState<Config['theme']>('system');
@@ -118,6 +121,7 @@ export const SettingsModal = memo(
     // Second effect: register keydown event after configuration has loaded.
     useEffect(() => {
       if (!configLoaded) return;
+      if (!open) return;
 
       const handleSaveWithCtrlEnter = (e: KeyboardEvent) => {
         if (e.ctrlKey && e.key === 'Enter') {
@@ -132,7 +136,7 @@ export const SettingsModal = memo(
       return () => {
         window.removeEventListener('keydown', handleSaveWithCtrlEnter);
       };
-    }, [configLoaded, handleSaveClick, onSetOpen]);
+    }, [configLoaded, handleSaveClick, onSetOpen, open]);
 
     return (
       <DialogContent>
@@ -210,12 +214,19 @@ export const SettingsModal = memo(
           <div className="flex flex-col gap-2">
             <Label>Savefile path</Label>
             <div className="flex gap-2">
-              <div className="flex h-9 w-full flex-[4] items-center rounded-xl border border-border bg-transparent px-3 py-1 shadow-sm transition-colors md:text-sm">
-                <FileJson className="mr-2 h-4 w-4" />
-                {saveFilePath}
+              <div
+                className={cn(
+                  saveFilePath === '' && 'opacity-50',
+                  'flex h-9 w-full min-w-0 flex-[4] items-center rounded-xl border border-border bg-transparent px-3 py-1 shadow-sm transition-colors md:text-sm',
+                )}
+              >
+                <FileJson className="mr-2 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">
+                  {saveFilePath === '' ? 'No savefile' : saveFilePath}
+                </span>
               </div>
               <Button
-                className="flex-[1]"
+                className="w-full flex-[1]"
                 variant="outline"
                 onClick={async () => {
                   const { canceled, filePath } =

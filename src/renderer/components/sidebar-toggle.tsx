@@ -28,7 +28,7 @@ export function SidebarToggle({
             callback(p);
           }}
         >
-          <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+          <div className="flex aspect-square size-8 items-center justify-center rounded-lg outline outline-2">
             {page === 'chat' ? <MessageCircle /> : <Notebook />}
           </div>
           <div className="grid flex-1 text-left text-lg font-bold leading-tight">

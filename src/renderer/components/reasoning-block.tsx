@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronDown, ChevronLeft } from 'lucide-react';
+import { Brain, ChevronDown, ChevronLeft, LoaderCircle } from 'lucide-react';
 import { cn } from '../utils/utils';
 import { Button } from './ui/button';
 
@@ -16,33 +16,66 @@ const ReasoningBlock = ({
 }: ReasoningBlockProps) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
 
+  if (!isExpanded) {
+    return (
+      <div
+        className="group flex w-fit items-center justify-center gap-2 rounded-xl bg-background-dim px-4 text-xs text-muted-foreground hover:bg-card-hover focus:bg-card-hover"
+        tabIndex={0}
+        onClick={() => setIsExpanded((prev) => !prev)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            setIsExpanded((prev) => !prev);
+          }
+        }}
+        role="button"
+      >
+        {isStreaming ? (
+          <>
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            <span>Thinking...</span>
+          </>
+        ) : (
+          <>
+            <Brain className="h-4 w-4" />
+            <span>Reasoning text</span>
+          </>
+        )}
+
+        <ChevronLeft className="m-2 h-4 w-4 group-hover:text-card-foreground group-focus:text-card-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
-        'display-linebreak bg-background-dim w-full overflow-hidden rounded-3xl border-2 border-card text-xs italic text-muted-foreground',
+        'display-linebreak w-full overflow-hidden rounded-xl bg-background-dim text-xs italic text-muted-foreground',
         className,
       )}
     >
-      <div className="flex items-center justify-between bg-card px-4 text-base font-bold not-italic leading-tight text-card-foreground drop-shadow-xl">
+      <div
+        className="group flex items-center justify-between bg-background-dim px-4 not-italic leading-tight drop-shadow-xl hover:bg-card-hover focus:bg-card-hover"
+        tabIndex={0}
+        onClick={() => setIsExpanded((prev) => !prev)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            setIsExpanded((prev) => !prev);
+          }
+        }}
+        role="button"
+      >
         {isStreaming ? (
-          <span className="animate-pulse">Thinking...</span>
+          <div className="flex items-center gap-2">
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            <span>Thinking...</span>
+          </div>
         ) : (
-          'Reasoning text'
+          <div className="flex items-center gap-2">
+            <Brain className="h-4 w-4" />
+            <span>Reasoning text</span>
+          </div>
         )}
-        <Button
-          variant="actionButton"
-          className="text-muted-foreground hover:text-card-foreground focus:text-card-foreground"
-          size="icon"
-          onClick={() => setIsExpanded((prev) => !prev)}
-          onMouseUp={(e) => e.currentTarget.blur()}
-        >
-          <ChevronLeft
-            className={cn(
-              'h-4 w-4 flex-shrink-0 transition-transform duration-75',
-              isExpanded && '-rotate-90',
-            )}
-          />
-        </Button>
+        <ChevronDown className="m-2 h-4 w-4 group-hover:text-card-foreground group-focus:text-card-foreground" />
       </div>
       <div
         className={cn(

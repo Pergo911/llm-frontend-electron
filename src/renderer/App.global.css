@@ -4,54 +4,54 @@
 
 @layer base {
   :root {
-    --background: rgb(247 251 241);
-    --background-dim: rgb(236 239 230);
-    --foreground: rgb(25 29 23);
-    --secondary: rgb(82 99 79);
-    --secondary-foreground: rgb(255 255 255);
-    --secondary-hover: rgb(102 119 99);
-    --card: rgb(213 232 207);
-    --card-foreground: rgb(16 31 15);
-    --card-hover: rgb(230 233 224);
-    --primary: rgb(59 105 58);
-    --primary-foreground: rgb(255 255 255);
-    --primary-hover: rgb(79 125 78);
-    --muted: rgb(243, 244, 247);
-    --muted-foreground: rgb(117, 118, 125);
-    --muted-hover: rgb(223, 224, 227);
-    --destructive: rgb(186 26 26);
-    --destructive-foreground: rgb(255 255 255);
-    --destructive-hover: rgb(206, 46, 46);
-    --border: rgb(194 201 189);
-    --scrollbar: rgb(216 219 210);
-    --scrollbar-hover: rgb(226 229 220);
+    --background: hsl(84, 0%, 96%);
+    --background-dim: hsl(80, 0%, 92%);
+    --foreground: hsl(100, 0%, 10%);
+    --secondary: hsl(111, 11%, 35%);
+    --secondary-foreground: hsl(0, 0%, 100%);
+    --secondary-hover: hsl(111, 9%, 43%);
+    --card: hsl(106, 35%, 86%);
+    --card-foreground: hsl(116, 35%, 9%);
+    --card-hover: hsl(80, 0%, 90%);
+    --primary: hsl(119, 29%, 32%);
+    --primary-foreground: hsl(0, 0%, 100%);
+    --primary-hover: hsl(119, 23%, 40%);
+    --muted: hsl(225, 20%, 96%);
+    --muted-foreground: hsl(232, 3%, 47%);
+    --muted-hover: hsl(225, 7%, 88%);
+    --destructive: hsl(0, 75%, 42%);
+    --destructive-foreground: hsl(0, 0%, 100%);
+    --destructive-hover: hsl(0, 63%, 49%);
+    --border: hsl(95, 0%, 76%);
+    --scrollbar: hsl(80, 11%, 84%);
+    --scrollbar-hover: hsl(80, 15%, 88%);
     --radius: 0.5rem;
     --selection: var(--primary-foreground);
-    --selection-bg: rgb(150 180 150);
+    --selection-bg: hsl(120, 17%, 65%);
   }
 
   .dark {
-    --background: rgb(16 20 15);
-    --background-dim: rgb(29 33 27);
-    --foreground: rgb(224 228 219);
-    --secondary: rgb(186 204 179);
-    --secondary-foreground: rgb(37 52 35);
-    --secondary-hover: rgb(206 224 199);
-    --card: rgb(37 52 35);
-    --card-foreground: rgb(213 232 207);
-    --card-hover: rgb(39 43 37);
-    --primary: rgb(161 211 154);
-    --primary-foreground: rgb(9 57 15);
-    --primary-hover: rgb(181 231 174);
-    --muted: rgb(243, 244, 247);
-    --muted-foreground: rgb(117, 118, 125);
-    --muted-hover: rgb(253 254 255);
-    --destructive: rgb(255, 118, 118);
-    --destructive-foreground: rgb(105 0 5);
-    --destructive-hover: rgb(255 200 191);
-    --border: rgb(66 73 64);
-    --scrollbar: rgb(156 159 150);
-    --scrollbar-hover: rgb(186 189 180);
+    --background: hsl(108, 0%, 7%);
+    --background-dim: hsl(100, 0%, 12%);
+    --foreground: hsl(87, 0%, 88%);
+    --secondary: hsl(103, 20%, 75%);
+    --secondary-foreground: hsl(113, 20%, 17%);
+    --secondary-hover: hsl(103, 29%, 83%);
+    --card: hsl(113, 20%, 17%);
+    --card-foreground: hsl(106, 35%, 86%);
+    --card-hover: hsl(100, 0%, 16%);
+    --primary: hsl(113, 39%, 72%);
+    --primary-foreground: hsl(128, 73%, 13%);
+    --primary-hover: hsl(113, 54%, 79%);
+    --muted: hsl(225, 20%, 96%);
+    --muted-foreground: hsl(232, 3%, 47%);
+    --muted-hover: hsl(210, 100%, 100%);
+    --destructive: hsl(0, 100%, 73%);
+    --destructive-foreground: hsl(357, 100%, 21%);
+    --destructive-hover: hsl(8, 100%, 87%);
+    --border: hsl(107, 0%, 27%);
+    --scrollbar: hsl(80, 4%, 61%);
+    --scrollbar-hover: hsl(80, 6%, 75%);
     --radius: 0.5rem;
     --selection: var(--primary-foreground);
     --selection-bg: var(--primary);
@@ -61,9 +61,28 @@
 @layer base {
   * {
     @apply border-border;
+    font-family: 'HostGrotesk';
+    font-kerning: auto;
   }
   body {
     @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  @font-face {
+    font-family: 'HostGrotesk';
+    src: url('/assets/HostGrotesk-VariableFont_wght.ttf') format('truetype');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'HostGrotesk';
+    src: url('/assets/HostGrotesk-Italic-VariableFont_wght.ttf')
+      format('truetype');
+    font-weight: 100 900;
+    font-style: italic;
+    font-display: swap;
   }
 
   div,
@@ -106,15 +125,19 @@
   .display-linebreak {
     white-space: pre-line;
     word-break: break-word;
+    letter-spacing: 0.02em;
   }
 
   .markdown {
     @apply prose prose-neutral !max-w-none select-text dark:prose-invert;
+    letter-spacing: 0.02em;
   }
 
   .markdown div,
-  .markdown p {
-    @apply !select-text;
+  .markdown p,
+  .markdown ol,
+  .markdown ul {
+    @apply !mb-0 !select-text;
   }
 
   .markdown blockquote {
@@ -127,20 +150,11 @@
   }
 
   .markdown code {
-    @apply !bg-card;
-    @apply !text-card-foreground;
-    @apply !text-sm;
-    @apply !px-1;
+    @apply !bg-background-dim !px-1 !text-sm;
   }
 
   .markdown pre {
-    @apply !bg-card;
-    @apply !w-full;
-    @apply !min-w-0;
-    @apply !w-full;
-    @apply !rounded-3xl;
-    @apply !p-4;
-    @apply !overflow-auto;
+    @apply !w-full !min-w-0 !overflow-auto !rounded-3xl !bg-background-dim !p-4;
   }
 
   .markdown p {

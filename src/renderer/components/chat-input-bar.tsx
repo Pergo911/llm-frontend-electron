@@ -1,5 +1,15 @@
 import React from 'react';
-import { ArrowUp, Bot, Plus, SendIcon, Square, User2 } from 'lucide-react';
+import {
+  ArrowUp,
+  Bot,
+  Brain,
+  Lightbulb,
+  LightbulbOff,
+  Plus,
+  SendIcon,
+  Square,
+  User2,
+} from 'lucide-react';
 import { ChatInputBarActions } from '@/common/types';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
@@ -15,6 +25,8 @@ const ChatInputBar = React.memo(
     onAbort,
     overrideCanSend,
     noSendAs,
+    reasoningSelect,
+    onReasoningToggle,
   }: {
     onSend: (t: string, as: 'user' | 'assistant') => void;
     onAddPrompt: () => void;
@@ -23,6 +35,8 @@ const ChatInputBar = React.memo(
     onAbort: () => void;
     overrideCanSend: boolean;
     noSendAs?: boolean;
+    reasoningSelect: boolean | null;
+    onReasoningToggle: (enabled: boolean) => void;
   }) => {
     const [value, setValue] = React.useState('');
     const [canSend, setCanSend] = React.useState(false);
@@ -101,14 +115,41 @@ const ChatInputBar = React.memo(
             ref={textareaRef}
           />
           <div className="flex w-full justify-between pt-2">
-            <Button
-              variant="ghost"
-              className="text-sm text-muted-foreground hover:text-foreground focus:text-foreground"
-              onClick={onAddPrompt}
-            >
-              <Plus className="h-4 w-4" />
-              Prompt
-            </Button>
+            <div className="flex w-full items-start gap-2">
+              <Button
+                variant="ghost"
+                className="text-sm text-muted-foreground hover:text-foreground focus:text-foreground"
+                onClick={onAddPrompt}
+              >
+                <Plus className="h-4 w-4" />
+                Prompt
+              </Button>
+              {reasoningSelect !== null && (
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'text-sm text-muted-foreground',
+                    reasoningSelect &&
+                      'bg-card-hover outline outline-1 outline-border',
+                  )}
+                  onClick={() => {
+                    onReasoningToggle(!reasoningSelect);
+                  }}
+                >
+                  {reasoningSelect ? (
+                    <>
+                      <Lightbulb className="h-4 w-4" />
+                      Reasoning On
+                    </>
+                  ) : (
+                    <>
+                      <LightbulbOff className="h-4 w-4" />
+                      Reasoning Off
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
             <div className="flex items-center">
               {!noSendAs && (
                 <Tooltip>

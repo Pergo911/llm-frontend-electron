@@ -1,13 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import {
-  ChatEntry,
-  Config,
-  PromptEntry,
-  Chat,
-  Prompt,
-  Folder,
-  RequestMessage,
-} from '@/common/types';
+import { Config, SaveFile } from '@/common/types';
 
 const electronHandler = {
   fileOperations: {
@@ -16,69 +8,19 @@ const electronHandler = {
       ipcRenderer.invoke('set-config', key, value) as Promise<{
         error: string | null;
       }>,
+    getSaveFile: () =>
+      ipcRenderer.invoke('get-savefile') as Promise<{
+        saveFile: SaveFile | null;
+        error: string | null;
+      }>,
+    setSaveFile: (saveFile: SaveFile) =>
+      ipcRenderer.invoke('set-savefile', saveFile) as Promise<{
+        error: string | null;
+      }>,
     openSaveFilePickerModal: () =>
       ipcRenderer.invoke('open-savefile-picker-modal') as Promise<{
         canceled: boolean;
         filePath: string;
-      }>,
-    getEntries: () =>
-      ipcRenderer.invoke('get-entries') as Promise<{
-        chatEntries: ChatEntry[];
-        promptEntries: PromptEntry[];
-        error: string | null;
-      }>,
-    getChatById: (id: string) =>
-      ipcRenderer.invoke('get-chat-by-id', id) as Promise<{
-        chat: Chat | null;
-        error: string | null;
-      }>,
-    getPromptById: (id: string) =>
-      ipcRenderer.invoke('get-prompt-by-id', id) as Promise<{
-        prompt: Prompt | null;
-        folder: Folder | null;
-        error: string | null;
-      }>,
-    getFolderById: (id: string) =>
-      ipcRenderer.invoke('get-folder-by-id', id) as Promise<{
-        folder: Folder | null;
-        error: string | null;
-      }>,
-    writeChat: (chat: Chat) =>
-      ipcRenderer.invoke('write-chat', chat) as Promise<{
-        error: string | null;
-      }>,
-    writePrompt: (prompt: Prompt) =>
-      ipcRenderer.invoke('write-prompt', prompt) as Promise<{
-        error: string | null;
-      }>,
-    writeFolder: (folder: Folder) =>
-      ipcRenderer.invoke('write-folder', folder) as Promise<{
-        error: string | null;
-      }>,
-    create: (
-      itemType: 'chat' | 'prompt' | 'folder',
-      title: string,
-      folderId?: string,
-      promptType?: 'user' | 'system',
-    ) =>
-      ipcRenderer.invoke(
-        'create',
-        itemType,
-        title,
-        folderId,
-        promptType,
-      ) as Promise<{
-        id: string | null;
-        error: string | null;
-      }>,
-    remove: (itemType: 'chat' | 'prompt' | 'folder', id: string) =>
-      ipcRenderer.invoke('remove', itemType, id) as Promise<{
-        error: string | null;
-      }>,
-    duplicate: (itemType: 'chat' | 'prompt', id: string) =>
-      ipcRenderer.invoke('duplicate', itemType, id) as Promise<{
-        id: string | null;
-        error: string | null;
       }>,
   },
   windowStyle: {

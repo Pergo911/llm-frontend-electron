@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { Folder, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { ResolvedFolder } from '@/common/types';
 import { Button } from './ui/button';
 import {
   DialogHeader,
@@ -30,19 +31,30 @@ import {
 import { isInvalid } from '../utils/utils';
 
 export interface FolderSelectModalRef {
-  promptUser: (currentFolderId: string) => Promise<string | null>;
+  promptUser: (
+    currentFolderId: string,
+  ) => Promise<{ folderId: string } | { newFolderName: string } | null>;
 }
 
-const FolderSelectModal = forwardRef<FolderSelectModalRef>((_, ref) => {
-  const resolveRef = useRef<(value: string | null) => void>();
+type FolderSelectModalProps = {
+  folders: ResolvedFolder[];
+};
+
+const FolderSelectModal = forwardRef<
+  FolderSelectModalRef,
+  FolderSelectModalProps
+>(({ folders }, ref) => {
+  const resolveRef =
+    useRef<
+      (
+        returnValue: { folderId: string } | { newFolderName: string } | null,
+      ) => void
+    >();
   const [isOpen, setIsOpen] = useState(false);
 
-  const [availableFolders, setAvailableFolders] = useState<
-    Array<{ id: string; title: string }>
-  >([]);
-  const [promptFolder, setPromptFolder] = useState<string>('');
-  const [isNewFolder, setIsNewFolder] = useState(false);
-  const [newFolderName, setNewFolderName] = useState('New folder');
+  const [folderId, setFolderId] = useState<string>(''); // Selected folder ID
+  const [isNewFolder, setIsNewFolder] = useState(false); // Flag for creating a new folder
+  const [newFolderName, setNewFolderName] = useState('New folder'); // Name for the new folder
   const newFolderInputRef = useRef<HTMLInputElement>(null);
   const [newFolderNameInvalid, setNewFolderNameInvalid] = useState(false);
 
@@ -51,35 +63,36 @@ const FolderSelectModal = forwardRef<FolderSelectModalRef>((_, ref) => {
   }, [newFolderName]);
 
   const reset = () => {
-    setNewFolderName('New folder');
-    setAvailableFolders([]);
+    setFolderId('');
     setIsNewFolder(false);
-  };
-
-  const getFolders = async () => {
-    const { promptEntries, error } =
-      await window.electron.fileOperations.getEntries();
-
-    if (error) {
-      toast.error(`Error loading prompts: ${error}`);
-      setAvailableFolders([]);
-      return;
-    }
-
-    setAvailableFolders(
-      promptEntries.map((entry) => ({ id: entry.id, title: entry.title })),
-    );
+    setNewFolderName('New folder');
   };
 
   useImperativeHandle(ref, () => ({
-    promptUser: (currentFolderId: string) => {
+    promptUser: (currentFolderId: string | null) => {
       reset();
-      setPromptFolder(currentFolderId);
-      setIsOpen(true);
-      getFolders();
 
-      return new Promise<string | null>((resolve) => {
+      if (currentFolderId) {
+        setFolderId(currentFolderId);
+      } else {
+        setFolderId(folders.length > 0 ? folders[0].id : '');
+      }
+
+      setIsOpen(true);
+
+      return new Promise<
+        { folderId: string } | { newFolderName: string } | null
+      >((resolve) => {
         resolveRef.current = resolve;
+
+        if (folders.length === 0) {
+          setIsNewFolder(true);
+          // Focus the new folder input on next render
+          requestAnimationFrame(() => {
+            newFolderInputRef.current?.focus();
+            newFolderInputRef.current?.select();
+          });
+        }
       });
     },
   }));
@@ -99,36 +112,26 @@ const FolderSelectModal = forwardRef<FolderSelectModalRef>((_, ref) => {
         newFolderInputRef.current?.select();
       });
     } else {
-      setPromptFolder(value);
+      setFolderId(value);
       setIsNewFolder(false);
     }
   };
 
-  const handleConfirm = useCallback(async () => {
-    let newFolderId = promptFolder;
+  const handleConfirm = useCallback(() => {
+    if (newFolderNameInvalid) return;
 
     if (isNewFolder) {
-      if (newFolderNameInvalid) {
-        return;
-      }
-
-      const { id, error } = await window.electron.fileOperations.create(
-        'folder',
-        newFolderName,
-      );
-
-      if (error || !id) {
-        toast.error(`Error creating folder: ${error}`);
-        return;
-      }
-
-      newFolderId = id;
+      resolveRef.current?.({ newFolderName });
+    } else if (folderId) {
+      resolveRef.current?.({ folderId });
+    } else {
+      toast.info('No folder selected. Nothing changed.');
+      resolveRef.current?.(null);
     }
 
-    resolveRef.current?.(newFolderId);
     resolveRef.current = undefined;
     setIsOpen(false);
-  }, [isNewFolder, newFolderName, newFolderNameInvalid, promptFolder]);
+  }, [folderId, isNewFolder, newFolderName, newFolderNameInvalid]);
 
   useEffect(() => {
     return () => {
@@ -161,7 +164,9 @@ const FolderSelectModal = forwardRef<FolderSelectModalRef>((_, ref) => {
       <DialogPortal forceMount />
       <DialogContent className="max-w-[350px] pt-4">
         <DialogHeader>
-          <DialogTitle className="flex items-center">Select folder</DialogTitle>
+          <DialogTitle className="flex items-center">
+            {isNewFolder ? 'Name new folder' : 'Select folder'}
+          </DialogTitle>
         </DialogHeader>
         {isNewFolder ? (
           <div className="flex gap-2">
@@ -175,32 +180,34 @@ const FolderSelectModal = forwardRef<FolderSelectModalRef>((_, ref) => {
                   : ''
               }
             />
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => {
-                setIsNewFolder(false);
-                setNewFolderName('New folder');
-              }}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+            {folders.length > 0 && (
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => {
+                  setIsNewFolder(false);
+                  setNewFolderName('New folder');
+                }}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         ) : (
-          <Select value={promptFolder} onValueChange={handleFolderChange}>
+          <Select value={folderId} onValueChange={handleFolderChange}>
             <SelectTrigger className="truncate">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-w-[300px]">
               <div className="max-h-[200px] overflow-y-auto">
-                {availableFolders.map((folder) => (
+                {folders.map((folder) => (
                   <SelectItem
                     key={folder.id}
                     value={folder.id}
                     className="block"
                   >
                     <Folder className="-mt-0.5 mr-2 inline h-4 w-4" />
-                    {folder.title}
+                    {folder.name}
                   </SelectItem>
                 ))}
                 <div className="h-1" />

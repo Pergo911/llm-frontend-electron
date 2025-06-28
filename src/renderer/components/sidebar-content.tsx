@@ -23,7 +23,13 @@ import {
   Copy,
   Layers2,
 } from 'lucide-react';
-import { ChatEntry, PromptEntry } from '@/common/types';
+import {
+  Chat,
+  ResolvedChat,
+  Folder as FolderType,
+  ResolvedFolder,
+  SaveFileController,
+} from '@/common/types';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useCallback, useRef } from 'react';
 import { toast } from 'sonner';
@@ -43,28 +49,40 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { useRefresh } from '../hooks/use-refresh';
 import { RenameModal, RenameModalRef } from './modal-rename';
 import { Button } from './ui/button';
+import { DeleteModal, DeleteModalRef } from './modal-delete';
 
 const TOOLTIP_DELAY = 700;
 
-export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
-  const refresh = useRefresh();
+export function ChatsSidebarContent({
+  chats,
+  controller,
+}: {
+  chats: ResolvedChat[];
+  controller: SaveFileController;
+}) {
   const navigate = useNavigate();
   const renameModalRef = useRef<RenameModalRef>(null);
+  const deleteModalRef = useRef<DeleteModalRef>(null);
 
   const handleDelete = useCallback(
     async (id: string) => {
-      const { error } = await window.electron.fileOperations.remove('chat', id);
-
-      if (error) {
-        toast.error(`Error deleting chat: ${error}`);
-      } else {
-        refresh();
+      if (!deleteModalRef.current) {
+        toast.error('Delete modal not found.');
+        return;
       }
+
+      const confirmed = await deleteModalRef.current.promptUser();
+
+      if (!confirmed) {
+        return;
+      }
+
+      const { error } = controller.chats.delete(id);
+      if (error) toast.error(error);
     },
-    [refresh],
+    [controller.chats],
   );
 
   const handleDeleteClick = useCallback(
@@ -87,26 +105,10 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
         return;
       }
 
-      const { chat, error } =
-        await window.electron.fileOperations.getChatById(id);
-
-      if (error || !chat) {
-        toast.error(`Error getting chat: ${error}`);
-        return;
-      }
-
-      chat.title = newName;
-
-      const { error: writeError } =
-        await window.electron.fileOperations.writeChat(chat);
-
-      if (writeError) {
-        toast.error(`Error writing chat: ${writeError}`);
-      } else {
-        refresh();
-      }
+      const { error } = controller.chats.rename(id, newName);
+      if (error) toast.error(error);
     },
-    [refresh],
+    [controller.chats],
   );
 
   const handleRenameClick = useCallback(
@@ -128,18 +130,16 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
   );
 
   const handleDuplicate = useCallback(
-    async (id: string) => {
-      const { id: newId, error } =
-        await window.electron.fileOperations.duplicate('chat', id);
+    (id: string) => {
+      const { error, newId } = controller.chats.duplicate(id);
 
       if (error) {
         toast.error(`Error duplicating chat: ${error}`);
       } else {
         navigate(`/c/${newId}`);
-        refresh();
       }
     },
-    [navigate, refresh],
+    [controller.chats, navigate],
   );
 
   const handleDuplicateClick = useCallback(
@@ -155,12 +155,12 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {data.length === 0 && (
+              {chats.length === 0 && (
                 <div className="text-center text-sm text-muted-foreground">
                   No chats.
                 </div>
               )}
-              {data.map((item) => (
+              {chats.map((item) => (
                 <SidebarMenuItem
                   key={item.id}
                   className="group/sidebarmenuitem"
@@ -219,26 +219,44 @@ export function ChatsSidebarContent({ data }: { data: ChatEntry[] }) {
         </SidebarGroup>
       </SidebarContent>
       <RenameModal ref={renameModalRef} />
+      <DeleteModal ref={deleteModalRef} />
     </>
   );
 }
 
-export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
-  const refresh = useRefresh();
+export function PromptsSidebarContent({
+  folders,
+  controller,
+}: {
+  folders: ResolvedFolder[];
+  controller: SaveFileController;
+}) {
   const navigate = useNavigate();
   const renameModalRef = useRef<RenameModalRef>(null);
+  const deleteModalRef = useRef<DeleteModalRef>(null);
 
   const handleDelete = useCallback(
     async (type: 'prompt' | 'folder', id: string) => {
-      const { error } = await window.electron.fileOperations.remove(type, id);
+      if (!deleteModalRef.current) {
+        toast.error('Delete modal not found.');
+        return;
+      }
 
-      if (error) {
-        toast.error(`Error deleting ${type}: ${error}`);
+      const confirmed = await deleteModalRef.current.promptUser();
+
+      if (!confirmed) {
+        return;
+      }
+
+      if (type === 'prompt') {
+        const { error } = controller.prompts.delete(id);
+        if (error) toast.error(error);
       } else {
-        refresh();
+        const { error } = controller.folders.delete(id);
+        if (error) toast.error(error);
       }
     },
-    [refresh],
+    [controller.folders, controller.prompts],
   );
 
   const handleDeleteClick = useCallback(
@@ -262,46 +280,14 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
       }
 
       if (type === 'prompt') {
-        const { prompt, error } =
-          await window.electron.fileOperations.getPromptById(id);
-
-        if (error || !prompt) {
-          toast.error(`Error getting prompt: ${error}`);
-          return;
-        }
-
-        prompt.title = newName;
-
-        const { error: writeError } =
-          await window.electron.fileOperations.writePrompt(prompt);
-
-        if (writeError) {
-          toast.error(`Error writing prompt: ${writeError}`);
-        } else {
-          refresh();
-        }
+        const { error } = controller.prompts.rename(id, newName);
+        if (error) toast.error(error);
       } else {
-        const { folder, error } =
-          await window.electron.fileOperations.getFolderById(id);
-
-        if (error || !folder) {
-          toast.error(`Error getting folder: ${error}`);
-          return;
-        }
-
-        folder.title = newName;
-
-        const { error: writeError } =
-          await window.electron.fileOperations.writeFolder(folder);
-
-        if (writeError) {
-          toast.error(`Error writing folder: ${writeError}`);
-        } else {
-          refresh();
-        }
+        const { error } = controller.folders.rename(id, newName);
+        if (error) toast.error(error);
       }
     },
-    [refresh],
+    [controller.folders, controller.prompts],
   );
 
   const handleRenameClick = useCallback(
@@ -323,18 +309,16 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
   );
 
   const handleDuplicate = useCallback(
-    async (id: string) => {
-      const { id: newId, error } =
-        await window.electron.fileOperations.duplicate('prompt', id);
+    (id: string) => {
+      const { error, newId } = controller.prompts.duplicate(id);
 
       if (error) {
         toast.error(`Error duplicating prompt: ${error}`);
       } else {
         navigate(`/p/${newId}`);
-        refresh();
       }
     },
-    [navigate, refresh],
+    [controller.prompts, navigate],
   );
 
   const handleDuplicateClick = useCallback(
@@ -348,52 +332,52 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
     <SidebarContent>
       <SidebarGroup>
         <SidebarMenu>
-          {data.length === 0 && (
+          {folders.length === 0 && (
             <div className="text-center text-sm text-muted-foreground">
               No prompts.
             </div>
           )}
-          {data.map((item) => (
-            <Collapsible key={item.title} className="group/collapsible">
+          {folders.map((folder) => (
+            <Collapsible key={folder.name} className="group/collapsible">
               <SidebarMenuItem className="group/sidebarmenuitem">
                 <Tooltip delayDuration={TOOLTIP_DELAY}>
                   <TooltipTrigger className="w-full" asChild>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton>
                         <Folder className="mr-2" />
-                        <span className="truncate">{item.title}</span>
+                        <span className="truncate">{folder.name}</span>
                         <Plus className="ml-auto group-data-[state=open]/collapsible:hidden" />
                         <Minus className="ml-auto group-data-[state=closed]/collapsible:hidden" />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                   </TooltipTrigger>
-                  <TooltipContent side="right">{item.title}</TooltipContent>
+                  <TooltipContent side="right">{folder.name}</TooltipContent>
                 </Tooltip>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {item.items.length === 0 && (
+                    {folder.items.length === 0 && (
                       <div className="text-center text-sm text-muted-foreground">
                         Empty folder.
                       </div>
                     )}
-                    {item.items.map((item) => (
+                    {folder.items.map((prompt) => (
                       <SidebarMenuSubItem
-                        key={item.id}
+                        key={prompt.id}
                         className="group/sidebarmenusubitem relative"
                       >
                         <Tooltip delayDuration={TOOLTIP_DELAY}>
                           <TooltipTrigger className="w-full" asChild>
-                            <NavLink to={`/p/${item.id}`}>
+                            <NavLink to={`/p/${prompt.id}`}>
                               {({ isActive }) => {
                                 return (
                                   <SidebarMenuSubButton isActive={isActive}>
-                                    {item.type === 'user' ? (
+                                    {prompt.type === 'user-prompt' ? (
                                       <Notebook className="mr-2" />
                                     ) : (
                                       <SquareTerminal className="mr-2" />
                                     )}
                                     <span className="mr-4 truncate">
-                                      {item.title}
+                                      {prompt.title}
                                     </span>
                                   </SidebarMenuSubButton>
                                 );
@@ -401,7 +385,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                             </NavLink>
                           </TooltipTrigger>
                           <TooltipContent side="right">
-                            {item.title}
+                            {prompt.title}
                           </TooltipContent>
                         </Tooltip>
                         <DropdownMenu>
@@ -414,28 +398,28 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                             <DropdownMenuItem
                               onClick={handleRenameClick(
                                 'prompt',
-                                item.id,
-                                item.title,
+                                prompt.id,
+                                prompt.title,
                               )}
                             >
                               <Edit2 className="mr-2 h-4 w-4" />
                               Rename
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={handleDuplicateClick(item.id)}
+                              onClick={handleDuplicateClick(prompt.id)}
                             >
                               <Layers2 className="mr-2 h-4 w-4" />
                               Duplicate
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={handleCopyIDClick(item.id)}
+                              onClick={handleCopyIDClick(prompt.id)}
                             >
                               <Copy className="mr-2 h-4 w-4" />
                               Copy ID
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
-                              onClick={handleDeleteClick('prompt', item.id)}
+                              onClick={handleDeleteClick('prompt', prompt.id)}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
                               Delete
@@ -454,40 +438,26 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent side="right" align="start">
                     <DropdownMenuItem
-                      onClick={handleRenameClick('folder', item.id, item.title)}
+                      onClick={handleRenameClick(
+                        'folder',
+                        folder.id,
+                        folder.name,
+                      )}
                     >
                       <Edit2 className="mr-2 h-4 w-4" />
                       Rename
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleCopyIDClick(item.id)}>
+                    <DropdownMenuItem onClick={handleCopyIDClick(folder.id)}>
                       <Copy className="mr-2 h-4 w-4" />
                       Copy ID
                     </DropdownMenuItem>
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground data-[state=open]:bg-destructive data-[state=open]:text-destructive-foreground">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuPortal>
-                        <DropdownMenuSubContent className="w-72 text-xs">
-                          <div>
-                            <div className="text-lg font-bold">Delete?</div>
-                            <div className="text-muted-foreground">
-                              Removes all prompts in this folder.
-                            </div>
-                          </div>
-                          <div className="h-4" />
-                          <div className="flex w-full justify-end gap-2">
-                            <Button
-                              variant="destructive"
-                              onClick={handleDeleteClick('folder', item.id)}
-                            >
-                              Confirm
-                            </Button>
-                          </div>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuPortal>
-                    </DropdownMenuSub>
+                    <DropdownMenuItem
+                      className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
+                      onClick={handleDeleteClick('folder', folder.id)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </SidebarMenuItem>
@@ -496,6 +466,7 @@ export function PromptsSidebarContent({ data }: { data: PromptEntry[] }) {
         </SidebarMenu>
       </SidebarGroup>
       <RenameModal ref={renameModalRef} />
+      <DeleteModal ref={deleteModalRef} />
     </SidebarContent>
   );
 }

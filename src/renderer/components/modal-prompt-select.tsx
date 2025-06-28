@@ -12,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/renderer/components/ui/dialog';
-import { PromptEntry } from '@/common/types';
 import {
   Folder,
   Minus,
@@ -21,6 +20,7 @@ import {
   Search,
   SquareTerminal,
 } from 'lucide-react';
+import { ResolvedFolder } from '@/common/types';
 import { Button } from './ui/button';
 import {
   Collapsible,
@@ -37,46 +37,63 @@ import { Input } from './ui/input';
 import { cn } from '../utils/utils';
 
 export interface PromptSelectModalRef {
-  promptUser: () => Promise<{ id: string; type: 'user' | 'system' } | null>;
+  promptUser: () => Promise<{
+    id: string;
+    type: 'user-prompt' | 'system-prompt';
+  } | null>;
 }
 
-const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
+type PromptSelectModalProps = {
+  folders: ResolvedFolder[];
+};
+
+const PromptSelectModal = forwardRef<
+  PromptSelectModalRef,
+  PromptSelectModalProps
+>(({ folders }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [promptEntries, setPromptEntries] = useState<PromptEntry[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
-  const [error, setError] = useState<string | null>(null);
-  const [filteredPromptEntries, setFilteredPromptEntries] = useState<
-    PromptEntry[]
-  >([]);
+  const [foldersFiltered, setFoldersFiltered] = useState<ResolvedFolder[]>([]);
+  const [hasResults, setHasResults] = useState(true);
 
   const resolveRef =
-    useRef<(value: { id: string; type: 'user' | 'system' } | null) => void>();
-
-  const getEntries = async () => {
-    const { promptEntries, error } =
-      await window.electron.fileOperations.getEntries();
-
-    if (error) {
-      setError(error);
-      return;
-    }
-
-    setPromptEntries(promptEntries);
-  };
+    useRef<
+      (
+        value: { id: string; type: 'user-prompt' | 'system-prompt' } | null,
+      ) => void
+    >();
 
   useImperativeHandle(ref, () => ({
     promptUser: () => {
-      getEntries();
-
       setIsOpen(true);
 
-      return new Promise<{ id: string; type: 'user' | 'system' } | null>(
-        (resolve) => {
-          resolveRef.current = resolve;
-        },
-      );
+      return new Promise<{
+        id: string;
+        type: 'user-prompt' | 'system-prompt';
+      } | null>((resolve) => {
+        resolveRef.current = resolve;
+      });
     },
   }));
+
+  // Handle filtering logic
+  useEffect(() => {
+    if (!folders) return;
+
+    setFoldersFiltered(
+      folders.map((f) => ({
+        ...f,
+        items: f.items.filter((p) =>
+          p.title.toLocaleLowerCase().includes(searchValue.toLocaleLowerCase()),
+        ),
+      })),
+    );
+  }, [folders, searchValue]);
+
+  // We have results if any one of the filtered folders contain an item
+  useEffect(() => {
+    setHasResults(foldersFiltered.some((f) => f.items.length > 0));
+  }, [foldersFiltered]);
 
   const handleDismiss = () => {
     resolveRef.current?.(null);
@@ -84,7 +101,7 @@ const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
     resolveRef.current = undefined;
   };
 
-  const handleConfirm = (id: string, type: 'user' | 'system') => {
+  const handleConfirm = (id: string, type: 'user-prompt' | 'system-prompt') => {
     resolveRef.current?.({ id, type });
     setIsOpen(false);
     resolveRef.current = undefined;
@@ -97,17 +114,6 @@ const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
     };
   }, []);
 
-  useEffect(() => {
-    setFilteredPromptEntries(
-      promptEntries.map((f) => ({
-        ...f,
-        items: f.items.filter((p) =>
-          p.title.toLocaleLowerCase().includes(searchValue.toLocaleLowerCase()),
-        ),
-      })),
-    );
-  }, [promptEntries, searchValue]);
-
   // Fixes bug where pointer events are disabled after closing the modal
   useEffect(() => {
     if (isOpen) {
@@ -117,8 +123,6 @@ const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
     }
     document.body.style.pointerEvents = 'auto';
   }, [isOpen]);
-
-  const hasResults = filteredPromptEntries.some((f) => f.items.length > 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleDismiss()}>
@@ -136,15 +140,9 @@ const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
             className="w-full"
           />
         </div>
-        {error ? (
-          <div>Error: {error}</div>
-        ) : promptEntries && !hasResults ? (
-          <div className="flex h-[300px] items-center justify-center text-muted-foreground">
-            No prompts found
-          </div>
-        ) : (
+        {hasResults ? (
           <div className="flex h-[300px] flex-col gap-0.5 overflow-y-auto">
-            {filteredPromptEntries.map((f) => {
+            {foldersFiltered.map((f) => {
               return (
                 <Collapsible
                   key={f.id}
@@ -158,7 +156,7 @@ const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
                     <SidebarMenuButton>
                       <div className="flex items-center gap-2">
                         <Folder className="h-4 w-4" />
-                        {f.title}
+                        {f.name}
                       </div>
                       <Plus className="ml-auto group-data-[state=open]/collapsible:hidden" />
                       <Minus className="ml-auto group-data-[state=closed]/collapsible:hidden" />
@@ -178,7 +176,7 @@ const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
                                 }}
                               >
                                 <div className="flex items-center text-sm">
-                                  {p.type === 'user' ? (
+                                  {p.type === 'user-prompt' ? (
                                     <Notebook className="mr-2 h-4 w-4" />
                                   ) : (
                                     <SquareTerminal className="mr-2 h-4 w-4" />
@@ -198,6 +196,10 @@ const PromptSelectModal = forwardRef<PromptSelectModalRef>((_, ref) => {
                 </Collapsible>
               );
             })}
+          </div>
+        ) : (
+          <div className="flex h-[300px] items-center justify-center text-muted-foreground">
+            No prompts found
           </div>
         )}
       </DialogContent>
