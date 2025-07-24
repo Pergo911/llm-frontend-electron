@@ -185,42 +185,44 @@ export default function App() {
     <MemoryRouter>
       <ThemeProvider>
         <TooltipProvider skipDelayDuration={0}>
-          {/* Invisible drag handle */}
-          <div className="draggable pointer-events-auto fixed left-0 right-0 top-0 z-50 h-[48px] bg-transparent" />
           {error || loading || saveFileMissing ? (
-            // Welcome screen if savefile is missing or loading
-            <div className="fixed inset-0 z-50 flex items-center justify-around bg-background">
-              <div>
-                {loading ? (
-                  <h2 className="animate-pulse text-3xl text-foreground">
-                    Loading your savefile...
-                  </h2>
-                ) : (
-                  <>
-                    <h2 className="text-3xl font-bold text-foreground">
-                      Welcome!
+            <>
+              {/* Temporary drag handle bar until real titlebar not shown */}
+              <div className="draggable pointer-events-auto fixed left-0 right-0 top-0 z-50 h-[48px] bg-transparent" />
+              {/* Welcome screen shown when saveFile is loading or errored out */}
+              <div className="fixed inset-0 z-50 flex items-center justify-around bg-background">
+                <div>
+                  {loading ? (
+                    <h2 className="animate-pulse text-3xl text-foreground">
+                      Loading your savefile...
                     </h2>
-                    <p className="my-2">
-                      We couldn&apos;t load a savefile. Please check your
-                      settings.
-                    </p>
-                  </>
-                )}
-              </div>
-              <Dialog
-                open={welcomeScreenSettingsOpen}
-                onOpenChange={setWelcomeScreenSettingsOpen}
-              >
-                <DialogTrigger asChild>
-                  <Button size="lg">Open Settings</Button>
-                </DialogTrigger>
-                <SettingsModal
-                  triggerRefresh={controller.saveFile.reload}
-                  onSetOpen={setWelcomeScreenSettingsOpen}
+                  ) : (
+                    <>
+                      <h2 className="text-3xl font-bold text-foreground">
+                        Welcome!
+                      </h2>
+                      <p className="my-2">
+                        We couldn&apos;t load a savefile. Please check your
+                        settings.
+                      </p>
+                    </>
+                  )}
+                </div>
+                <Dialog
                   open={welcomeScreenSettingsOpen}
-                />
-              </Dialog>
-            </div>
+                  onOpenChange={setWelcomeScreenSettingsOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button size="lg">Open Settings</Button>
+                  </DialogTrigger>
+                  <SettingsModal
+                    triggerRefresh={controller.saveFile.reload}
+                    onSetOpen={setWelcomeScreenSettingsOpen}
+                    open={welcomeScreenSettingsOpen}
+                  />
+                </Dialog>
+              </div>
+            </>
           ) : (
             <SidebarProvider>
               <AppSidebar
