@@ -1,5 +1,5 @@
 {
-  "name": "chat-app",
+  "name": "chat-app-2",
   "description": "A frontend for chat completions with injectable prompt templates, using an arbitrary OpenAI compatible API",
   "keywords": [
     "electron",
@@ -203,7 +203,7 @@
     "webpack-merge": "^5.9.0"
   },
   "build": {
-    "productName": "ChatApp",
+    "productName": "ChatApp 2.0",
     "appId": "com.chatapp",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",

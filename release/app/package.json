@@ -1,6 +1,6 @@
 {
-  "name": "chat-app",
-  "version": "1.0.2",
+  "name": "chat-app-2",
+  "version": "2.0.0",
   "description": "A frontend for chat completions with injectable prompt templates, using an arbitrary OpenAI compatible API",
   "license": "MIT",
   "author": {
