@@ -202,7 +202,7 @@ export type ResolvedSaveFile = {
 
 export type SaveFileController = {
   saveFile: {
-    write: () => Promise<{ error: string | null }>;
+    write: () => void;
     reload: () => void;
   };
   chats: {

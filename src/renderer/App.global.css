@@ -141,7 +141,7 @@
   }
 
   .markdown blockquote {
-    @apply !bg-background;
+    @apply !bg-background !text-foreground;
     border-left: 4px solid var(--border) !important;
     margin: 1.5em 10px !important;
   }
@@ -154,7 +154,7 @@
   }
 
   .markdown pre {
-    @apply !w-full !min-w-0 !overflow-auto !rounded-3xl !bg-background-dim !p-4;
+    @apply !w-full !min-w-0 !overflow-auto !rounded-3xl !bg-background-dim !p-4 !text-foreground;
   }
 
   .markdown p {

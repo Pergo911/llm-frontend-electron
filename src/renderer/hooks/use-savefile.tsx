@@ -16,7 +16,8 @@ import {
   UserMessage,
 } from '@/common/types';
 import { generateUUID } from '@/common/uuid';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 const useSaveFile = (): {
   loading: boolean;
@@ -31,6 +32,7 @@ const useSaveFile = (): {
   const [resolvedSaveFile, setResolvedSaveFile] =
     useState<ResolvedSaveFile | null>(null);
   const [loading, setLoading] = useState(true);
+  const debounceTimerRef = useRef<number | null>(null);
 
   const resolvePromptMessage = useCallback(
     (message: PromptMessage, saveFile: SaveFile): ResolvedPromptMessage => {
@@ -177,6 +179,26 @@ const useSaveFile = (): {
     return { error: null };
   }, [saveFile]);
 
+  /**
+   * Debounced write handler that delays writing for 2 seconds
+   * Can be called frequently but will only write if nothing happens for 2 seconds
+   */
+  const handleWrite = useCallback(() => {
+    // Clear any existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set a new timer for 2 seconds
+    debounceTimerRef.current = window.setTimeout(async () => {
+      const { error } = await write();
+      if (error) {
+        toast.error(`Failed to save: ${error}`);
+        toast.warning('Warning: Unsaved changes!');
+      }
+    }, 2000);
+  }, [write]);
+
   const addMessage = useCallback(
     (
       chatId: string,
@@ -264,9 +286,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { messageId: id, error: null };
     },
-    [resolvePromptMessage, resolvedSaveFile, saveFile],
+    [resolvePromptMessage, resolvedSaveFile, saveFile, handleWrite],
   );
 
   const addMessageChoice = useCallback(
@@ -327,9 +351,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [resolvedSaveFile, saveFile],
+    [resolvedSaveFile, saveFile, handleWrite],
   );
 
   const setMessageChoice = useCallback(
@@ -375,9 +401,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [resolvedSaveFile, saveFile],
+    [resolvedSaveFile, saveFile, handleWrite],
   );
 
   const deleteMessage = useCallback(
@@ -416,9 +444,12 @@ const useSaveFile = (): {
 
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+
+      handleWrite();
+
       return { error: null };
     },
-    [resolvedSaveFile, saveFile],
+    [resolvedSaveFile, saveFile, handleWrite],
   );
 
   const deleteMessageChoice = useCallback(
@@ -478,9 +509,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolvedSaveFile],
+    [saveFile, resolvedSaveFile, handleWrite],
   );
 
   const modifyMessage = useCallback(
@@ -555,9 +588,12 @@ const useSaveFile = (): {
 
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+
+      handleWrite();
+
       return { error: null };
     },
-    [resolvePromptMessage, resolvedSaveFile, saveFile],
+    [resolvePromptMessage, resolvedSaveFile, saveFile, handleWrite],
   );
 
   const addChat = useCallback(
@@ -582,9 +618,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null, newId };
     },
-    [saveFile, resolvedSaveFile],
+    [saveFile, resolvedSaveFile, handleWrite],
   );
 
   const addPrompt = useCallback(
@@ -610,9 +648,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null, newId };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const addFolder = useCallback(
@@ -631,9 +671,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null, newId };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const deleteChat = useCallback(
@@ -654,9 +696,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const deletePrompt = useCallback(
@@ -677,9 +721,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const deleteFolder = useCallback(
@@ -713,9 +759,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(newResolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolvedSaveFile, resolveSaveFile],
+    [saveFile, resolvedSaveFile, resolveSaveFile, handleWrite],
   );
 
   const renameChat = useCallback(
@@ -737,9 +785,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const renamePrompt = useCallback(
@@ -761,9 +811,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const renameFolder = useCallback(
@@ -785,9 +837,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const duplicateChat = useCallback(
@@ -821,9 +875,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null, newId };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const duplicatePrompt = useCallback(
@@ -857,9 +913,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null, newId };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const editPromptContent = useCallback(
@@ -881,9 +939,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const changePromptFolder = useCallback(
@@ -911,9 +971,11 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const changePromptType = useCallback(
@@ -935,15 +997,17 @@ const useSaveFile = (): {
       setSaveFile(JSON.parse(JSON.stringify(saveFile)));
       setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
 
+      handleWrite();
+
       return { error: null };
     },
-    [saveFile, resolveSaveFile],
+    [saveFile, resolveSaveFile, handleWrite],
   );
 
   const controller = useMemo<SaveFileController>(
     () => ({
       saveFile: {
-        write,
+        write: handleWrite,
         reload: load,
       },
       chats: {
@@ -991,13 +1055,13 @@ const useSaveFile = (): {
       duplicateChat,
       duplicatePrompt,
       editPromptContent,
+      handleWrite,
       load,
       modifyMessage,
       renameChat,
       renameFolder,
       renamePrompt,
       setMessageChoice,
-      write,
     ],
   );
 
@@ -1009,6 +1073,15 @@ const useSaveFile = (): {
   useEffect(() => {
     if (saveFile && resolvedSaveFile && loading && !error) setLoading(false);
   }, [error, loading, resolvedSaveFile, saveFile]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   // Return the state
 

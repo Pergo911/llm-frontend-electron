@@ -11,10 +11,7 @@ async function getSaveFile(): Promise<{
   error: string | null;
 }> {
   // @ts-ignore
-  // const path = store.get('saveFilePath') as string;
-  // DEBUG VERY IMPORTANT TO REPLACE
-
-  const path = 'C:\\Users\\probs\\Downloads\\savefile.json';
+  const path = store.get('saveFilePath') as string;
 
   try {
     if (!existsSync(path)) {
@@ -33,11 +30,7 @@ async function setSaveFile(
   saveFile: SaveFile,
 ): Promise<{ error: string | null }> {
   // @ts-ignore
-  // const path = store.get('saveFilePath') as string;
-  // DEBUG VERY IMPORTANT TO REPLACE
-
-  // const path = 'C:\\Users\\probs\\Downloads\\savefile.json';
-  const path = '';
+  const path = store.get('saveFilePath') as string;
 
   try {
     await writeFile(path, JSON.stringify(saveFile, null, 2), 'utf-8');
