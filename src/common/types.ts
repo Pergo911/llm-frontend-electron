@@ -133,7 +133,7 @@ export type AssistantMessage = Message & {
     modified: number;
     content: string;
     reasoning_details?: string;
-    generated_with: string;
+    generated_with?: string;
   }>;
 };
 
@@ -212,6 +212,7 @@ export type SaveFileController = {
         messageType: Message['messageType'],
         content: string,
         reasoning?: string,
+        generatedWith?: string,
       ) => { error: string | null; messageId: string | null };
 
       addChoice: (
@@ -219,6 +220,7 @@ export type SaveFileController = {
         messageId: string,
         content: string,
         reasoning?: string,
+        generatedWith?: string,
       ) => { error: string | null };
 
       setChoice: (

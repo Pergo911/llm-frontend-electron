@@ -467,11 +467,15 @@ const AssistantMessageComponent = React.memo(
                     {formatTimestamp(m.choices[m.activeChoice].modified)}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Generated with</span>
-                  <span className="w-2" />
-                  <span>{m.choices[m.activeChoice].generated_with}</span>
-                </div>
+                {m.choices[m.activeChoice].generated_with && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      Generated with
+                    </span>
+                    <span className="w-2" />
+                    <span>{m.choices[m.activeChoice].generated_with}</span>
+                  </div>
+                )}
               </PopoverContent>
             </Popover>
             <Button variant="actionButton" size="icon" onClick={handleRegen}>

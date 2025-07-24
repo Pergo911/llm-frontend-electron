@@ -243,6 +243,8 @@ export default function ChatPage({
         chat.id,
         'assistant',
         '\u00A0', // Non-breaking space to avoid empty content
+        undefined,
+        modelSelection ? modelSelection[0].name : undefined,
       );
 
       if (error || !messageId) {
@@ -323,7 +325,13 @@ export default function ChatPage({
         toast.warning(`Unexpected finish reason: ${finishReason}`);
       }
     },
-    [chat.id, chat.messages, controller.chats.messages, scrollToBottomInstant],
+    [
+      chat.id,
+      chat.messages,
+      controller.chats.messages,
+      modelSelection,
+      scrollToBottomInstant,
+    ],
   );
 
   const handleOnMessageRegen = useCallback(
@@ -364,6 +372,8 @@ export default function ChatPage({
         chat.id,
         id,
         '\u00A0', // Non-breaking space to avoid empty content
+        undefined,
+        modelSelection ? modelSelection[0].name : undefined,
       );
 
       if (error) {
@@ -434,7 +444,7 @@ export default function ChatPage({
         toast.warning(`Unexpected finish reason: ${finishReason}`);
       }
     },
-    [chat.id, chat.messages, controller.chats.messages],
+    [chat.id, chat.messages, controller.chats.messages, modelSelection],
   );
 
   const handleOnMessageDelete = useCallback(

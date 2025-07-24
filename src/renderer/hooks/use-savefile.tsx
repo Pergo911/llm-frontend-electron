@@ -183,6 +183,7 @@ const useSaveFile = (): {
       messageType: Message['messageType'],
       content: string,
       reasoning?: string,
+      generatedWith?: string,
     ) => {
       if (!saveFile || !resolvedSaveFile) {
         return {
@@ -232,7 +233,7 @@ const useSaveFile = (): {
               modified: t,
               content,
               reasoning_details: reasoning,
-              generated_with: 'resolvedSaveFile.modelSelection[0].name', // Placeholder for model name
+              generated_with: generatedWith,
             },
           ],
         } as AssistantMessage;
@@ -274,6 +275,7 @@ const useSaveFile = (): {
       messageId: string,
       content: string,
       reasoning?: string,
+      generatedWith?: string,
     ) => {
       if (!saveFile || !resolvedSaveFile) {
         return {
@@ -309,7 +311,7 @@ const useSaveFile = (): {
         modified: t,
         content,
         reasoning_details: reasoning,
-        generated_with: '',
+        generated_with: generatedWith,
       };
 
       message.choices.push(choice);
