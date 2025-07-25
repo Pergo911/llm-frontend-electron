@@ -106,8 +106,6 @@ const streamingRequest = async (
     | 'function_call'
     | null = null;
 
-  console.log('messages received:', messages);
-
   try {
     const config = await window.electron.fileOperations.getConfig();
     const openAI = await OpenAIHandler.get();

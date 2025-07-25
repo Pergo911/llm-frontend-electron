@@ -25,10 +25,6 @@ export const OpenAIHandler = {
         apiKey: config.apiKey,
         dangerouslyAllowBrowser: true,
       });
-
-      console.log(
-        'We just had a newly created OpenAI instance. Watch for excessive prints of this message.',
-      );
     }
 
     return openAI;

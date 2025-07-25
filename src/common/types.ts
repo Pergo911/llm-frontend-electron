@@ -5,6 +5,7 @@ export const ConfigSchema = {
   },
   apiKey: {
     type: 'string',
+    default: '',
   },
   modelSelection: {
     type: 'array',
@@ -26,6 +27,7 @@ export const ConfigSchema = {
       },
       required: ['id', 'name', 'reasoning', 'reasoning_preference'],
     },
+    default: [],
   },
   theme: {
     type: 'string',
@@ -34,6 +36,7 @@ export const ConfigSchema = {
   },
   saveFilePath: {
     type: 'string',
+    default: '',
   },
   sidebarState: {
     type: 'boolean',

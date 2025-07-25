@@ -14,32 +14,10 @@ import { resolveHtmlPath } from './util';
 import { registerFileOperations } from './file-operations';
 
 let mainWindow: BrowserWindow | null = null;
-
 let titleBarColors = {
   background: 'hsla(100, 10%, 11.8%, 0)',
   symbol: 'hsla(0, 0%, 95%, 1)',
 };
-
-ipcMain.on(
-  'update-titlebar-colors',
-  (_event, colors: { background: string; symbol: string }) => {
-    titleBarColors = colors;
-    if (mainWindow) {
-      mainWindow.setTitleBarOverlay({
-        color: titleBarColors.background,
-        symbolColor: titleBarColors.symbol,
-        height: 48,
-      });
-    }
-  },
-);
-
-ipcMain.on(
-  'update-native-theme',
-  (_event, theme: 'system' | 'light' | 'dark') => {
-    nativeTheme.themeSource = theme;
-  },
-);
 
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
@@ -53,24 +31,7 @@ if (isDebug) {
   require('electron-debug')();
 }
 
-const installExtensions = async () => {
-  const installer = require('electron-devtools-installer');
-  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ['REACT_DEVELOPER_TOOLS'];
-
-  return installer
-    .default(
-      extensions.map((name) => installer[name]),
-      forceDownload,
-    )
-    .catch(console.log);
-};
-
-const createWindow = async () => {
-  if (isDebug) {
-    await installExtensions();
-  }
-
+const createWindow = () => {
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
     : path.join(__dirname, '../../assets');
@@ -78,8 +39,6 @@ const createWindow = async () => {
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
   };
-
-  registerFileOperations();
 
   mainWindow = new BrowserWindow({
     show: false,
@@ -117,16 +76,12 @@ const createWindow = async () => {
 
   mainWindow.loadURL(resolveHtmlPath('index.html'));
 
-  mainWindow.on('ready-to-show', () => {
+  mainWindow.webContents.on('dom-ready', () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
 
-    if (process.env.START_MINIMIZED) {
-      mainWindow.minimize();
-    } else {
-      mainWindow.show();
-    }
+    mainWindow.show();
   });
 
   mainWindow.on('closed', () => {
@@ -147,8 +102,28 @@ app
   .whenReady()
   .then(() => {
     createWindow();
-    app.on('activate', () => {
-      if (mainWindow === null) createWindow();
-    });
   })
   .catch(console.log);
+
+ipcMain.on(
+  'update-titlebar-colors',
+  (_event, colors: { background: string; symbol: string }) => {
+    titleBarColors = colors;
+    if (mainWindow) {
+      mainWindow.setTitleBarOverlay({
+        color: titleBarColors.background,
+        symbolColor: titleBarColors.symbol,
+        height: 48,
+      });
+    }
+  },
+);
+
+ipcMain.on(
+  'update-native-theme',
+  (_event, theme: 'system' | 'light' | 'dark') => {
+    nativeTheme.themeSource = theme;
+  },
+);
+
+registerFileOperations();
