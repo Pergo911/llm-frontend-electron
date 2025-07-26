@@ -37,21 +37,27 @@ const useSaveFile = (): {
   const resolvePromptMessage = useCallback(
     (message: PromptMessage, saveFile: SaveFile): ResolvedPromptMessage => {
       // Find prompt
-      const { content, title } = saveFile.prompts.find(
+      const { content, title, type } = saveFile.prompts.find(
         (prompt) => prompt.id === message.promptId,
-      ) ?? { content: null, title: null };
+      ) ?? { content: null, title: null, type: null };
 
       // Prompt couldn't be found
-      if (content === null || title === null) {
+      if (content === null || title === null || type === null) {
         return {
           ...message,
           title: null,
           content: null,
+          type: null,
         } as ResolvedPromptMessage;
       }
 
       // Return resolved prompt message
-      return { ...message, content, title } as ResolvedPromptMessage;
+      return {
+        ...message,
+        content,
+        title,
+        messageType: type,
+      } as ResolvedPromptMessage;
     },
     [],
   );
@@ -538,14 +544,16 @@ const useSaveFile = (): {
         };
 
       const message = chat.messages.find((m) => m.id === messageId);
-      const resolvedMessage = resolvedChat.messages.find(
+      const resolvedMessageIndex = resolvedChat.messages.findIndex(
         (m) => m.id === messageId,
       );
-      if (!message || !resolvedMessage) {
+      if (!message || resolvedMessageIndex === -1) {
         return {
           error: `modify: Couldn't find message ${messageId} in chat ${chatId}`,
         };
       }
+
+      const resolvedMessage = resolvedChat.messages[resolvedMessageIndex];
 
       if (message.messageType === 'user') {
         message.content = content;
@@ -572,14 +580,8 @@ const useSaveFile = (): {
         message.modified = Date.now();
 
         const resolvedPromptMessage = resolvePromptMessage(message, saveFile);
-        // @ts-ignore
-        resolvedMessage.content = resolvedPromptMessage.content;
-        // @ts-ignore
-        resolvedMessage.tags = resolvedPromptMessage.tags;
-        // @ts-ignore
-        resolvedMessage.title = resolvedPromptMessage.title;
-        // @ts-ignore
-        resolvedMessage.modified = message.modified;
+
+        resolvedChat.messages[resolvedMessageIndex] = resolvedPromptMessage;
       }
 
       // Update the chat's modified timestamp
