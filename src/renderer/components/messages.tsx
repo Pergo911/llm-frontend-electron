@@ -632,7 +632,7 @@ const PromptMessageComponent = React.memo(
               <Link
                 to={`/p/${m.promptId}`}
                 className={cn(
-                  'group/promptbox flex gap-2 rounded-xl border-[0.5px] border-border bg-background-dim p-4 text-card-foreground hover:bg-card-hover',
+                  'group/promptbox over:bg-card-hover flex gap-2 rounded-xl border-[0.5px] border-border bg-background-dim p-4',
                   disabled && 'pointer-events-none opacity-50',
                 )}
                 aria-disabled={disabled}
