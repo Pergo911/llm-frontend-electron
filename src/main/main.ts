@@ -88,6 +88,17 @@ const createWindow = () => {
     mainWindow = null;
   });
 
+  mainWindow.on('app-command', (e, cmd) => {
+    if (!mainWindow) {
+      return;
+    }
+    if (cmd === 'browser-backward') {
+      mainWindow.webContents.send('navigate-command', 'back');
+    } else if (cmd === 'browser-forward') {
+      mainWindow.webContents.send('navigate-command', 'forward');
+    }
+  });
+
   // Open urls in the user's browser
   mainWindow.webContents.setWindowOpenHandler((edata) => {
     return { action: 'deny' };

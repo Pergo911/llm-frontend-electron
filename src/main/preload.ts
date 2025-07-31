@@ -40,6 +40,21 @@ const electronHandler = {
       ipcRenderer.send('update-native-theme', theme);
     },
   },
+  /**
+   * Sets up a listener for navigation commands from the main process.
+   * @param {function(string): void} callback The function to call with the direction ('back' or 'forward').
+   * @returns {() => void} A cleanup function to remove the listener.
+   */
+  onNavigateCommand: (callback: (direction: 'back' | 'forward') => void) => {
+    const listener = (_event: any, direction: 'back' | 'forward') =>
+      callback(direction);
+    ipcRenderer.on('navigate-command', listener);
+
+    // Return a cleanup function to be called when the component unmounts
+    return () => {
+      ipcRenderer.removeListener('navigate-command', listener);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('electron', electronHandler);

@@ -102,9 +102,19 @@ function AppRoutes({
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('mousedown', handleMouseDown);
 
+    const nativeNavEvent = window.electron.onNavigateCommand((direction) => {
+      if (direction === 'back') {
+        // Use React Router's navigation
+        navigate(-1);
+      } else if (direction === 'forward') {
+        navigate(1);
+      }
+    });
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('mousedown', handleMouseDown);
+      nativeNavEvent();
     };
   }, [navigate]);
 
