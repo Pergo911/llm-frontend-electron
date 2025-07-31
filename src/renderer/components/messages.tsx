@@ -314,7 +314,6 @@ const AssistantMessageComponent = React.memo(
     return (
       <div
         className={cn(
-          isStreaming && 'pointer-events-none',
           isStreaming && isOmittedDuringStreaming && 'opacity-50',
           'group/textbox flex w-full flex-col self-start',
         )}
@@ -424,7 +423,7 @@ const AssistantMessageComponent = React.memo(
         {/* Action buttons */}
         <div
           className={cn(
-            streamingText !== undefined && 'pointer-events-none opacity-0',
+            isStreaming && 'pointer-events-none opacity-0',
             'flex items-center gap-0.5 text-xs text-muted-foreground',
           )}
         >
