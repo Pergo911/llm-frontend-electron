@@ -22,6 +22,7 @@ import {
   Edit2,
   Copy,
   Layers2,
+  Tag,
 } from 'lucide-react';
 import {
   Chat,
@@ -200,7 +201,7 @@ export function ChatsSidebarContent({
                         Duplicate
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleCopyIDClick(item.id)}>
-                        <Copy className="mr-2 h-4 w-4" />
+                        <Tag className="mr-2 h-4 w-4" />
                         Copy ID
                       </DropdownMenuItem>
                       <DropdownMenuItem
@@ -414,7 +415,7 @@ export function PromptsSidebarContent({
                             <DropdownMenuItem
                               onClick={handleCopyIDClick(prompt.id)}
                             >
-                              <Copy className="mr-2 h-4 w-4" />
+                              <Tag className="mr-2 h-4 w-4" />
                               Copy ID
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -448,7 +449,7 @@ export function PromptsSidebarContent({
                       Rename
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleCopyIDClick(folder.id)}>
-                      <Copy className="mr-2 h-4 w-4" />
+                      <Tag className="mr-2 h-4 w-4" />
                       Copy ID
                     </DropdownMenuItem>
                     <DropdownMenuItem

@@ -19,6 +19,16 @@ import { generateUUID } from '@/common/uuid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+// Deep clone helper replacing repeated JSON.parse(JSON.stringify(...)) usages
+const deepClone = <T,>(value: T): T => {
+  try {
+    // structuredClone is available in modern Electron (Chromium) environments
+    return structuredClone(value);
+  } catch {
+    return JSON.parse(JSON.stringify(value));
+  }
+};
+
 const useSaveFile = (): {
   loading: boolean;
   chats: ResolvedChat[] | null;
@@ -289,8 +299,8 @@ const useSaveFile = (): {
       chat.modified = Date.now();
       resolvedChat.modified = chat.modified;
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -354,8 +364,8 @@ const useSaveFile = (): {
       chat.modified = Date.now();
       resolvedChat.modified = chat.modified;
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -404,8 +414,8 @@ const useSaveFile = (): {
       message.activeChoice = choiceIndex;
       resolvedMessage.activeChoice = choiceIndex;
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -448,8 +458,8 @@ const useSaveFile = (): {
       chat.modified = Date.now();
       resolvedChat.modified = chat.modified;
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -512,8 +522,8 @@ const useSaveFile = (): {
       message.choices.splice(choiceIndex, 1);
       resolvedMessage.choices.splice(choiceIndex, 1);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -588,8 +598,8 @@ const useSaveFile = (): {
       chat.modified = Date.now();
       resolvedChat.modified = chat.modified;
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -617,8 +627,8 @@ const useSaveFile = (): {
       saveFile.chats.unshift(chat);
       resolvedSaveFile.chats.unshift(chat as ResolvedChat);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -647,8 +657,8 @@ const useSaveFile = (): {
       saveFile.prompts.unshift(prompt);
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -670,8 +680,8 @@ const useSaveFile = (): {
       saveFile.folders.unshift(folder);
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -695,8 +705,8 @@ const useSaveFile = (): {
       saveFile.chats.splice(chatIndex, 1);
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -720,8 +730,8 @@ const useSaveFile = (): {
       saveFile.prompts.splice(promptIndex, 1);
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -758,8 +768,8 @@ const useSaveFile = (): {
       saveFile.folders.splice(folderIndex, 1);
       const newResolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(newResolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(newResolvedSaveFile));
 
       handleWrite();
 
@@ -784,8 +794,8 @@ const useSaveFile = (): {
 
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -810,8 +820,8 @@ const useSaveFile = (): {
 
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -836,8 +846,8 @@ const useSaveFile = (): {
 
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -867,15 +877,15 @@ const useSaveFile = (): {
         id: newId,
         title: newTitle,
         modified: t,
-        messages: JSON.parse(JSON.stringify(chat.messages)),
+        messages: deepClone(chat.messages),
       };
 
       saveFile.chats.unshift(newChat);
 
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -912,8 +922,8 @@ const useSaveFile = (): {
 
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -938,8 +948,8 @@ const useSaveFile = (): {
 
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -970,8 +980,8 @@ const useSaveFile = (): {
 
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 
@@ -996,8 +1006,8 @@ const useSaveFile = (): {
 
       const resolvedSaveFile = resolveSaveFile(saveFile);
 
-      setSaveFile(JSON.parse(JSON.stringify(saveFile)));
-      setResolvedSaveFile(JSON.parse(JSON.stringify(resolvedSaveFile)));
+      setSaveFile(deepClone(saveFile));
+      setResolvedSaveFile(deepClone(resolvedSaveFile));
 
       handleWrite();
 

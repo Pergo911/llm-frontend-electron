@@ -22,6 +22,7 @@ import {
   SquareTerminal,
   Trash2,
   TriangleAlert,
+  Tag,
 } from 'lucide-react';
 import React, {
   useCallback,
@@ -44,12 +45,51 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuPortal,
+  ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from './ui/context-menu';
+import {
+  DeleteConfirmPopover,
+  DeleteConfirmContextSub,
+} from './confirm-delete';
+import { InfoPopover, ACTION_BUTTON_FADE_CLASSES } from './message-shared';
+import {
+  ContextMenuWithBarContent,
+  ContextMenuWithBarItem,
+} from './context-menu-with-bar';
 import { Separator } from './ui/separator';
+
+// Helper functions moved near top to avoid use-before-define issues
+const deleteDescription = (
+  type: 'user' | 'assistant' | 'prompt',
+  hasChoices: boolean,
+) => {
+  if (type === 'assistant')
+    return 'Removes all message choices and subsequent messages.';
+  return 'Also removes subsequent messages.';
+};
+
+const useCopyIdHandler = (id: string) =>
+  React.useCallback(() => {
+    navigator.clipboard.writeText(id);
+  }, [id]);
+
+const getSelectedTextWithin = (el: HTMLElement | null): string | null => {
+  if (!el) return null;
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) return null;
+  const range = sel.getRangeAt(0);
+  const ancestor = range.commonAncestorContainer as Node;
+  // If selection intersects element at all, allow (more permissive than strict contains)
+  if (el === ancestor || el.contains(ancestor)) {
+    const text = sel.toString();
+    return text.trim().length ? text : null;
+  }
+  return null;
+};
 
 const UserMessageComponent = React.memo<{
   m: UserMessage;
@@ -68,9 +108,20 @@ const UserMessageComponent = React.memo<{
     const [infoOpen, setInfoOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const shouldUnfocusInfo = React.useRef(false);
-    const shouldUnfocusDelete = React.useRef(false);
 
     const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
+    const [hasSelection, setHasSelection] = useState(false);
+    const contentRef = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const checkSelection = () => {
+        const sel = window.getSelection();
+        setHasSelection(!!sel && sel.toString().length > 0);
+      };
+      document.addEventListener('selectionchange', checkSelection);
+      return () =>
+        document.removeEventListener('selectionchange', checkSelection);
+    }, []);
 
     const handleDelete = React.useCallback(() => {
       onMessageDelete(m.id);
@@ -79,6 +130,14 @@ const UserMessageComponent = React.memo<{
     const handleEdit = React.useCallback(() => {
       onMessageEdit(m.content, m.id);
     }, [m.content, m.id, onMessageEdit]);
+
+    const handleCopyBar = React.useCallback(() => {
+      navigator.clipboard.writeText(window.getSelection()?.toString() || '');
+    }, []);
+
+    const handleCopyMessage = React.useCallback(() => {
+      navigator.clipboard.writeText(m.content);
+    }, [m.content]);
 
     return (
       <div
@@ -91,162 +150,111 @@ const UserMessageComponent = React.memo<{
         <div className="flex max-w-[90%] flex-wrap-reverse items-center justify-end gap-0.5">
           {/* Action buttons */}
           <div className="flex h-fit w-fit min-w-[88px] gap-0.5 text-xs text-muted-foreground">
-            <Popover open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <PopoverTrigger asChild>
+            <DeleteConfirmPopover
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              onConfirm={handleDelete}
+              trigger={
                 <Button
                   variant="actionButton"
                   size="icon"
                   className={cn(
-                    'opacity-0 transition-opacity hover:text-red-500 focus:text-red-500',
-                    'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+                    ACTION_BUTTON_FADE_CLASSES,
+                    'hover:text-red-500 focus:text-red-500',
                     (infoOpen || deleteOpen) && 'opacity-100',
                   )}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="top"
-                className="border-[0.5px] border-border bg-background-dim p-4 text-xs drop-shadow-md"
-                onCloseAutoFocus={(e) => {
-                  if (shouldUnfocusDelete.current) {
-                    e.preventDefault();
-                    shouldUnfocusDelete.current = false;
-                  }
-                }}
-              >
-                <div>
-                  <div className="text-lg font-bold">Delete?</div>
-                  <div className="text-muted-foreground">
-                    Also removes subsequent messages.
-                  </div>
-                </div>
-                <div className="h-4" />
-                <div className="flex w-full justify-end gap-2">
-                  <PopoverClose asChild>
-                    <Button
-                      variant="outline"
-                      onMouseDown={() => {
-                        shouldUnfocusDelete.current = true;
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </PopoverClose>
-                  <Button variant="destructive" onClick={handleDelete}>
-                    Confirm
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
+              }
+              description={deleteDescription('user', false)}
+            />
             <Button
               variant="actionButton"
               size="icon"
               className={cn(
-                'opacity-0 transition-opacity',
-                'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+                ACTION_BUTTON_FADE_CLASSES,
                 (infoOpen || deleteOpen) && 'opacity-100',
               )}
               onClick={handleEdit}
             >
               <Edit3 className="h-4 w-4" />
             </Button>
-            <Popover open={infoOpen} onOpenChange={setInfoOpen}>
-              <PopoverTrigger asChild>
+            <InfoPopover
+              open={infoOpen}
+              onOpenChange={setInfoOpen}
+              trigger={
                 <Button
                   variant="actionButton"
                   size="icon"
                   className={cn(
-                    'opacity-0 transition-opacity',
-                    'group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+                    ACTION_BUTTON_FADE_CLASSES,
                     (infoOpen || deleteOpen) && 'opacity-100',
                   )}
-                  onMouseLeave={() => {
-                    setInfoOpen(false);
-                  }}
-                  onMouseUp={(e) => {
-                    shouldUnfocusInfo.current = true;
-                    e.currentTarget.blur();
-                  }}
                 >
                   <Info className="h-4 w-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="top"
-                className="w-fit border-[0.5px] border-border bg-background-dim p-2 text-xs drop-shadow-md"
-                onCloseAutoFocus={(e) => {
-                  if (shouldUnfocusInfo.current) {
-                    e.preventDefault();
-                    shouldUnfocusInfo.current = false;
-                  }
-                }}
-              >
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sent</span>
-                  <span className="w-2" />
-                  <span>{formatTimestamp(m.created)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Modified</span>
-                  <span className="w-2" />
-                  <span>{formatTimestamp(m.modified)}</span>
-                </div>
-              </PopoverContent>
-            </Popover>
+              }
+              rows={[
+                { label: 'Sent', value: formatTimestamp(m.created) },
+                { label: 'Modified', value: formatTimestamp(m.modified) },
+              ]}
+            />
           </div>
 
           {/* Message bubble */}
           <ContextMenu>
             <ContextMenuTrigger>
-              <div className="display-linebreak flex select-text flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground">
+              <div
+                ref={contentRef}
+                className="display-linebreak flex select-text flex-col gap-0.5 rounded-3xl bg-card px-4 py-2 text-card-foreground"
+              >
                 {m.content}
               </div>
             </ContextMenuTrigger>
-            <ContextMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-              <ContextMenuItem onClick={handleEdit}>
+            <ContextMenuWithBarContent
+              barActions={
+                hasSelection
+                  ? [
+                      {
+                        key: 'copy',
+                        label: 'Copy',
+                        icon: <Copy className="h-4 w-4" />,
+                        onClick: handleCopyBar,
+                      },
+                    ]
+                  : []
+              }
+            >
+              <ContextMenuWithBarItem onClick={handleEdit}>
                 <Edit3 className="mr-2 h-4 w-4" />
                 Edit
-              </ContextMenuItem>
-              <ContextMenuItem
+              </ContextMenuWithBarItem>
+              <ContextMenuWithBarItem onClick={handleCopyMessage}>
+                <Copy className="mr-2 h-4 w-4" />
+                Copy Message
+              </ContextMenuWithBarItem>
+              <ContextMenuWithBarItem
                 onClick={() => {
                   navigator.clipboard.writeText(m.id);
                 }}
               >
-                <Copy className="mr-2 h-4 w-4" />
+                <Tag className="mr-2 h-4 w-4" />
                 Copy ID
-              </ContextMenuItem>
-              <ContextMenuSub
+              </ContextMenuWithBarItem>
+              <DeleteConfirmContextSub
                 open={contextDeleteOpen}
-                onOpenChange={(open) => {
-                  if (!open) setContextDeleteOpen(false);
-                }}
-              >
-                <ContextMenuSubTrigger
-                  className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground data-[state=open]:bg-destructive data-[state=open]:text-destructive-foreground"
-                  onClick={() => setContextDeleteOpen(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </ContextMenuSubTrigger>
-                <ContextMenuPortal>
-                  <ContextMenuSubContent className="w-72 text-xs">
-                    <div>
-                      <div className="text-lg font-bold">Delete?</div>
-                      <div className="text-muted-foreground">
-                        Also removes subsequent messages.
-                      </div>
-                    </div>
-                    <div className="h-4" />
-                    <div className="flex w-full justify-end gap-2">
-                      <Button variant="destructive" onClick={handleDelete}>
-                        Confirm
-                      </Button>
-                    </div>
-                  </ContextMenuSubContent>
-                </ContextMenuPortal>
-              </ContextMenuSub>
-            </ContextMenuContent>
+                onOpenChange={setContextDeleteOpen}
+                onConfirm={handleDelete}
+                description={deleteDescription('user', false)}
+                triggerChildren={
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </>
+                }
+              />
+            </ContextMenuWithBarContent>
           </ContextMenu>
         </div>
       </div>
@@ -280,7 +288,18 @@ const AssistantMessageComponent = React.memo(
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
     const shouldUnfocusInfo = React.useRef(false);
-    const shouldUnfocusDelete = React.useRef(false);
+    const [hasSelection, setHasSelection] = useState(false);
+    const contentRef = React.useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const checkSelection = () => {
+        const sel = window.getSelection();
+        setHasSelection(!!sel && sel.toString().length > 0);
+      };
+      document.addEventListener('selectionchange', checkSelection);
+      return () =>
+        document.removeEventListener('selectionchange', checkSelection);
+    }, []);
 
     const handlePrevChoice = React.useCallback(() => {
       onSetActiveChoice(m.id, m.activeChoice - 1);
@@ -302,6 +321,18 @@ const AssistantMessageComponent = React.memo(
       onMessageDelete(m.id);
     }, [m.id, onMessageDelete]);
 
+    const handleCopyBar = React.useCallback(() => {
+      navigator.clipboard.writeText(window.getSelection()?.toString() || '');
+    }, []);
+
+    const handleCopyMessage = React.useCallback(() => {
+      const baseContent =
+        streamingText || streamingReasoningText
+          ? streamingText || ''
+          : m.choices[m.activeChoice].content;
+      navigator.clipboard.writeText(baseContent);
+    }, [streamingText, streamingReasoningText, m.choices, m.activeChoice]);
+
     const shouldShowSpinner =
       streamingText === '' && streamingReasoningText === '';
 
@@ -320,82 +351,82 @@ const AssistantMessageComponent = React.memo(
       >
         <ContextMenu>
           <ContextMenuTrigger>
-            <div className="px-4">
-              {shouldShowReasoning && (
-                <ReasoningBlock isStreaming={!!streamingReasoningText}>
-                  {streamingReasoningText ||
-                    m.choices[m.activeChoice].reasoning_details}
-                </ReasoningBlock>
-              )}
-              {shouldShowSpinner && (
-                <div className="flex w-fit items-center justify-center gap-2 rounded-xl bg-background-dim px-4 text-xs text-muted-foreground">
-                  <LoaderCircle className="my-2 h-4 w-4 animate-spin" />
-                  <span>Thinking...</span>
-                </div>
-              )}
+            <div ref={contentRef}>
+              <div className="px-4">
+                {shouldShowReasoning && (
+                  <ReasoningBlock isStreaming={!!streamingReasoningText}>
+                    {streamingReasoningText ||
+                      m.choices[m.activeChoice].reasoning_details}
+                  </ReasoningBlock>
+                )}
+                {shouldShowSpinner && (
+                  <div className="flex w-fit items-center justify-center gap-2 rounded-xl bg-background-dim px-4 text-xs text-muted-foreground">
+                    <LoaderCircle className="my-2 h-4 w-4 animate-spin" />
+                    <span>Thinking...</span>
+                  </div>
+                )}
+              </div>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                className="markdown break-words px-4"
+              >
+                {streamingText || streamingReasoningText
+                  ? streamingText
+                  : m.choices[m.activeChoice].content}
+              </ReactMarkdown>
             </div>
-
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkBreaks]}
-              className="markdown break-words px-4"
-            >
-              {streamingText || streamingReasoningText
-                ? streamingText
-                : m.choices[m.activeChoice].content}
-            </ReactMarkdown>
           </ContextMenuTrigger>
 
-          <ContextMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-            <ContextMenuItem onClick={handleRegen}>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Regenerate
-            </ContextMenuItem>
-            <ContextMenuItem onClick={handleEdit}>
+          <ContextMenuWithBarContent
+            barActions={
+              hasSelection
+                ? [
+                    {
+                      key: 'copy',
+                      label: 'Copy',
+                      icon: <Copy className="h-4 w-4" />,
+                      onClick: handleCopyBar,
+                    },
+                  ]
+                : []
+            }
+          >
+            <ContextMenuWithBarItem onClick={handleEdit}>
               <Edit3 className="mr-2 h-4 w-4" />
               Edit
-            </ContextMenuItem>
-            <ContextMenuItem
+            </ContextMenuWithBarItem>
+            <ContextMenuWithBarItem onClick={handleRegen}>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Regenerate
+            </ContextMenuWithBarItem>
+            <ContextMenuWithBarItem onClick={handleCopyMessage}>
+              <Copy className="mr-2 h-4 w-4" />
+              Copy Message
+            </ContextMenuWithBarItem>
+            <ContextMenuWithBarItem
               onClick={() => {
                 navigator.clipboard.writeText(m.id);
               }}
             >
-              <Copy className="mr-2 h-4 w-4" />
+              <Tag className="mr-2 h-4 w-4" />
               Copy ID
-            </ContextMenuItem>
-            <ContextMenuSub
+            </ContextMenuWithBarItem>
+            <DeleteConfirmContextSub
               open={contextDeleteOpen}
-              onOpenChange={(open) => {
-                if (!open) setContextDeleteOpen(false);
-              }}
-            >
-              <ContextMenuSubTrigger
-                className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground data-[state=open]:bg-destructive data-[state=open]:text-destructive-foreground"
-                onClick={() => setContextDeleteOpen(true)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </ContextMenuSubTrigger>
-              <ContextMenuPortal>
-                <ContextMenuSubContent className="w-72 text-xs">
-                  <div>
-                    <div className="text-lg font-bold">Delete?</div>
-                    <div className="text-muted-foreground">
-                      Removes all message choices and subsequent messages.
-                    </div>
-                  </div>
-                  <div className="h-4" />
-                  <div className="flex w-full justify-end gap-2">
-                    <Button variant="destructive" onClick={handleDelete}>
-                      Confirm
-                    </Button>
-                  </div>
-                </ContextMenuSubContent>
-              </ContextMenuPortal>
-            </ContextMenuSub>
+              onOpenChange={setContextDeleteOpen}
+              onConfirm={handleDelete}
+              description={deleteDescription('assistant', m.choices.length > 1)}
+              triggerChildren={
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </>
+              }
+            />
             {m.choices.length > 1 && (
               <>
                 <Separator className="my-1" />
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between px-1">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -418,7 +449,7 @@ const AssistantMessageComponent = React.memo(
                 </div>
               </>
             )}
-          </ContextMenuContent>
+          </ContextMenuWithBarContent>
         </ContextMenu>
         {/* Action buttons */}
         <div
@@ -509,8 +540,11 @@ const AssistantMessageComponent = React.memo(
             <Button variant="actionButton" size="icon" onClick={handleEdit}>
               <Edit3 className="h-4 w-4" />
             </Button>
-            <Popover open={deleteOpen} onOpenChange={setDeleteOpen}>
-              <PopoverTrigger asChild>
+            <DeleteConfirmPopover
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              onConfirm={handleDelete}
+              trigger={
                 <Button
                   variant="actionButton"
                   size="icon"
@@ -518,41 +552,9 @@ const AssistantMessageComponent = React.memo(
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="top"
-                className="border-[0.5px] border-border bg-background-dim p-4 text-xs drop-shadow-md"
-                onCloseAutoFocus={(e) => {
-                  if (shouldUnfocusDelete.current) {
-                    e.preventDefault();
-                    shouldUnfocusDelete.current = false;
-                  }
-                }}
-              >
-                <div>
-                  <div className="text-lg font-bold">Delete?</div>
-                  <div className="text-muted-foreground">
-                    Removes all message choices and subsequent messages.
-                  </div>
-                </div>
-                <div className="h-4" />
-                <div className="flex w-full justify-end gap-2">
-                  <PopoverClose asChild>
-                    <Button
-                      variant="outline"
-                      onMouseDown={() => {
-                        shouldUnfocusDelete.current = true;
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </PopoverClose>
-                  <Button variant="destructive" onClick={handleDelete}>
-                    Confirm
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
+              }
+              description={deleteDescription('assistant', m.choices.length > 1)}
+            />
           </div>
         </div>
       </div>
@@ -576,7 +578,21 @@ const PromptMessageComponent = React.memo(
   }) => {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
-    const shouldUnfocusDelete = React.useRef(false);
+
+    const [hasSelection, setHasSelection] = useState(false);
+    useEffect(() => {
+      const checkSelection = () => {
+        const sel = window.getSelection();
+        setHasSelection(!!sel && sel.toString().length > 0);
+      };
+      document.addEventListener('selectionchange', checkSelection);
+      return () =>
+        document.removeEventListener('selectionchange', checkSelection);
+    }, []);
+
+    const handleCopyBar = React.useCallback(() => {
+      navigator.clipboard.writeText(window.getSelection()?.toString() || '');
+    }, []);
 
     const disabled = m.title === null || m.content === null;
 
@@ -600,53 +616,25 @@ const PromptMessageComponent = React.memo(
           {/* Action buttons */}
           <div className="flex items-center justify-end gap-0.5 text-xs text-muted-foreground">
             <div className="flex items-center">
-              <Popover open={deleteOpen} onOpenChange={setDeleteOpen}>
-                <PopoverTrigger asChild>
+              <DeleteConfirmPopover
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                onConfirm={handleDelete}
+                trigger={
                   <Button
                     variant="actionButton"
                     size="icon"
                     className={cn(
-                      'opacity-0 transition-opacity hover:text-red-500 focus:text-red-500 group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
+                      ACTION_BUTTON_FADE_CLASSES,
+                      'hover:text-red-500 focus:text-red-500',
                       deleteOpen && 'opacity-100',
                     )}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent
-                  side="top"
-                  className="border-[0.5px] border-border bg-background-dim p-4 text-xs drop-shadow-md"
-                  onCloseAutoFocus={(e) => {
-                    if (shouldUnfocusDelete.current) {
-                      e.preventDefault();
-                      shouldUnfocusDelete.current = false;
-                    }
-                  }}
-                >
-                  <div>
-                    <div className="text-lg font-bold">Delete?</div>
-                    <div className="text-muted-foreground">
-                      Also removes subsequent messages.
-                    </div>
-                  </div>
-                  <div className="h-4" />
-                  <div className="flex w-full justify-end gap-2">
-                    <PopoverClose asChild>
-                      <Button
-                        variant="outline"
-                        onMouseDown={() => {
-                          shouldUnfocusDelete.current = true;
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                    </PopoverClose>
-                    <Button variant="destructive" onClick={handleDelete}>
-                      Confirm
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+                }
+                description={deleteDescription('prompt', false)}
+              />
               <Button
                 variant="actionButton"
                 size="icon"
@@ -687,50 +675,48 @@ const PromptMessageComponent = React.memo(
                 <ExternalLink className="mx-2 h-4 w-4 flex-shrink-0 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
               </Link>
             </ContextMenuTrigger>
-            <ContextMenuContent onCloseAutoFocus={(e) => e.preventDefault()}>
-              <ContextMenuItem onClick={handleOnSwapPrompt}>
+            <ContextMenuWithBarContent
+              barActions={
+                hasSelection
+                  ? [
+                      {
+                        key: 'copy',
+                        label: 'Copy',
+                        icon: <Copy className="h-4 w-4" />,
+                        onClick: handleCopyBar,
+                      },
+                    ]
+                  : []
+              }
+            >
+              <ContextMenuWithBarItem
+                onClick={handleOnSwapPrompt}
+                disabled={disabled}
+              >
                 <ArrowLeftRight className="mr-2 h-4 w-4" />
                 Swap
-              </ContextMenuItem>
-              <ContextMenuItem
+              </ContextMenuWithBarItem>
+              <ContextMenuWithBarItem
                 onClick={() => {
                   navigator.clipboard.writeText(m.id);
                 }}
               >
-                <Copy className="mr-2 h-4 w-4" />
+                <Tag className="mr-2 h-4 w-4" />
                 Copy ID
-              </ContextMenuItem>
-              <ContextMenuSub
+              </ContextMenuWithBarItem>
+              <DeleteConfirmContextSub
                 open={contextDeleteOpen}
-                onOpenChange={(open) => {
-                  if (!open) setContextDeleteOpen(false);
-                }}
-              >
-                <ContextMenuSubTrigger
-                  className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground data-[state=open]:bg-destructive data-[state=open]:text-destructive-foreground"
-                  onClick={() => setContextDeleteOpen(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete
-                </ContextMenuSubTrigger>
-                <ContextMenuPortal>
-                  <ContextMenuSubContent className="w-72 text-xs">
-                    <div>
-                      <div className="text-lg font-bold">Delete?</div>
-                      <div className="text-muted-foreground">
-                        Also removes subsequent messages.
-                      </div>
-                    </div>
-                    <div className="h-4" />
-                    <div className="flex w-full justify-end gap-2">
-                      <Button variant="destructive" onClick={handleDelete}>
-                        Confirm
-                      </Button>
-                    </div>
-                  </ContextMenuSubContent>
-                </ContextMenuPortal>
-              </ContextMenuSub>
-            </ContextMenuContent>
+                onOpenChange={setContextDeleteOpen}
+                onConfirm={handleDelete}
+                description={deleteDescription('prompt', false)}
+                triggerChildren={
+                  <>
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
+                  </>
+                }
+              />
+            </ContextMenuWithBarContent>
           </ContextMenu>
         </div>
       </div>

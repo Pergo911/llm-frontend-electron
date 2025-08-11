@@ -11,6 +11,7 @@ import {
   SquareTerminal,
   Trash2,
   TriangleAlert,
+  Tag,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { PopoverClose } from '@radix-ui/react-popover';
@@ -244,7 +245,7 @@ export default function PromptPage({
                   e.currentTarget.blur();
                 }}
               >
-                <Copy className="h-4 w-4" />
+                <Tag className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">Copy ID</TooltipContent>
