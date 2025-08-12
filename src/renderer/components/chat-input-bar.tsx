@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { ChatInputBarActions } from '@/common/types';
 import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
+import TextareaWithContextMenu from './textarea-context-menu';
 import { cn } from '../utils/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
@@ -101,13 +101,17 @@ const ChatInputBar = React.memo(
       <div className="flex w-full flex-1 flex-grow-0 justify-center bg-background p-4 pt-0">
         {/* Input box itself */}
         <div className="z-10 flex max-h-[300px] w-full max-w-[800px] flex-col rounded-3xl bg-background-dim p-4 text-foreground drop-shadow-md">
-          <Textarea
+          <TextareaWithContextMenu
             className="h-auto min-h-0 resize-none rounded-none border-none p-0 py-2 shadow-none focus:outline-none focus-visible:ring-0"
             placeholder="Message here..."
             spellCheck="false"
             value={value}
             onChange={(e) => {
               setValue(e.target.value);
+              autoHeight();
+            }}
+            onValueChange={(next) => {
+              setValue(next);
               autoHeight();
             }}
             rows={1}

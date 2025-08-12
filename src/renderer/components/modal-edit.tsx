@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from '@/renderer/components/ui/dialog';
 import { Button } from './ui/button';
-import { Textarea } from './ui/textarea';
+import TextareaWithContextMenu from './textarea-context-menu';
 
 export interface EditMessageModalRef {
   promptUser: (initialValue: string) => Promise<string | null>;
@@ -98,12 +98,16 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
           <DialogTitle>Edit message</DialogTitle>
         </DialogHeader>
         <div className="flex max-h-[300px] overflow-y-auto rounded-3xl bg-card text-card-foreground">
-          <Textarea
+          <TextareaWithContextMenu
             className="min-h-0 resize-none border-none px-4 py-2 shadow-none focus:outline-none focus-visible:ring-0"
             spellCheck="false"
             value={textareaValue}
             onChange={(e) => {
               setTextareValue(e.target.value);
+              autoHeight();
+            }}
+            onValueChange={(next) => {
+              setTextareValue(next);
               autoHeight();
             }}
             ref={textareaRef}
@@ -114,6 +118,12 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
               }
             }}
             rows={1}
+            variant="edit-modal"
+            onConfirm={handleConfirm}
+            onConfirmRegen={() => {
+              // Placeholder: confirm & regen maps to confirm for now
+              handleConfirm();
+            }}
           />
         </div>
         <DialogFooter>

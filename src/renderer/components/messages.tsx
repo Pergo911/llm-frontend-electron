@@ -23,6 +23,8 @@ import {
   Trash2,
   TriangleAlert,
   Tag,
+  Scissors,
+  ClipboardPaste,
 } from 'lucide-react';
 import React, {
   useCallback,
@@ -60,7 +62,6 @@ import {
   ContextMenuWithBarContent,
   ContextMenuWithBarItem,
 } from './context-menu-with-bar';
-import { Separator } from './ui/separator';
 
 // Helper functions moved near top to avoid use-before-define issues
 const deleteDescription = (
@@ -221,6 +222,20 @@ const UserMessageComponent = React.memo<{
                         label: 'Copy',
                         icon: <Copy className="h-4 w-4" />,
                         onClick: handleCopyBar,
+                      },
+                      {
+                        key: 'cut',
+                        label: 'Cut',
+                        icon: <Scissors className="h-4 w-4" />,
+                        onClick: () => {},
+                        disabled: true,
+                      },
+                      {
+                        key: 'paste',
+                        label: 'Paste',
+                        icon: <ClipboardPaste className="h-4 w-4" />,
+                        onClick: () => {},
+                        disabled: true,
                       },
                     ]
                   : []
@@ -387,6 +402,20 @@ const AssistantMessageComponent = React.memo(
                       icon: <Copy className="h-4 w-4" />,
                       onClick: handleCopyBar,
                     },
+                    {
+                      key: 'cut',
+                      label: 'Cut',
+                      icon: <Scissors className="h-4 w-4" />,
+                      onClick: () => {},
+                      disabled: true,
+                    },
+                    {
+                      key: 'paste',
+                      label: 'Paste',
+                      icon: <ClipboardPaste className="h-4 w-4" />,
+                      onClick: () => {},
+                      disabled: true,
+                    },
                   ]
                 : []
             }
@@ -425,7 +454,7 @@ const AssistantMessageComponent = React.memo(
             />
             {m.choices.length > 1 && (
               <>
-                <Separator className="my-1" />
+                <ContextMenuSeparator className="my-1" />
                 <div className="flex items-center justify-between px-1">
                   <Button
                     variant="ghost"

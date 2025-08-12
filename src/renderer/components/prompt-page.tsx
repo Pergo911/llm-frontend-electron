@@ -34,7 +34,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { FolderSelectModal, FolderSelectModalRef } from './modal-folder-select';
 import { RenameModal, RenameModalRef } from './modal-rename';
-import { Textarea } from './ui/textarea';
+import TextareaWithContextMenu from './textarea-context-menu';
 
 export default function PromptPage({
   prompt,
@@ -301,10 +301,14 @@ export default function PromptPage({
               {formatTimestamp(prompt.modified)}
             </span>
           </div>
-          <Textarea
+          <TextareaWithContextMenu
             value={content}
             onChange={(e) => {
               setContent(e.target.value);
+              setIsSaved(false);
+            }}
+            onValueChange={(next) => {
+              setContent(next);
               setIsSaved(false);
             }}
             placeholder="Start typing here..."
