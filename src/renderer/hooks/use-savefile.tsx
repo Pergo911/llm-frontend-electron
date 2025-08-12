@@ -575,13 +575,18 @@ const useSaveFile = (): {
         resolvedMessage.modified = message.modified;
       } else if (message.messageType === 'assistant') {
         message.choices[message.activeChoice].content = content;
-        message.choices[message.activeChoice].reasoning_details = reasoning;
+
+        if (reasoning !== undefined)
+          message.choices[message.activeChoice].reasoning_details = reasoning;
+
         message.choices[message.activeChoice].modified = Date.now();
 
         // @ts-ignore
         resolvedMessage.choices[resolvedMessage.activeChoice].content = content;
+
         // @ts-ignore
-        resolvedMessage.choices[resolvedMessage.activeChoice].reasoning_details = reasoning; // prettier-ignore
+        if (reasoning !== undefined) resolvedMessage.choices[resolvedMessage.activeChoice].reasoning_details = reasoning; // prettier-ignore
+
         // @ts-ignore
         resolvedMessage.choices[resolvedMessage.activeChoice].modified =
           message.choices[message.activeChoice].modified;
