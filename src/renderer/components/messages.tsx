@@ -33,9 +33,8 @@ import React, {
   useState,
 } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
-import { PopoverClose } from '@radix-ui/react-popover';
 import remarkBreaks from 'remark-breaks';
 import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
@@ -605,6 +604,7 @@ const PromptMessageComponent = React.memo(
     onMessageDelete: (id: string) => void;
     onSwapPrompt: (oldId: string) => void;
   }) => {
+    const navigate = useNavigate();
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
 
@@ -718,6 +718,13 @@ const PromptMessageComponent = React.memo(
                   : []
               }
             >
+              <ContextMenuWithBarItem
+                onClick={() => navigate(`/p/${m.promptId}`)}
+                disabled={disabled}
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Open
+              </ContextMenuWithBarItem>
               <ContextMenuWithBarItem
                 onClick={handleOnSwapPrompt}
                 disabled={disabled}

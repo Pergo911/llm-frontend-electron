@@ -38,10 +38,7 @@ export const ContextMenuWithBarContent: React.FC<
 }) => {
   const hasBar = barActions.length > 0;
   return (
-    <ContextMenuContent
-      onCloseAutoFocus={(e) => e.preventDefault()}
-      className={cn('min-w-[180px] p-1', className)}
-    >
+    <ContextMenuContent className={cn('min-w-[180px] p-1', className)}>
       {hasBar && (
         <div className="flex items-stretch gap-1 px-1 py-1">
           {barActions.map((a) => (
