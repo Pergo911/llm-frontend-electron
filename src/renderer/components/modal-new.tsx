@@ -40,10 +40,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select';
-import { isInvalid } from '../utils/utils';
+import { cn, isInvalid } from '../utils/utils';
 
 export interface NewModalRef {
-  promptUser: (preset?: 'chat' | 'prompt' | undefined) => Promise<void>;
+  promptUser: (
+    preset?: 'chat' | 'prompt' | undefined,
+    hideChatTab?: boolean,
+  ) => Promise<void>;
 }
 
 type NewModalProps = {
@@ -86,6 +89,7 @@ const NewModal = forwardRef<NewModalRef, NewModalProps>(
     const [isOpen, setIsOpen] = useState(false);
     const [selectedTab, setSelectedTab] = useState<'chat' | 'prompt'>('chat');
     const resolveRef = useRef<() => void>();
+    const [hideChatTab, setHideChatTab] = useState(true);
 
     // Chat tab
     const [chatName, setChatName] = useState('New chat');
@@ -132,14 +136,23 @@ const NewModal = forwardRef<NewModalRef, NewModalProps>(
       setCanCancelNewFolder(true);
       setPromptType('user-prompt');
       setSelectedTab('chat');
+      setHideChatTab(false);
     };
 
     useImperativeHandle(ref, () => ({
-      promptUser: (preset?: 'chat' | 'prompt' | undefined) => {
+      promptUser: (
+        preset?: 'chat' | 'prompt' | undefined,
+        hideChatTab = false,
+      ) => {
         reset();
         setIsOpen(true);
         if (preset) {
           setSelectedTab(preset);
+        }
+
+        if (hideChatTab) {
+          setSelectedTab('prompt');
+          setHideChatTab(true);
         }
 
         // If there are folders, select the first one
@@ -282,14 +295,16 @@ const NewModal = forwardRef<NewModalRef, NewModalProps>(
         <DialogPortal forceMount />
         <DialogContent className="max-w-[350px] pt-4">
           <DialogHeader>
-            <DialogTitle className="flex items-center">Create new</DialogTitle>
+            <DialogTitle className="flex items-center">
+              {hideChatTab ? 'Create new prompt' : 'Create new'}
+            </DialogTitle>
           </DialogHeader>
           <Tabs
             value={selectedTab}
             onValueChange={(v) => setSelectedTab(v as 'chat' | 'prompt')}
             className="min-w-0 flex-1"
           >
-            <TabsList className="w-full">
+            <TabsList className={cn(hideChatTab && 'hidden', 'w-full')}>
               <TabsTrigger value="chat" className="w-full transition-none">
                 Chat
               </TabsTrigger>

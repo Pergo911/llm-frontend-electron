@@ -34,7 +34,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { FolderSelectModal, FolderSelectModalRef } from './modal-folder-select';
 import { RenameModal, RenameModalRef } from './modal-rename';
-import TextareaWithContextMenu from './textarea-context-menu';
+import { TextareaWithContextMenu } from './textarea-context-menu';
 
 export default function PromptPage({
   prompt,

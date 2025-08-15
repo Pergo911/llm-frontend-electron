@@ -34,10 +34,10 @@ export function SidebarToggle({
           <div className="grid flex-1 text-left text-lg font-bold leading-tight">
             {page === 'chat' ? 'Chats' : 'Prompts'}
           </div>
-          <ArrowUpDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:scale-110 group-hover/button:text-foreground group-focus/button:text-foreground group-active/button:translate-y-1" />
+          <ArrowUpDown className="ml-auto transition-transform duration-100 ease-in-out group-hover/button:scale-110 group-active/button:translate-y-1" />
         </SidebarMenuButton>
       </TooltipTrigger>
-      <TooltipContent side="right">
+      <TooltipContent side="top">
         Switch to {page === 'prompt' ? 'chats' : 'prompts'}
       </TooltipContent>
     </Tooltip>

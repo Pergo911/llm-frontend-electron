@@ -41,7 +41,7 @@ const ReasoningBlock = ({
           </>
         )}
 
-        <ChevronLeft className="m-2 h-4 w-4 group-hover:text-card-foreground group-focus:text-card-foreground" />
+        <ChevronLeft className="m-2 h-4 w-4 group-hover:text-foreground group-focus:text-foreground" />
       </div>
     );
   }
@@ -75,7 +75,7 @@ const ReasoningBlock = ({
             <span>Reasoning text</span>
           </div>
         )}
-        <ChevronDown className="m-2 h-4 w-4 group-hover:text-card-foreground group-focus:text-card-foreground" />
+        <ChevronDown className="m-2 h-4 w-4 group-hover:text-foreground group-focus:text-foreground" />
       </div>
       <div
         className={cn(

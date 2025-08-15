@@ -25,6 +25,7 @@ import {
   Tag,
   Scissors,
   ClipboardPaste,
+  Edit2,
 } from 'lucide-react';
 import React, {
   useCallback,
@@ -144,7 +145,7 @@ const UserMessageComponent = React.memo<{
         className={cn(
           isStreaming && 'pointer-events-none',
           isStreaming && isOmittedDuringStreaming && 'opacity-50',
-          'group/textbox flex w-full flex-col items-end',
+          'group/textbox my-2 flex w-full flex-col items-end',
         )}
       >
         <div className="flex max-w-[90%] flex-wrap-reverse items-center justify-end gap-0.5">
@@ -360,7 +361,7 @@ const AssistantMessageComponent = React.memo(
       <div
         className={cn(
           isStreaming && isOmittedDuringStreaming && 'opacity-50',
-          'group/textbox flex w-full flex-col self-start',
+          'group/textbox mb-2 flex w-full flex-col self-start',
         )}
       >
         <ContextMenu>
@@ -605,6 +606,7 @@ const PromptMessageComponent = React.memo(
     onSwapPrompt: (oldId: string) => void;
   }) => {
     const navigate = useNavigate();
+    const [infoOpen, setInfoOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
 
@@ -638,122 +640,142 @@ const PromptMessageComponent = React.memo(
         className={cn(
           isStreaming && 'pointer-events-none',
           isStreaming && isOmittedDuringStreaming && 'opacity-50',
-          'group/textbox flex w-full flex-col items-end',
+          'group/textbox my-2 flex w-full flex-col items-end',
         )}
       >
-        <div className="flex w-fit max-w-[400px] gap-0.5">
+        <div className="flex max-w-[90%] flex-wrap-reverse items-center justify-end gap-0.5">
           {/* Action buttons */}
-          <div className="flex items-center justify-end gap-0.5 text-xs text-muted-foreground">
-            <div className="flex items-center">
-              <DeleteConfirmPopover
-                open={deleteOpen}
-                onOpenChange={setDeleteOpen}
-                onConfirm={handleDelete}
-                trigger={
-                  <Button
-                    variant="actionButton"
-                    size="icon"
-                    className={cn(
-                      ACTION_BUTTON_FADE_CLASSES,
-                      'hover:text-red-500 focus:text-red-500',
-                      deleteOpen && 'opacity-100',
-                    )}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                }
-                description={deleteDescription('prompt', false)}
-              />
-              <Button
-                variant="actionButton"
-                size="icon"
-                className={cn(
-                  'opacity-0 transition-opacity group-focus-within/textbox:opacity-100 group-hover/textbox:opacity-100',
-                  deleteOpen && 'opacity-100',
-                )}
-                onClick={handleOnSwapPrompt}
-              >
-                <ArrowLeftRight className="h-4 w-4" />
-              </Button>
-            </div>
+          <div className="flex h-fit w-fit min-w-[88px] gap-0.5 text-xs text-muted-foreground">
+            <DeleteConfirmPopover
+              open={deleteOpen}
+              onOpenChange={setDeleteOpen}
+              onConfirm={handleDelete}
+              trigger={
+                <Button
+                  variant="actionButton"
+                  size="icon"
+                  className={cn(
+                    ACTION_BUTTON_FADE_CLASSES,
+                    'hover:text-red-500 focus:text-red-500',
+                    (infoOpen || deleteOpen) && 'opacity-100',
+                  )}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              }
+              description={deleteDescription('prompt', false)}
+            />
+            <Button
+              variant="actionButton"
+              size="icon"
+              className={cn(
+                ACTION_BUTTON_FADE_CLASSES,
+                (infoOpen || deleteOpen) && 'opacity-100',
+              )}
+              onClick={handleOnSwapPrompt}
+            >
+              <ArrowLeftRight className="h-4 w-4" />
+            </Button>
+            <InfoPopover
+              open={infoOpen}
+              onOpenChange={setInfoOpen}
+              trigger={
+                <Button
+                  variant="actionButton"
+                  size="icon"
+                  className={cn(
+                    ACTION_BUTTON_FADE_CLASSES,
+                    (infoOpen || deleteOpen) && 'opacity-100',
+                  )}
+                >
+                  <Info className="h-4 w-4" />
+                </Button>
+              }
+              rows={[
+                {
+                  label: 'Type',
+                  value:
+                    m.messageType === 'user-prompt'
+                      ? 'User Prompt'
+                      : 'System Prompt',
+                },
+                { label: 'Sent', value: formatTimestamp(m.created) },
+                { label: 'Modified', value: formatTimestamp(m.modified) },
+              ]}
+            />
           </div>
 
           {/* Message bubble */}
-          <ContextMenu>
-            <ContextMenuTrigger>
-              <Link
-                to={`/p/${m.promptId}`}
-                className={cn(
-                  'group/promptbox over:bg-card-hover flex gap-2 rounded-xl border-[0.5px] border-border bg-background-dim p-4',
-                  disabled && 'pointer-events-none opacity-50',
-                )}
-                aria-disabled={disabled}
-              >
-                {disabled ? (
-                  <TriangleAlert className="h-5 w-5 flex-shrink-0" />
-                ) : m.messageType === 'user-prompt' ? (
-                  <Notebook className="h-5 w-5 flex-shrink-0" />
-                ) : (
-                  <SquareTerminal className="h-5 w-5 flex-shrink-0" />
-                )}
-                <div className="flex flex-col gap-2">
-                  <div className="text-lg font-bold leading-none">
-                    {disabled ? 'Unknown' : m.title}
-                  </div>
-                </div>
-                <ExternalLink className="mx-2 h-4 w-4 flex-shrink-0 self-center text-muted-foreground group-hover/promptbox:text-foreground group-focus/promptbox:text-foreground" />
-              </Link>
-            </ContextMenuTrigger>
-            <ContextMenuWithBarContent
-              barActions={
-                hasSelection
-                  ? [
-                      {
-                        key: 'copy',
-                        label: 'Copy',
-                        icon: <Copy className="h-4 w-4" />,
-                        onClick: handleCopyBar,
-                      },
-                    ]
-                  : []
-              }
-            >
-              <ContextMenuWithBarItem
-                onClick={() => navigate(`/p/${m.promptId}`)}
-                disabled={disabled}
-              >
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Open
-              </ContextMenuWithBarItem>
-              <ContextMenuWithBarItem
-                onClick={handleOnSwapPrompt}
-                disabled={disabled}
-              >
-                <ArrowLeftRight className="mr-2 h-4 w-4" />
-                Swap
-              </ContextMenuWithBarItem>
-              <ContextMenuWithBarItem
-                onClick={() => {
-                  navigator.clipboard.writeText(m.id);
-                }}
-              >
-                <Tag className="mr-2 h-4 w-4" />
-                Copy ID
-              </ContextMenuWithBarItem>
-              <DeleteConfirmContextSub
-                open={contextDeleteOpen}
-                onOpenChange={setContextDeleteOpen}
-                onConfirm={handleDelete}
-                description={deleteDescription('prompt', false)}
-                triggerChildren={
-                  <>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </>
+          <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
+            <ContextMenu>
+              <ContextMenuTrigger>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/p/${m.promptId}`)}
+                  className={cn(
+                    'group h-6 gap-0.5 rounded-md p-1 text-xs text-muted-foreground hover:text-foreground focus:text-foreground',
+                    disabled && 'pointer-events-none opacity-50',
+                  )}
+                  aria-disabled={disabled}
+                >
+                  {disabled ? (
+                    <TriangleAlert className="h-5 w-5 flex-shrink-0" />
+                  ) : m.messageType === 'user-prompt' ? (
+                    <Notebook className="h-5 w-5 flex-shrink-0" />
+                  ) : (
+                    <SquareTerminal className="h-5 w-5 flex-shrink-0" />
+                  )}
+                  {disabled ? 'Unknown' : m.title}
+                </Button>
+              </ContextMenuTrigger>
+              <ContextMenuWithBarContent
+                barActions={
+                  hasSelection
+                    ? [
+                        {
+                          key: 'copy',
+                          label: 'Copy',
+                          icon: <Copy className="h-4 w-4" />,
+                          onClick: handleCopyBar,
+                        },
+                      ]
+                    : []
                 }
-              />
-            </ContextMenuWithBarContent>
-          </ContextMenu>
+              >
+                <ContextMenuWithBarItem
+                  onClick={() => navigate(`/p/${m.promptId}`)}
+                  disabled={disabled}
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  Open
+                </ContextMenuWithBarItem>
+                <ContextMenuWithBarItem onClick={handleOnSwapPrompt}>
+                  <ArrowLeftRight className="mr-2 h-4 w-4" />
+                  Swap
+                </ContextMenuWithBarItem>
+                <ContextMenuWithBarItem
+                  onClick={() => {
+                    navigator.clipboard.writeText(m.id);
+                  }}
+                >
+                  <Tag className="mr-2 h-4 w-4" />
+                  Copy ID
+                </ContextMenuWithBarItem>
+                <DeleteConfirmContextSub
+                  open={contextDeleteOpen}
+                  onOpenChange={setContextDeleteOpen}
+                  onConfirm={handleDelete}
+                  description={deleteDescription('prompt', false)}
+                  triggerChildren={
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </>
+                  }
+                />
+              </ContextMenuWithBarContent>
+            </ContextMenu>
+          </div>
         </div>
       </div>
     );
@@ -785,7 +807,7 @@ const Messages = React.memo(
     streamingReasoningText: string;
   }) => {
     return (
-      <div className="mx-auto flex max-w-[800px] flex-col gap-4 p-4">
+      <div className="mx-auto flex max-w-[800px] flex-col p-4">
         {messages.map((m, index) => {
           // Find the index of the message being streamed
           const streamedMessageIndex =

@@ -170,9 +170,7 @@ export default function ChatPage({
 
   // On navigation,
   useEffect(() => {
-    // scroll to bottom,
-    scrollToBottomInstant();
-    // and update button visibility if needed
+    // update button visibility if needed (do not auto-scroll on load)
     handleScroll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chat.id]);

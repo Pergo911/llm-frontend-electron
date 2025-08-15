@@ -175,6 +175,12 @@ export const TextareaWithContextMenu = React.forwardRef<
 
     const commonMenuItems = (
       <>
+        <ContextMenuItem
+          disabled={!hasClipboardText || !onValueChange}
+          onSelect={handlePaste}
+        >
+          <ClipboardPaste className="mr-2 h-4 w-4" /> Paste
+        </ContextMenuItem>
         <ContextMenuItem disabled={!hasSelection} onSelect={handleCopy}>
           <Copy className="mr-2 h-4 w-4" /> Copy
         </ContextMenuItem>
@@ -184,16 +190,17 @@ export const TextareaWithContextMenu = React.forwardRef<
         >
           <Scissors className="mr-2 h-4 w-4" /> Cut
         </ContextMenuItem>
-        <ContextMenuItem
-          disabled={!hasClipboardText || !onValueChange}
-          onSelect={handlePaste}
-        >
-          <ClipboardPaste className="mr-2 h-4 w-4" /> Paste
-        </ContextMenuItem>
       </>
     );
 
     const barActions = [
+      {
+        key: 'paste',
+        label: 'Paste',
+        icon: <ClipboardPaste className="h-4 w-4" />,
+        onClick: () => handlePaste(),
+        disabled: !hasClipboardText || !onValueChange,
+      },
       {
         key: 'copy',
         label: 'Copy',
@@ -207,13 +214,6 @@ export const TextareaWithContextMenu = React.forwardRef<
         icon: <Scissors className="h-4 w-4" />,
         onClick: () => handleCut(),
         disabled: !hasSelection || !onValueChange,
-      },
-      {
-        key: 'paste',
-        label: 'Paste',
-        icon: <ClipboardPaste className="h-4 w-4" />,
-        onClick: () => handlePaste(),
-        disabled: !hasClipboardText || !onValueChange,
       },
     ];
 
@@ -232,17 +232,9 @@ export const TextareaWithContextMenu = React.forwardRef<
           <ContextMenuContent>{commonMenuItems}</ContextMenuContent>
         ) : (
           <ContextMenuWithBarContent barActions={barActions}>
-            {/* Placeholder items the user can wire up later */}
             <ContextMenuWithBarItem disabled={!onConfirm} onClick={onConfirm}>
               <Check className="mr-2 h-4 w-4" />
               Confirm
-            </ContextMenuWithBarItem>
-            <ContextMenuWithBarItem
-              disabled={!onConfirmRegen}
-              onClick={onConfirmRegen}
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Confirm & Regenerate
             </ContextMenuWithBarItem>
           </ContextMenuWithBarContent>
         )}

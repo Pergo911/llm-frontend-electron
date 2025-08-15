@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from '@/renderer/components/ui/dialog';
 import { Button } from './ui/button';
-import TextareaWithContextMenu from './textarea-context-menu';
+import { TextareaWithContextMenu } from './textarea-context-menu';
 
 export interface EditMessageModalRef {
   promptUser: (initialValue: string) => Promise<string | null>;
@@ -93,11 +93,11 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleDismiss()}>
-      <DialogContent className="max-w-[700px]">
+      <DialogContent className="max-w-[780px]">
         <DialogHeader>
           <DialogTitle>Edit message</DialogTitle>
         </DialogHeader>
-        <div className="flex max-h-[300px] overflow-y-auto rounded-3xl bg-card text-card-foreground">
+        <div className="flex max-h-[350px] overflow-y-auto rounded-3xl bg-card-hover">
           <TextareaWithContextMenu
             className="min-h-0 resize-none border-none px-4 py-2 shadow-none focus:outline-none focus-visible:ring-0"
             spellCheck="false"
@@ -124,6 +124,7 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
               // Placeholder: confirm & regen maps to confirm for now
               handleConfirm();
             }}
+            placeholder="Text here..."
           />
         </div>
         <DialogFooter>

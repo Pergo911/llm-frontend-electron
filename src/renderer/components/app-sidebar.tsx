@@ -79,19 +79,20 @@ export const AppSidebar = React.memo(
     return (
       <Sidebar {...props}>
         <SidebarGroup className="draggable m-0 p-0 pl-2">
-          <SidebarGroupContent className="flex h-[48px] items-center justify-between gap-0.5">
+          <SidebarGroupContent className="flex h-[48px] items-center gap-0.5">
             <SidebarTrigger />
-            <NewButton
-              registerShortcut
-              controller={controller}
-              folders={folders}
-            />
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarHeader className="m-0 p-0">
           <SidebarGroup className="py-0">
-            <SidebarGroupContent>
+            <SidebarGroupContent className="flex items-center gap-0.5">
               <SidebarToggle callback={setPage} />
+              <NewButton
+                registerShortcut
+                controller={controller}
+                folders={folders}
+                sidebarPage={page}
+              />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarHeader>

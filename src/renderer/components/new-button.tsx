@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { ResolvedFolder, SaveFileController } from '@/common/types';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { cn } from '../utils/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
@@ -11,18 +13,29 @@ const NewButton = ({
   registerShortcut,
   controller,
   folders,
+  sidebarPage,
 }: {
   registerShortcut?: boolean;
   controller: SaveFileController;
   folders: ResolvedFolder[];
+  sidebarPage: 'chat' | 'prompt';
 }) => {
   const newModalRef = useRef<NewModalRef>(null);
   const sidebarOpen = useSidebar().state === 'expanded';
-  const [tooltipOpen, setTooptipOpen] = useState<boolean>(false);
+  const navigate = useNavigate();
 
-  const handleAdd = useCallback(() => {
-    newModalRef.current?.promptUser();
-  }, []);
+  const handleAdd = useCallback(async () => {
+    if (sidebarPage === 'chat' && sidebarOpen) {
+      const { error, newId } = controller.chats.add('New chat');
+      if (error) {
+        toast.error(`Error creating chat: ${error}`);
+        return;
+      }
+      navigate(`/c/${newId}`);
+    } else {
+      newModalRef.current?.promptUser(sidebarPage, sidebarOpen);
+    }
+  }, [controller.chats, navigate, sidebarOpen, sidebarPage]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -42,26 +55,20 @@ const NewButton = ({
 
   return (
     <>
-      <Tooltip
-        open={tooltipOpen}
-        onOpenChange={(v) => {
-          if (sidebarOpen) return;
-          setTooptipOpen(v);
-        }}
-      >
+      <Tooltip>
         <TooltipTrigger asChild>
           <Button
-            variant={
-              cn(sidebarOpen ? 'default' : 'ghost') as 'default' | 'ghost'
-            }
-            size="sm"
+            variant="ghost"
+            size="default"
             onClick={handleAdd}
+            className="h-12"
           >
             <Plus className="h-4 w-4 flex-shrink-0" />
-            {sidebarOpen && 'New'}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>New</TooltipContent>
+        <TooltipContent>
+          {sidebarPage === 'chat' ? 'New Chat' : 'New Prompt'}
+        </TooltipContent>
       </Tooltip>
       <NewModal ref={newModalRef} controller={controller} folders={folders} />
     </>
