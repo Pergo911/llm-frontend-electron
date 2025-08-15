@@ -145,7 +145,7 @@ const SidebarProvider = React.forwardRef<
               } as React.CSSProperties
             }
             className={cn(
-              'group/sidebar-wrapper has-[[data-variant=inset]]:bg-background-dim flex min-h-svh w-full',
+              'group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-background-dim',
               className,
             )}
             ref={ref}
@@ -185,7 +185,7 @@ const Sidebar = React.forwardRef<
       return (
         <div
           className={cn(
-            'bg-background-dim flex h-full w-[--sidebar-width] flex-col text-foreground',
+            'flex h-full w-[--sidebar-width] flex-col bg-background-dim text-foreground',
             className,
           )}
           ref={ref}
@@ -202,7 +202,7 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="bg-background-dim w-[--sidebar-width] p-0 text-foreground [&>button]:hidden"
+            className="w-[--sidebar-width] bg-background-dim p-0 text-foreground [&>button]:hidden"
             style={
               {
                 '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
@@ -257,7 +257,7 @@ const Sidebar = React.forwardRef<
         >
           <div
             data-sidebar="sidebar"
-            className="bg-background-dim flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-border group-data-[variant=floating]:shadow"
+            className="flex h-full w-full flex-col bg-background-dim group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-border group-data-[variant=floating]:shadow"
           >
             {children}
           </div>
@@ -316,7 +316,7 @@ const SidebarRail = React.forwardRef<
       onClick={toggleSidebar}
       title="Toggle Sidebar"
       className={cn(
-        'after:bg-background-dim absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-in-out after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex',
+        'absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-in-out after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] after:bg-background-dim group-data-[side=left]:-right-4 group-data-[side=right]:left-0 sm:flex',
         '[[data-side=left]_&]:cursor-pointer [[data-side=right]_&]:cursor-pointer',
         '[[data-side=left][data-state=collapsed]_&]:cursor-pointer [[data-side=right][data-state=collapsed]_&]:cursor-pointer',
         'group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full',
@@ -423,6 +423,7 @@ const SidebarContent = React.forwardRef<
         'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden',
         className,
       )}
+      style={{ scrollbarGutter: 'stable' }}
       {...props}
     />
   );
@@ -476,7 +477,7 @@ const SidebarGroupAction = React.forwardRef<
       ref={ref}
       data-sidebar="group-action"
       className={cn(
-        'hover:bg-card-hover absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-xl p-0 text-foreground outline-none ring-primary transition-transform hover:text-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
+        'absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-xl p-0 text-foreground outline-none ring-primary transition-transform hover:bg-card-hover hover:text-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
         // Increases the hit area of the button on mobile.
         'after:absolute after:-inset-2 after:md:hidden',
         'group-data-[collapsible=icon]:hidden',
@@ -622,7 +623,7 @@ const SidebarMenuAction = React.forwardRef<
       ref={ref}
       data-sidebar="menu-action"
       className={cn(
-        'hover:bg-card-hover absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-xl p-0 text-foreground outline-none ring-primary transition-transform hover:text-foreground focus-visible:ring-2 peer-hover/menu-button:text-foreground [&>svg]:size-4 [&>svg]:shrink-0',
+        'absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-xl p-0 text-foreground outline-none ring-primary transition-transform hover:bg-card-hover hover:text-foreground focus-visible:ring-2 peer-hover/menu-button:text-foreground [&>svg]:size-4 [&>svg]:shrink-0',
         // Increases the hit area of the button on mobile.
         'after:absolute after:-inset-2 after:md:hidden',
         'peer-data-[size=sm]/menu-button:top-1',
@@ -738,7 +739,7 @@ const SidebarMenuSubButton = React.forwardRef<
       data-size={size}
       data-active={isActive}
       className={cn(
-        'hover:bg-card-hover active:bg-card-hover flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-xl px-2 text-foreground outline-none ring-primary hover:text-foreground focus-visible:ring-2 active:text-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-foreground',
+        'flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-xl px-2 text-foreground outline-none ring-primary hover:bg-card-hover hover:text-foreground focus-visible:ring-2 active:bg-card-hover active:text-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-foreground',
         'data-[active=true]:bg-card-hover data-[active=true]:text-foreground',
         size === 'sm' && 'text-xs',
         size === 'md' && 'text-sm',

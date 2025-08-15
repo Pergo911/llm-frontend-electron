@@ -632,7 +632,11 @@ export default function ChatPage({
   return (
     <div className="h-[calc(100vh-48px)]">
       <div className="flex h-full flex-col overflow-hidden rounded-t-3xl bg-background">
-        <div className="h-full overflow-y-auto" ref={scrollRef}>
+        <div
+          className="h-full overflow-y-auto"
+          ref={scrollRef}
+          style={{ scrollbarGutter: 'stable' }}
+        >
           <ChatTitle chat={chat} onPromptAdd={handleOnAddPrompt} />
           <Messages
             messages={chat.messages}
