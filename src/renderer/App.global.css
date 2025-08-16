@@ -38,7 +38,7 @@
     --secondary-foreground: hsl(113, 20%, 17%);
     --secondary-hover: hsl(103, 29%, 83%);
     --card: hsl(113, 20%, 17%);
-    --card-foreground: hsl(106, 35%, 86%);
+    --card-foreground: hsl(106, 0%, 86%);
     --card-hover: hsl(100, 0%, 16%);
     --primary: hsl(113, 39%, 72%);
     --primary-foreground: hsl(128, 73%, 13%);

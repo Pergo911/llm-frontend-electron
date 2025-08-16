@@ -351,9 +351,6 @@ const AssistantMessageComponent = React.memo(
     const shouldShowSpinner =
       streamingText === '' && streamingReasoningText === '';
 
-    // Trick to avoid space shrinking when no streaming text is present
-    if (streamingText === '') streamingText = '\u00A0';
-
     const shouldShowReasoning =
       m.choices[m.activeChoice].reasoning_details || streamingReasoningText;
 
@@ -385,9 +382,14 @@ const AssistantMessageComponent = React.memo(
                 remarkPlugins={[remarkGfm, remarkBreaks]}
                 className="markdown break-words px-4"
               >
+                {/* Show non-breaking space if empty */}
                 {streamingText || streamingReasoningText
-                  ? streamingText
-                  : m.choices[m.activeChoice].content}
+                  ? (streamingText ?? '').trim() === ''
+                    ? '\u00A0'
+                    : streamingText
+                  : m.choices[m.activeChoice].content.trim() === ''
+                    ? '\u00A0'
+                    : m.choices[m.activeChoice].content}
               </ReactMarkdown>
             </div>
           </ContextMenuTrigger>

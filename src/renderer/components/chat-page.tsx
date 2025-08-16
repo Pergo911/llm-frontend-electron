@@ -251,7 +251,7 @@ export default function ChatPage({
       const { error, messageId } = controller.chats.messages.add(
         chat.id,
         'assistant',
-        '\u00A0', // Non-breaking space to avoid empty content
+        '',
         undefined,
         modelSelection ? modelSelection[0].name : undefined,
       );
@@ -291,20 +291,11 @@ export default function ChatPage({
       setIsStreaming(false);
       abortRequestRef.current = null;
 
+      // Track whether we successfully wrote non-empty content to the message
+      let writeSucceeded = false;
+
       if (requestError) {
         setError(requestError);
-
-        // We errored so delete the message we just added
-        const { error: deleteError } = controller.chats.messages.delete(
-          chat.id,
-          messageId,
-        );
-
-        if (deleteError) {
-          setError(deleteError || "Couldn't delete message after error.");
-        }
-
-        return;
       }
 
       if (finalMessage || finalReasoning) {
@@ -317,21 +308,28 @@ export default function ChatPage({
 
         if (finalChatError) {
           setError(finalChatError || "Couldn't write response.");
-
-          // We errored so delete the message we just added
-          const { error: deleteError } = controller.chats.messages.delete(
-            chat.id,
-            messageId,
-          );
-
-          if (deleteError) {
-            setError(deleteError || "Couldn't delete message after error.");
-          }
+        } else if (
+          // Only mark success if something non-empty was actually produced
+          (finalMessage && finalMessage.length > 0) ||
+          (finalReasoning && finalReasoning.length > 0)
+        ) {
+          writeSucceeded = true;
         }
       }
 
       if (finishReason && !(finishReason === 'stop')) {
         toast.warning(`Unexpected finish reason: ${finishReason}`);
+      }
+
+      // Final cleanup: if the assistant message remains empty, remove it
+      if (!writeSucceeded || (!finalMessage && !finalReasoning)) {
+        const { error: deleteError } = controller.chats.messages.delete(
+          chat.id,
+          messageId,
+        );
+        if (deleteError) {
+          setError(deleteError || "Couldn't delete empty message.");
+        }
       }
     },
     [
@@ -380,7 +378,7 @@ export default function ChatPage({
       const { error } = controller.chats.messages.addChoice(
         chat.id,
         id,
-        '\u00A0', // Non-breaking space to avoid empty content
+        '',
         undefined,
         modelSelection ? modelSelection[0].name : undefined,
       );
@@ -418,16 +416,11 @@ export default function ChatPage({
       setIsStreaming(false);
       abortRequestRef.current = null;
 
+      // Track if we successfully wrote non-empty content to the new choice
+      let writeSucceeded = false;
+
       if (requestError) {
         setError(requestError);
-
-        // We errored out, remove newly created choice
-        controller.chats.messages.deleteChoice(chat.id, id);
-
-        if (activeChoice !== undefined)
-          controller.chats.messages.setChoice(chat.id, id, activeChoice);
-
-        return;
       }
 
       if (finalMessage) {
@@ -440,17 +433,23 @@ export default function ChatPage({
 
         if (finalChatError) {
           setError(finalChatError || "Couldn't write response.");
-
-          // We errored out, remove newly created choice
-          controller.chats.messages.deleteChoice(chat.id, id);
-
-          if (activeChoice !== undefined)
-            controller.chats.messages.setChoice(chat.id, id, activeChoice);
+        } else if (
+          (finalMessage && finalMessage.length > 0) ||
+          (finalReasoning && finalReasoning.length > 0)
+        ) {
+          writeSucceeded = true;
         }
       }
 
       if (finishReason && finishReason !== 'stop') {
         toast.warning(`Unexpected finish reason: ${finishReason}`);
+      }
+
+      // Final cleanup: if the newly added choice remains empty, remove it and restore previous active choice
+      if (!writeSucceeded || (!finalMessage && !finalReasoning)) {
+        controller.chats.messages.deleteChoice(chat.id, id);
+        if (activeChoice !== undefined)
+          controller.chats.messages.setChoice(chat.id, id, activeChoice);
       }
     },
     [chat.id, chat.messages, controller.chats.messages, modelSelection],
