@@ -112,6 +112,15 @@ export default function ChatPage({
     });
   }, []);
 
+  const scrollToTopInstant = useCallback(() => {
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({
+        top: 0,
+        behavior: 'instant',
+      });
+    });
+  }, []);
+
   const handleScroll = useCallback(() => {
     if (!scrollRef.current) return;
 
@@ -170,7 +179,9 @@ export default function ChatPage({
 
   // On navigation,
   useEffect(() => {
-    // update button visibility if needed (do not auto-scroll on load)
+    // reset scroll to top
+    scrollToTopInstant();
+    // and update button visibility if needed
     handleScroll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chat.id]);
