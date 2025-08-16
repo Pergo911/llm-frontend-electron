@@ -1,10 +1,10 @@
+/* eslint-disable no-nested-ternary */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { ResolvedFolder, SaveFileController } from '@/common/types';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
-import { cn } from '../utils/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { NewModal, NewModalRef } from './modal-new';
 import { useSidebar } from './ui/sidebar';
@@ -53,22 +53,40 @@ const NewButton = ({
     };
   }, [handleAdd, registerShortcut]);
 
+  if (sidebarOpen) {
+    // New button in sidebar
+    return (
+      <>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="default"
+              onClick={handleAdd}
+              className="h-12"
+            >
+              <Plus className="h-4 w-4 flex-shrink-0" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {sidebarPage === 'chat' ? 'New Chat' : 'New Prompt'}
+          </TooltipContent>
+        </Tooltip>
+        <NewModal ref={newModalRef} controller={controller} folders={folders} />
+      </>
+    );
+  }
+
+  // New button on top bar
   return (
     <>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button
-            variant="ghost"
-            size="default"
-            onClick={handleAdd}
-            className="h-12"
-          >
+          <Button variant="ghost" size="sm" onClick={handleAdd}>
             <Plus className="h-4 w-4 flex-shrink-0" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>
-          {sidebarPage === 'chat' ? 'New Chat' : 'New Prompt'}
-        </TooltipContent>
+        <TooltipContent>New</TooltipContent>
       </Tooltip>
       <NewModal ref={newModalRef} controller={controller} folders={folders} />
     </>
