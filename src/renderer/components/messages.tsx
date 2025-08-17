@@ -26,6 +26,7 @@ import {
   Scissors,
   ClipboardPaste,
   Edit2,
+  Paperclip,
 } from 'lucide-react';
 import React, {
   useCallback,
@@ -715,7 +716,7 @@ const PromptMessageComponent = React.memo(
                   variant="outline"
                   onClick={() => navigate(`/p/${m.promptId}`)}
                   className={cn(
-                    'group h-6 gap-0.5 rounded-md p-1 text-xs text-muted-foreground hover:text-foreground focus:text-foreground',
+                    'group h-6 gap-0.5 rounded-lg p-2 text-xs hover:text-foreground focus:text-foreground',
                     disabled && 'pointer-events-none opacity-50',
                   )}
                   aria-disabled={disabled}
@@ -777,6 +778,7 @@ const PromptMessageComponent = React.memo(
                 />
               </ContextMenuWithBarContent>
             </ContextMenu>
+            <Paperclip className="mr-2 h-4 w-4" />
           </div>
         </div>
       </div>

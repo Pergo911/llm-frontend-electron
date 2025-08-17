@@ -173,7 +173,7 @@ export function ChatsSidebarContent({
                           return (
                             <SidebarMenuButton isActive={isActive} asChild>
                               <div className="flex">
-                                <MessageCircle className="h-4 w-4" />
+                                {/* <MessageCircle className="h-4 w-4" /> */}
                                 <span className="truncate">{item.title}</span>
                               </div>
                             </SidebarMenuButton>
