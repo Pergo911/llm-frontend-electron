@@ -29,9 +29,8 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
 
   const autoHeight = () => {
     if (textareaRef.current === null) return;
-    const taStyle = textareaRef.current.style;
-    taStyle.height = 'auto';
-    taStyle.height = `${textareaRef.current.scrollHeight}px`;
+    textareaRef.current.style.height = 'auto';
+    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
   };
 
   useImperativeHandle(ref, () => ({
@@ -51,6 +50,9 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
 
           // Set initial height
           autoHeight();
+
+          // Scroll to bottom
+          textareaRef.current.scrollTop = textareaRef.current.scrollHeight;
         }
       });
 
@@ -97,9 +99,9 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
         <DialogHeader>
           <DialogTitle>Edit message</DialogTitle>
         </DialogHeader>
-        <div className="flex max-h-[350px] overflow-y-auto rounded-3xl bg-card-hover">
+        <div className="flex overflow-hidden rounded-3xl bg-card text-card-foreground">
           <TextareaWithContextMenu
-            className="min-h-0 resize-none border-none px-4 py-2 shadow-none focus:outline-none focus-visible:ring-0"
+            className="max-h-[350px] min-h-0 resize-none overflow-y-auto border-none px-4 py-2 shadow-none focus:outline-none focus-visible:ring-0"
             spellCheck="false"
             value={textareaValue}
             onChange={(e) => {

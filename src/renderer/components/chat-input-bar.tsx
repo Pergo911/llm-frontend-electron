@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { ChatInputBarActions } from '@/common/types';
 import { Button } from './ui/button';
-import TextareaWithContextMenu from './textarea-context-menu';
+import { TextareaWithContextMenu } from './textarea-context-menu';
 import { cn } from '../utils/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
