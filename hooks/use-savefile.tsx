@@ -14,8 +14,8 @@ import {
   SaveFile,
   SaveFileController,
   UserMessage,
-} from '@/common/types';
-import { generateUUID } from '@/common/uuid';
+} from '@/utils/types';
+import { generateUUID } from '@/utils/uuid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -1021,66 +1021,113 @@ const useSaveFile = (): {
     [saveFile, resolveSaveFile, handleWrite],
   );
 
-  const controller = useMemo<SaveFileController>(
+  // const controller = useMemo<SaveFileController>(
+  //   () => ({
+  //     saveFile: {
+  //       write: handleWrite,
+  //       reload: load,
+  //     },
+  //     chats: {
+  //       messages: {
+  //         add: addMessage,
+  //         addChoice: addMessageChoice,
+  //         setChoice: setMessageChoice,
+  //         delete: deleteMessage,
+  //         deleteChoice: deleteMessageChoice,
+  //         modify: modifyMessage,
+  //       },
+  //       add: addChat,
+  //       delete: deleteChat,
+  //       rename: renameChat,
+  //       duplicate: duplicateChat,
+  //     },
+  //     prompts: {
+  //       add: addPrompt,
+  //       delete: deletePrompt,
+  //       rename: renamePrompt,
+  //       duplicate: duplicatePrompt,
+  //       editContent: editPromptContent,
+  //       changeFolder: changePromptFolder,
+  //       changeType: changePromptType,
+  //     },
+  //     folders: {
+  //       add: addFolder,
+  //       delete: deleteFolder,
+  //       rename: renameFolder,
+  //     },
+  //   }),
+  //   [
+  //     addChat,
+  //     addFolder,
+  //     addMessage,
+  //     addMessageChoice,
+  //     addPrompt,
+  //     changePromptFolder,
+  //     changePromptType,
+  //     deleteChat,
+  //     deleteFolder,
+  //     deleteMessage,
+  //     deleteMessageChoice,
+  //     deletePrompt,
+  //     duplicateChat,
+  //     duplicatePrompt,
+  //     editPromptContent,
+  //     handleWrite,
+  //     load,
+  //     modifyMessage,
+  //     renameChat,
+  //     renameFolder,
+  //     renamePrompt,
+  //     setMessageChoice,
+  //   ],
+  // );
+
+const controller = useMemo<SaveFileController>(
     () => ({
       saveFile: {
-        write: handleWrite,
-        reload: load,
+        write: ()=>{},
+        reload: ()=>{},
       },
       chats: {
         messages: {
-          add: addMessage,
-          addChoice: addMessageChoice,
-          setChoice: setMessageChoice,
-          delete: deleteMessage,
-          deleteChoice: deleteMessageChoice,
-          modify: modifyMessage,
+          add: ()=>{},
+          addChoice: ()=>{},
+          setChoice: ()=>{},
+          delete: ()=>{},
+          deleteChoice: ()=>{},
+          modify: ()=>{},
         },
-        add: addChat,
-        delete: deleteChat,
-        rename: renameChat,
-        duplicate: duplicateChat,
+        add: ()=>{},
+        delete: ()=>{},
+        rename: ()=>{},
+        duplicate: ()=>{},
       },
       prompts: {
-        add: addPrompt,
-        delete: deletePrompt,
-        rename: renamePrompt,
-        duplicate: duplicatePrompt,
-        editContent: editPromptContent,
-        changeFolder: changePromptFolder,
-        changeType: changePromptType,
+        add: ()=>{},
+        delete: ()=>{},
+        rename: ()=>{},
+        duplicate: ()=>{},
+        editContent: ()=>{},
+        changeFolder: ()=>{},
+        changeType: ()=>{},
       },
       folders: {
-        add: addFolder,
-        delete: deleteFolder,
-        rename: renameFolder,
+        add: ()=>{},
+        delete: ()=>{},
+        rename: ()=>{},
       },
     }),
-    [
-      addChat,
-      addFolder,
-      addMessage,
-      addMessageChoice,
-      addPrompt,
-      changePromptFolder,
-      changePromptType,
-      deleteChat,
-      deleteFolder,
-      deleteMessage,
-      deleteMessageChoice,
-      deletePrompt,
-      duplicateChat,
-      duplicatePrompt,
-      editPromptContent,
-      handleWrite,
-      load,
-      modifyMessage,
-      renameChat,
-      renameFolder,
-      renamePrompt,
-      setMessageChoice,
-    ],
+    [],
   );
+
+  return {
+    loading: false,
+    chats: [],
+    prompts: [],
+    folders: [],
+    controller,
+    error: null,
+  };
 
   useEffect(() => {
     load();

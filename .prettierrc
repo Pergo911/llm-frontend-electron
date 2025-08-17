@@ -1,0 +1,13 @@
+{
+  "tabWidth": 2,
+  "useTabs": false,
+  "singleQuote": true,
+  "trailingComma": "es5",
+  "tailwindStylesheet": "./src/renderer/App.global.css",
+  "tailwindConfig": "./tailwind.config.js",
+  "tailwindFunctions": ["clsx", "tw"],
+  "tailwindAttributes": ["className", "class"],
+  "tailwindPreserveWhitespace": false,
+  "tailwindPreserveDuplicates": false,
+  "plugins": ["prettier-plugin-tailwindcss"]
+}

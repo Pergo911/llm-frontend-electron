@@ -1,90 +1,46 @@
-import { useEffect, useRef, useState, memo, useCallback } from 'react';
-import { Config } from '@/common/types';
-import { toast } from 'sonner';
-import { FileJson, Monitor, Moon, SettingsIcon, Sun } from 'lucide-react';
-import {
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
-import { Label } from './ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import { useTheme } from './theme-provider';
-import { Tabs, TabsList, TabsTrigger } from './ui/tabs';
-import { cn } from '../utils/utils';
+import { useEffect, useRef, useState, memo, useCallback } from "react";
+import { Config } from "@/utils/types";
+import { toast } from "sonner";
+import { FileJson, Monitor, Moon, SettingsIcon, Sun } from "lucide-react";
+import { DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
+import { Label } from "./ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Input } from "./ui/input";
+import { Button } from "./ui/button";
+import { useTheme } from "./theme-provider";
+import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
+import { cn } from "../utils/utils";
 
 export const SettingsModal = memo(
-  ({
-    triggerRefresh,
-    onSetOpen,
-    open,
-  }: {
-    triggerRefresh: () => void;
-    onSetOpen: (v: boolean) => void;
-    open: boolean;
-  }) => {
+  ({ triggerRefresh, onSetOpen, open }: { triggerRefresh: () => void; onSetOpen: (v: boolean) => void; open: boolean }) => {
     const { setTheme: setAppTheme } = useTheme();
-    const [theme, setTheme] = useState<Config['theme']>('system');
-    const [useLegacyRoleNames, setUseLegacyRoleNames] =
-      useState<Config['useLegacyRoleNames']>(false);
-    const [baseUrl, setBaseUrl] = useState<Config['baseUrl']>('');
-    const [apiKey, setApiKey] = useState<Config['apiKey']>('');
-    const [saveFilePath, setSaveFilePath] =
-      useState<Config['saveFilePath']>('');
+    const [theme, setTheme] = useState<Config["theme"]>("system");
+    const [useLegacyRoleNames, setUseLegacyRoleNames] = useState<Config["useLegacyRoleNames"]>(false);
+    const [baseUrl, setBaseUrl] = useState<Config["baseUrl"]>("");
+    const [apiKey, setApiKey] = useState<Config["apiKey"]>("");
+    const [saveFilePath, setSaveFilePath] = useState<Config["saveFilePath"]>("");
     const [configLoaded, setConfigLoaded] = useState(false);
 
-    const themeFailed = useRef<Config['theme']>('system');
+    const themeFailed = useRef<Config["theme"]>("system");
 
     const handleSave = useCallback(async () => {
       const e: Array<string | null> = [];
 
-      e.push(
-        (await window.electron.fileOperations.setConfig('theme', theme)).error,
-      );
+      e.push((await window.electron.fileOperations.setConfig("theme", theme)).error);
 
-      e.push(
-        (
-          await window.electron.fileOperations.setConfig(
-            'useLegacyRoleNames',
-            useLegacyRoleNames,
-          )
-        ).error,
-      );
+      e.push((await window.electron.fileOperations.setConfig("useLegacyRoleNames", useLegacyRoleNames)).error);
 
-      e.push(
-        (await window.electron.fileOperations.setConfig('baseUrl', baseUrl))
-          .error,
-      );
+      e.push((await window.electron.fileOperations.setConfig("baseUrl", baseUrl)).error);
 
-      e.push(
-        (await window.electron.fileOperations.setConfig('apiKey', apiKey))
-          .error,
-      );
+      e.push((await window.electron.fileOperations.setConfig("apiKey", apiKey)).error);
 
-      e.push(
-        (
-          await window.electron.fileOperations.setConfig(
-            'saveFilePath',
-            saveFilePath,
-          )
-        ).error,
-      );
+      e.push((await window.electron.fileOperations.setConfig("saveFilePath", saveFilePath)).error);
 
       // remove successful saves and duplicates
       const error = [...new Set(e.filter((a) => a != null))];
 
       if (error.length === 0) {
-        toast.success('Saved.');
+        toast.success("Saved.");
       } else {
         toast.error(`Failed to save settings: ${error.toString()}`);
         setAppTheme(themeFailed.current);
@@ -124,17 +80,17 @@ export const SettingsModal = memo(
       if (!open) return;
 
       const handleSaveWithCtrlEnter = (e: KeyboardEvent) => {
-        if (e.ctrlKey && e.key === 'Enter') {
+        if (e.ctrlKey && e.key === "Enter") {
           handleSaveClick();
           onSetOpen(false);
         }
       };
 
-      window.addEventListener('keydown', handleSaveWithCtrlEnter);
+      window.addEventListener("keydown", handleSaveWithCtrlEnter);
 
       // eslint-disable-next-line consistent-return
       return () => {
-        window.removeEventListener('keydown', handleSaveWithCtrlEnter);
+        window.removeEventListener("keydown", handleSaveWithCtrlEnter);
       };
     }, [configLoaded, handleSaveClick, onSetOpen, open]);
 
@@ -150,23 +106,16 @@ export const SettingsModal = memo(
           <div className="flex gap-2">
             <div className="flex flex-1 flex-col gap-2">
               <Label>System role name</Label>
-              <Select
-                value={useLegacyRoleNames ? 'true' : 'false'}
-                onValueChange={(value) =>
-                  setUseLegacyRoleNames(value === 'true')
-                }
-              >
+              <Select value={useLegacyRoleNames ? "true" : "false"} onValueChange={(value) => setUseLegacyRoleNames(value === "true")}>
                 <SelectTrigger className="w-52">
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="false">
-                    <span className="font-mono">&quot;developer&quot;</span>{' '}
-                    <span className="text-muted-foreground">(Default)</span>
+                    <span className="font-mono">&quot;developer&quot;</span> <span className="text-muted-foreground">(Default)</span>
                   </SelectItem>
                   <SelectItem value="true">
-                    <span className="font-mono">&quot;system&quot;</span>{' '}
-                    <span className="text-muted-foreground">(Legacy)</span>
+                    <span className="font-mono">&quot;system&quot;</span> <span className="text-muted-foreground">(Legacy)</span>
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -176,8 +125,8 @@ export const SettingsModal = memo(
               <Tabs
                 value={theme}
                 onValueChange={(v) => {
-                  setTheme(v as 'system' | 'light' | 'dark');
-                  setAppTheme(v as 'system' | 'light' | 'dark');
+                  setTheme(v as "system" | "light" | "dark");
+                  setAppTheme(v as "system" | "light" | "dark");
                 }}
               >
                 <TabsList>
@@ -196,41 +145,29 @@ export const SettingsModal = memo(
           </div>
           <div className="flex flex-col gap-2">
             <Label>Base URL</Label>
-            <Input
-              placeholder="API base URL"
-              value={baseUrl}
-              onChange={(e) => setBaseUrl(e.target.value)}
-            />
+            <Input placeholder="API base URL" value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label>API Key</Label>
-            <Input
-              type="password"
-              placeholder="Enter your API key"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-            />
+            <Input type="password" placeholder="Enter your API key" value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
           </div>
           <div className="flex flex-col gap-2">
             <Label>Savefile path</Label>
             <div className="flex gap-2">
               <div
                 className={cn(
-                  saveFilePath === '' && 'opacity-50',
-                  'flex h-9 w-full min-w-0 flex-[4] items-center rounded-xl border border-border bg-transparent px-3 py-1 shadow-sm transition-colors md:text-sm',
+                  saveFilePath === "" && "opacity-50",
+                  "flex h-9 w-full min-w-0 flex-[4] items-center rounded-xl border border-border bg-transparent px-3 py-1 shadow-sm transition-colors md:text-sm"
                 )}
               >
                 <FileJson className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">
-                  {saveFilePath === '' ? 'No savefile' : saveFilePath}
-                </span>
+                <span className="truncate">{saveFilePath === "" ? "No savefile" : saveFilePath}</span>
               </div>
               <Button
                 className="w-full flex-[1]"
                 variant="outline"
                 onClick={async () => {
-                  const { canceled, filePath } =
-                    await window.electron.fileOperations.openSaveFilePickerModal();
+                  const { canceled, filePath } = await window.electron.fileOperations.openSaveFilePickerModal();
 
                   if (!canceled && filePath) {
                     setSaveFilePath(filePath);
@@ -256,5 +193,5 @@ export const SettingsModal = memo(
         </DialogFooter>
       </DialogContent>
     );
-  },
+  }
 );

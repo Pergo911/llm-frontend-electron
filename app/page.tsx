@@ -2,7 +2,6 @@
 
 import { MemoryRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import "./globals.css";
-import "tailwindcss/tailwind.css";
 import { toast, Toaster } from "sonner";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ModelsController, OpenRouterModel, ResolvedChat, ResolvedFolder, ResolvedPrompt, SaveFileController } from "@/utils/types";
@@ -11,6 +10,15 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { SettingsModal } from "@/components/modal-settings";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/app-sidebar";
+import TitleBar from "@/components/title-bar";
+import ChatPage from "@/components/chat-page";
+import HomePage from "@/components/home-page";
+import PromptPage from "@/components/prompt-page";
+import { useModels } from "@/hooks/use-models";
+import useSaveFile from "@/hooks/use-savefile";
 
 function AppRoutes({
   chats,
@@ -93,23 +101,9 @@ function AppRoutes({
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("mousedown", handleMouseDown);
 
-    const nativeNavEvent = window.electron.onNavigateCommand((direction) => {
-      if (isStreaming) {
-        toast.warning("Can't navigate while generating.");
-        return;
-      }
-      if (direction === "back") {
-        // Use React Router's navigation
-        navigate(-1);
-      } else if (direction === "forward") {
-        navigate(1);
-      }
-    });
-
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("mousedown", handleMouseDown);
-      nativeNavEvent();
     };
   }, [navigate, isStreaming]);
 
@@ -179,35 +173,34 @@ export default function App() {
     <MemoryRouter>
       <ThemeProvider>
         <TooltipProvider skipDelayDuration={0}>
-          {/* {error || loading || saveFileMissing ? ( */}
-          <>
-            {/* Temporary drag handle bar until real titlebar not shown */}
-            <div className="draggable pointer-events-auto fixed left-0 right-0 top-0 z-50 h-[48px] bg-transparent" />
-            {/* Welcome screen shown when saveFile is loading or errored out */}
-            <div className="fixed inset-0 z-50 flex items-center justify-around bg-background">
-              <div>
-                {loading ? (
-                  <h2 className="animate-pulse text-3xl text-foreground">Loading your savefile...</h2>
-                ) : (
-                  <>
-                    <h2 className="text-3xl font-bold text-foreground">Welcome!</h2>
-                    <p className="my-2">We couldn&apos;t load a savefile. Please check your settings.</p>
-                  </>
-                )}
+          {error || loading || saveFileMissing ? (
+            <>
+              <div className="pointer-events-auto fixed left-0 right-0 top-0 z-50 h-[48px] bg-transparent" />
+              {/* Welcome screen shown when saveFile is loading or errored out */}
+              <div className="fixed inset-0 z-50 flex items-center justify-around bg-background">
+                <div>
+                  {loading ? (
+                    <h2 className="animate-pulse text-3xl text-foreground">Loading your savefile...</h2>
+                  ) : (
+                    <>
+                      <h2 className="text-3xl font-bold text-foreground">Welcome!</h2>
+                      <p className="my-2">We couldn&apos;t load a savefile. Please check your settings.</p>
+                    </>
+                  )}
+                </div>
+                <Dialog open={welcomeScreenSettingsOpen} onOpenChange={setWelcomeScreenSettingsOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="lg">Open Settings</Button>
+                  </DialogTrigger>
+                  <SettingsModal
+                    triggerRefresh={controller.saveFile.reload}
+                    onSetOpen={setWelcomeScreenSettingsOpen}
+                    open={welcomeScreenSettingsOpen}
+                  />
+                </Dialog>
               </div>
-              <Dialog open={welcomeScreenSettingsOpen} onOpenChange={setWelcomeScreenSettingsOpen}>
-                <DialogTrigger asChild>
-                  <Button size="lg">Open Settings</Button>
-                </DialogTrigger>
-                {/* <SettingsModal
-                  triggerRefresh={controller.saveFile.reload}
-                  onSetOpen={setWelcomeScreenSettingsOpen}
-                  open={welcomeScreenSettingsOpen}
-                /> */}
-              </Dialog>
-            </div>
-          </>
-          {/* ) : (
+            </>
+          ) : (
             <SidebarProvider>
               <AppSidebar
                 chats={chats}
@@ -241,7 +234,7 @@ export default function App() {
                 />
               </SidebarInset>
             </SidebarProvider>
-          )} */}
+          )}
         </TooltipProvider>
         <Toaster position="bottom-center" />
       </ThemeProvider>

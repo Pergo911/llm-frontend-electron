@@ -2,14 +2,7 @@
 /* eslint-disable promise/catch-or-return */
 /* eslint-disable camelcase */
 /* eslint-disable no-nested-ternary */
-import React, {
-  forwardRef,
-  memo,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-} from 'react';
+import React, { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo } from "react";
 import {
   ArrowLeft,
   Brain,
@@ -24,40 +17,20 @@ import {
   SlidersHorizontal,
   SquareTerminal,
   TriangleAlert,
-} from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import {
-  Chat,
-  ModelsController,
-  OpenRouterModel,
-  ResolvedChat,
-  ResolvedFolder,
-  ResolvedPrompt,
-  SaveFileController,
-} from '@/common/types';
-import { SidebarTrigger, useSidebar } from './ui/sidebar';
-import { Button } from './ui/button';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbList,
-  BreadcrumbSeparator,
-} from './ui/breadcrumb';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import NewButton from './new-button';
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from './ui/command';
-import { cn } from '../utils/utils';
-import { Input } from './ui/input';
-import { Slider } from './ui/slider';
+} from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Chat, ModelsController, OpenRouterModel, ResolvedChat, ResolvedFolder, ResolvedPrompt, SaveFileController } from "@/utils/types";
+import { SidebarTrigger, useSidebar } from "./ui/sidebar";
+import { Button } from "./ui/button";
+import { Breadcrumb, BreadcrumbItem, BreadcrumbList, BreadcrumbSeparator } from "./ui/breadcrumb";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import NewButton from "./new-button";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "./ui/command";
+import { cn } from "../utils/utils";
+import { Input } from "./ui/input";
+import { Slider } from "./ui/slider";
 
 const ModelSelector = memo(
   ({
@@ -87,7 +60,7 @@ const ModelSelector = memo(
 
         if (error) toast.error(error);
       },
-      [controller, models],
+      [controller, models]
     );
 
     const handleRefresh = useCallback(() => {
@@ -124,13 +97,7 @@ const ModelSelector = memo(
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
-              <Button
-                aria-label="Model selector"
-                role="combobox"
-                className="group/button non-draggable justify-start"
-                variant="ghost"
-                size="sm"
-              >
+              <Button aria-label="Model selector" role="combobox" className="group/button non-draggable justify-start" variant="ghost" size="sm">
                 {loading ? (
                   <Loader2 className="animate-spin text-muted-foreground repeat-infinite" />
                 ) : (
@@ -142,20 +109,12 @@ const ModelSelector = memo(
                       </>
                     )}
 
-                    {error ? (
-                      <CircleAlert className="text-red-600 dark:text-red-400" />
-                    ) : (
-                      <Brain />
-                    )}
+                    {error ? <CircleAlert className="text-red-600 dark:text-red-400" /> : <Brain />}
                   </div>
                 )}
 
                 <span className="hidden w-36 truncate text-left @xl/main:inline">
-                  {selectedModel
-                    ? selectedModel.name
-                    : loading
-                      ? 'Loading...'
-                      : 'No model selected!'}
+                  {selectedModel ? selectedModel.name : loading ? "Loading..." : "No model selected!"}
                 </span>
 
                 <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-foreground group-focus/button:text-foreground" />
@@ -169,21 +128,13 @@ const ModelSelector = memo(
                 <span className="font-bold">{selectedModel.name}</span>
               </>
             ) : (
-              'No model selected!'
+              "No model selected!"
             )}
           </TooltipContent>
         </Tooltip>
-        <PopoverContent
-          className="non-draggable w-[300px] p-0"
-          side="bottom"
-          align="end"
-        >
+        <PopoverContent className="non-draggable w-[300px] p-0" side="bottom" align="end">
           <Command>
-            <CommandInput
-              placeholder="Search models..."
-              disabled={!!error}
-              onRefreshClick={handleRefresh}
-            />
+            <CommandInput placeholder="Search models..." disabled={!!error} onRefreshClick={handleRefresh} />
             <CommandList className="flex h-[300px] flex-col">
               {!isContentReady ? (
                 <div className="flex h-[300px] items-center justify-center">
@@ -200,9 +151,7 @@ const ModelSelector = memo(
                           {error}
                           <br />
                         </div>
-                        <span className="text-xs">
-                          Check settings for insufficient configuration.
-                        </span>
+                        <span className="text-xs">Check settings for insufficient configuration.</span>
                       </>
                     ) : loading ? (
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -214,38 +163,19 @@ const ModelSelector = memo(
                     <CommandGroup>
                       {models.map((model) => {
                         return (
-                          <CommandItem
-                            key={model.id}
-                            value={model.id}
-                            onSelect={handleModelSelect}
-                            className="py-2"
-                          >
+                          <CommandItem key={model.id} value={model.id} onSelect={handleModelSelect} className="py-2">
                             {loading ? (
                               <Loader2
                                 className={cn(
-                                  'invisible mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-muted-foreground',
-                                  model.id === selectedModel?.id && 'visible',
+                                  "invisible mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-muted-foreground",
+                                  model.id === selectedModel?.id && "visible"
                                 )}
                               />
                             ) : (
-                              <Check
-                                className={cn(
-                                  'invisible mt-0.5 h-4 w-4 flex-shrink-0',
-                                  model.id === selectedModel?.id && 'visible',
-                                )}
-                              />
+                              <Check className={cn("invisible mt-0.5 h-4 w-4 flex-shrink-0", model.id === selectedModel?.id && "visible")} />
                             )}
-                            <span
-                              className={cn(
-                                model.id === selectedModel?.id && 'font-bold',
-                                'w-full truncate',
-                              )}
-                            >
-                              {model.name}
-                            </span>
-                            {model.reasoning && (
-                              <Lightbulb className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                            )}
+                            <span className={cn(model.id === selectedModel?.id && "font-bold", "w-full truncate")}>{model.name}</span>
+                            {model.reasoning && <Lightbulb className="h-4 w-4 flex-shrink-0 text-muted-foreground" />}
                           </CommandItem>
                         );
                       })}
@@ -258,7 +188,7 @@ const ModelSelector = memo(
         </PopoverContent>
       </Popover>
     );
-  },
+  }
 );
 
 const GenSettings = memo(() => {
@@ -271,13 +201,12 @@ const GenSettings = memo(() => {
   const [stop, setStop] = React.useState<string[] | null>(null);
   const [stopInvalid, setStopInvalid] = React.useState(false);
 
-  const [stopRaw, setStopRaw] = React.useState<string>('');
+  const [stopRaw, setStopRaw] = React.useState<string>("");
 
   const [error, setError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
 
-  const invalid =
-    max_tokensInvalid || top_pInvalid || temperatureInvalid || stopInvalid;
+  const invalid = max_tokensInvalid || top_pInvalid || temperatureInvalid || stopInvalid;
 
   useEffect(() => {
     const loadSettings = async () => {
@@ -286,7 +215,7 @@ const GenSettings = memo(() => {
       const { genSettings } = config;
 
       if (!genSettings) {
-        setError('Failed to load settings');
+        setError("Failed to load settings");
         return;
       }
 
@@ -294,9 +223,7 @@ const GenSettings = memo(() => {
       setTopP(genSettings.top_p);
       setTemperature(genSettings.temperature);
       setStop(genSettings.stop);
-      setStopRaw(
-        genSettings.stop.length !== 0 ? JSON.stringify(genSettings.stop) : '',
-      );
+      setStopRaw(genSettings.stop.length !== 0 ? JSON.stringify(genSettings.stop) : "");
     };
 
     if (loading) loadSettings().then(() => setLoading(false));
@@ -321,15 +248,12 @@ const GenSettings = memo(() => {
 
     // Stop sequences validation
     try {
-      if (stopRaw.trim() === '') {
+      if (stopRaw.trim() === "") {
         setStop(null);
         setStopInvalid(false);
       } else {
         const parsed = JSON.parse(stopRaw);
-        const isValid =
-          Array.isArray(parsed) &&
-          parsed.length <= 4 &&
-          parsed.every((item) => typeof item === 'string');
+        const isValid = Array.isArray(parsed) && parsed.length <= 4 && parsed.every((item) => typeof item === "string");
         setStopInvalid(!isValid);
         if (isValid) {
           setStop(parsed);
@@ -353,7 +277,7 @@ const GenSettings = memo(() => {
 
     const debounceTimer = setTimeout(() => {
       window.electron.fileOperations
-        .setConfig('genSettings', {
+        .setConfig("genSettings", {
           max_tokens,
           top_p,
           temperature,
@@ -376,12 +300,7 @@ const GenSettings = memo(() => {
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <Button
-              aria-label="Generation settings"
-              className="group/button non-draggable"
-              variant="ghost"
-              size="sm"
-            >
+            <Button aria-label="Generation settings" className="group/button non-draggable" variant="ghost" size="sm">
               <div className="relative">
                 {invalid && (
                   <>
@@ -396,27 +315,21 @@ const GenSettings = memo(() => {
           </PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent side="bottom" align="end">
-          {invalid ? `Invalid generation settings!` : 'Generation settings'}
+          {invalid ? `Invalid generation settings!` : "Generation settings"}
         </TooltipContent>
       </Tooltip>
-      <PopoverContent
-        className="non-draggable w-[300px] p-0"
-        side="bottom"
-        align="end"
-      >
+      <PopoverContent className="non-draggable w-[300px] p-0" side="bottom" align="end">
         <div className="flex flex-col gap-2 p-4">
           {/* Max tokens: int, default: 4096, min: 1 */}
           <div className="text-sm font-bold">
-            Max new tokens{' '}
-            <span className="font-normal text-muted-foreground">(1{'<'})</span>
+            Max new tokens <span className="font-normal text-muted-foreground">(1{"<"})</span>
           </div>
           <div className="flex gap-2">
             <Input
               type="number"
               className={cn(
-                'flex-[2]',
-                max_tokensInvalid &&
-                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+                "flex-[2]",
+                max_tokensInvalid && "border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400"
               )}
               value={max_tokens}
               onChange={(e) => setMaxTokens(Number(e.target.value))}
@@ -427,16 +340,14 @@ const GenSettings = memo(() => {
 
           {/* Temperature: float, default: 0.9, min: 0, max: 5 */}
           <div className="text-sm font-bold">
-            Temperature{' '}
-            <span className="font-normal text-muted-foreground">(0-5)</span>
+            Temperature <span className="font-normal text-muted-foreground">(0-5)</span>
           </div>
           <div className="flex gap-2">
             <Input
               type="number"
               className={cn(
-                'flex-[2]',
-                temperatureInvalid &&
-                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+                "flex-[2]",
+                temperatureInvalid && "border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400"
               )}
               value={temperature}
               onChange={(e) => setTemperature(Number(e.target.value))}
@@ -445,10 +356,7 @@ const GenSettings = memo(() => {
               step={0.1}
             />
             <Slider
-              className={cn(
-                'flex-[8]',
-                temperatureInvalid && 'text-red-600 dark:text-red-400',
-              )}
+              className={cn("flex-[8]", temperatureInvalid && "text-red-600 dark:text-red-400")}
               min={0}
               max={2}
               step={0.1}
@@ -459,16 +367,14 @@ const GenSettings = memo(() => {
 
           {/* Top P: float, default: 0.9, min: 0, max: 1 */}
           <div className="text-sm font-bold">
-            Top P{' '}
-            <span className="font-normal text-muted-foreground">(0-1)</span>
+            Top P <span className="font-normal text-muted-foreground">(0-1)</span>
           </div>
           <div className="flex gap-2">
             <Input
               type="number"
               className={cn(
-                'flex-[2]',
-                top_pInvalid &&
-                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+                "flex-[2]",
+                top_pInvalid && "border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400"
               )}
               min={0}
               max={1}
@@ -477,10 +383,7 @@ const GenSettings = memo(() => {
               step={0.1}
             />
             <Slider
-              className={cn(
-                'flex-[8]',
-                top_pInvalid && 'text-red-600 dark:text-red-400',
-              )}
+              className={cn("flex-[8]", top_pInvalid && "text-red-600 dark:text-red-400")}
               min={0}
               max={1}
               step={0.1}
@@ -491,18 +394,14 @@ const GenSettings = memo(() => {
 
           {/* Stop sequences: string[]; up to 4 items */}
           <div className="text-sm font-bold">
-            Stop sequences{' '}
-            <span className="font-normal text-muted-foreground">(max 4)</span>
+            Stop sequences <span className="font-normal text-muted-foreground">(max 4)</span>
           </div>
           <div className="flex gap-2">
             <Input
               placeholder='["\n", "You:"]'
               value={stopRaw}
               onChange={(e) => setStopRaw(e.target.value)}
-              className={cn(
-                stopInvalid &&
-                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
-              )}
+              className={cn(stopInvalid && "border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400")}
             />
           </div>
         </div>
@@ -528,31 +427,21 @@ const ChatBreadcrumb = ({ chatData }: { chatData: string | undefined }) => {
   );
 };
 
-const PromptBreadcrumb = ({
-  promptData,
-}: {
-  promptData:
-    | { folder: string; name: string; type: 'user-prompt' | 'system-prompt' }
-    | undefined;
-}) => {
+const PromptBreadcrumb = ({ promptData }: { promptData: { folder: string; name: string; type: "user-prompt" | "system-prompt" } | undefined }) => {
   return (
     <BreadcrumbList className="flex flex-nowrap">
       {/* Folder */}
       <BreadcrumbItem className="hidden max-w-40 @2xl/main:flex">
         <Folder className="h-4 w-4 flex-shrink-0" />
-        <span className="truncate">{promptData?.folder ?? ''}</span>
+        <span className="truncate">{promptData?.folder ?? ""}</span>
       </BreadcrumbItem>
 
       <BreadcrumbSeparator className="hidden @2xl/main:block" />
 
       {/* Ellipsis */}
       <BreadcrumbItem className="w-full min-w-0">
-        {promptData?.type === 'user-prompt' ? (
-          <Notebook className="h-4 w-4 flex-shrink-0" />
-        ) : (
-          <SquareTerminal className="h-4 w-4 flex-shrink-0" />
-        )}
-        <span className="truncate">{promptData?.name ?? ''}</span>
+        {promptData?.type === "user-prompt" ? <Notebook className="h-4 w-4 flex-shrink-0" /> : <SquareTerminal className="h-4 w-4 flex-shrink-0" />}
+        <span className="truncate">{promptData?.name ?? ""}</span>
       </BreadcrumbItem>
     </BreadcrumbList>
   );
@@ -588,69 +477,57 @@ type TitleBarProps = {
 };
 
 const TitleBar = memo(
-  ({
-    chats,
-    prompts,
-    folders,
-    modelsController,
-    saveFileController,
-    models,
-    loading,
-    modelsError,
-    isStreaming,
-  }: TitleBarProps) => {
+  ({ chats, prompts, folders, modelsController, saveFileController, models, loading, modelsError, isStreaming }: TitleBarProps) => {
     const navigation = useNavigate();
     const location = useLocation();
-    const [breadcrumbType, setBreadCrumbType] = React.useState<
-      'home' | 'chat' | 'prompt' | null
-    >(null);
+    const [breadcrumbType, setBreadCrumbType] = React.useState<"home" | "chat" | "prompt" | null>(null);
     const [chatData, setChatData] = React.useState<string | undefined>();
     const [promptData, setPromptData] = React.useState<
       | {
           folder: string;
           name: string;
-          type: 'user-prompt' | 'system-prompt';
+          type: "user-prompt" | "system-prompt";
         }
       | undefined
     >();
     const [error, setError] = React.useState<string | null>(null);
-    const sidebarClosed = useSidebar().state === 'collapsed';
+    const sidebarClosed = useSidebar().state === "collapsed";
 
     useEffect(() => {
       const loadData = () => {
-        const locList = location.pathname.split('/').filter((x) => x !== '');
+        const locList = location.pathname.split("/").filter((x) => x !== "");
         if (locList.length === 0) {
-          setBreadCrumbType('home');
+          setBreadCrumbType("home");
           return;
         }
-        if (locList.length === 2 && locList[0] === 'c') {
+        if (locList.length === 2 && locList[0] === "c") {
           const chat = chats.find((c) => c.id === locList[1]);
 
           if (!chat) {
-            setError(error || 'Chat not found');
+            setError(error || "Chat not found");
             return;
           }
-          setBreadCrumbType('chat');
+          setBreadCrumbType("chat");
           setChatData(chat.title);
           return;
         }
-        if (locList.length === 2 && locList[0] === 'p') {
+        if (locList.length === 2 && locList[0] === "p") {
           const prompt = prompts.find((p) => p.id === locList[1]);
 
           if (!prompt) {
-            setError(error || 'Prompt not found');
+            setError(error || "Prompt not found");
             return;
           }
 
-          setBreadCrumbType('prompt');
+          setBreadCrumbType("prompt");
           setPromptData({
-            folder: prompt.folder?.name ?? 'No folder',
+            folder: prompt.folder?.name ?? "No folder",
             name: prompt.title,
             type: prompt.type,
           });
           return;
         }
-        setError('Unknown URL');
+        setError("Unknown URL");
         setBreadCrumbType(null);
       };
       loadData();
@@ -668,41 +545,30 @@ const TitleBar = memo(
               onClick={() => {
                 navigation(-1);
               }}
-              disabled={location.key === 'default' || isStreaming}
+              disabled={location.key === "default" || isStreaming}
             >
               <ArrowLeft className="my-auto" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Back</TooltipContent>
         </Tooltip>
-        {sidebarClosed && (
-          <NewButton
-            controller={saveFileController}
-            folders={folders}
-            disabled={isStreaming}
-          />
-        )}
+        {sidebarClosed && <NewButton controller={saveFileController} folders={folders} disabled={isStreaming} />}
         <Breadcrumb className="mx-2 min-w-0 flex-1">
-          {breadcrumbType === 'home' ? (
+          {breadcrumbType === "home" ? (
             <HomeBreadcrumb />
-          ) : breadcrumbType === 'chat' ? (
+          ) : breadcrumbType === "chat" ? (
             <ChatBreadcrumb chatData={chatData} />
-          ) : breadcrumbType === 'prompt' ? (
+          ) : breadcrumbType === "prompt" ? (
             <PromptBreadcrumb promptData={promptData} />
           ) : (
             <ErrorOrLoadingBreadcrumb error={error} />
           )}
         </Breadcrumb>
-        <ModelSelector
-          controller={modelsController}
-          error={modelsError}
-          loading={loading}
-          models={models}
-        />
+        <ModelSelector controller={modelsController} error={modelsError} loading={loading} models={models} />
         <GenSettings />
       </div>
     );
-  },
+  }
 );
 
 export default TitleBar;

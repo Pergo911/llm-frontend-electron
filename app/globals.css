@@ -1,64 +1,63 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@plugin "tailwindcss-animate";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+:root {
+  --background: hsl(84, 0%, 96%);
+  --background-dim: hsl(80, 0%, 92%);
+  --foreground: hsl(100, 0%, 10%);
+  --secondary: hsl(111, 11%, 35%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  --secondary-hover: hsl(111, 9%, 43%);
+  --card: hsl(106, 35%, 86%);
+  --card-foreground: hsl(116, 35%, 9%);
+  --card-hover: hsl(80, 0%, 90%);
+  --primary: hsl(119, 29%, 32%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  --primary-hover: hsl(119, 23%, 40%);
+  --muted: hsl(225, 20%, 96%);
+  --muted-foreground: hsl(232, 3%, 47%);
+  --muted-hover: hsl(225, 7%, 88%);
+  --destructive: hsl(0, 75%, 42%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --destructive-hover: hsl(0, 63%, 49%);
+  --border: hsl(95, 0%, 76%);
+  --scrollbar: hsl(80, 11%, 84%);
+  --scrollbar-hover: hsl(80, 15%, 88%);
+  --radius: 0.5rem;
+  --selection: var(--primary-foreground);
+  --selection-bg: hsl(120, 17%, 65%);
+}
 
-  :root {
-    --background: hsl(84, 0%, 96%);
-    --background-dim: hsl(80, 0%, 92%);
-    --foreground: hsl(100, 0%, 10%);
-    --secondary: hsl(111, 11%, 35%);
-    --secondary-foreground: hsl(0, 0%, 100%);
-    --secondary-hover: hsl(111, 9%, 43%);
-    --card: hsl(106, 35%, 86%);
-    --card-foreground: hsl(116, 35%, 9%);
-    --card-hover: hsl(80, 0%, 90%);
-    --primary: hsl(119, 29%, 32%);
-    --primary-foreground: hsl(0, 0%, 100%);
-    --primary-hover: hsl(119, 23%, 40%);
-    --muted: hsl(225, 20%, 96%);
-    --muted-foreground: hsl(232, 3%, 47%);
-    --muted-hover: hsl(225, 7%, 88%);
-    --destructive: hsl(0, 75%, 42%);
-    --destructive-foreground: hsl(0, 0%, 100%);
-    --destructive-hover: hsl(0, 63%, 49%);
-    --border: hsl(95, 0%, 76%);
-    --scrollbar: hsl(80, 11%, 84%);
-    --scrollbar-hover: hsl(80, 15%, 88%);
-    --radius: 0.5rem;
-    --selection: var(--primary-foreground);
-    --selection-bg: hsl(120, 17%, 65%);
-  }
-
-  .dark {
-    --background: hsl(108, 0%, 7%);
-    --background-dim: hsl(100, 0%, 12%);
-    --foreground: hsl(87, 0%, 88%);
-    --secondary: hsl(103, 20%, 75%);
-    --secondary-foreground: hsl(113, 20%, 17%);
-    --secondary-hover: hsl(103, 29%, 83%);
-    --card: hsl(113, 20%, 17%);
-    --card-foreground: hsl(106, 0%, 86%);
-    --card-hover: hsl(100, 0%, 16%);
-    --primary: hsl(113, 39%, 72%);
-    --primary-foreground: hsl(128, 73%, 13%);
-    --primary-hover: hsl(113, 54%, 79%);
-    --muted: hsl(225, 20%, 96%);
-    --muted-foreground: hsl(232, 3%, 47%);
-    --muted-hover: hsl(210, 100%, 100%);
-    --destructive: hsl(0, 100%, 73%);
-    --destructive-foreground: hsl(357, 100%, 21%);
-    --destructive-hover: hsl(8, 100%, 87%);
-    --border: hsl(107, 0%, 27%);
-    --scrollbar: hsl(80, 4%, 61%);
-    --scrollbar-hover: hsl(80, 6%, 75%);
-    --radius: 0.5rem;
-    --selection: var(--primary-foreground);
-    --selection-bg: var(--primary);
-  }
+.dark {
+  --background: hsl(108, 0%, 7%);
+  --background-dim: hsl(100, 0%, 12%);
+  --foreground: hsl(87, 0%, 88%);
+  --secondary: hsl(103, 20%, 75%);
+  --secondary-foreground: hsl(113, 20%, 17%);
+  --secondary-hover: hsl(103, 29%, 83%);
+  --card: hsl(113, 20%, 17%);
+  --card-foreground: hsl(106, 0%, 86%);
+  --card-hover: hsl(100, 0%, 16%);
+  --primary: hsl(113, 39%, 72%);
+  --primary-foreground: hsl(128, 73%, 13%);
+  --primary-hover: hsl(113, 54%, 79%);
+  --muted: hsl(225, 20%, 96%);
+  --muted-foreground: hsl(232, 3%, 47%);
+  --muted-hover: hsl(210, 100%, 100%);
+  --destructive: hsl(0, 100%, 73%);
+  --destructive-foreground: hsl(357, 100%, 21%);
+  --destructive-hover: hsl(8, 100%, 87%);
+  --border: hsl(107, 0%, 27%);
+  --scrollbar: hsl(80, 4%, 61%);
+  --scrollbar-hover: hsl(80, 6%, 75%);
+  --radius: 0.5rem;
+  --selection: var(--primary-foreground);
+  --selection-bg: var(--primary);
+}
 
 @layer base {
   * {

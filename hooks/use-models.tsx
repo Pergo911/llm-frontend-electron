@@ -1,6 +1,6 @@
-import { ModelsController, OpenRouterModel } from '@/common/types';
-import { useCallback, useEffect, useState } from 'react';
-import { OpenAIHandler } from '../utils/openai';
+import { ModelsController, OpenRouterModel } from "@/utils/types";
+import { useCallback, useEffect, useState } from "react";
+import { OpenAIHandler } from "../utils/openai";
 
 export const useModels = (): {
   controller: ModelsController;
@@ -10,9 +10,7 @@ export const useModels = (): {
   error: string | null;
 } => {
   const [models, setModels] = useState<OpenRouterModel[] | null>(null);
-  const [modelSelection, setModelSelection] = useState<
-    OpenRouterModel[] | null
-  >(null);
+  const [modelSelection, setModelSelection] = useState<OpenRouterModel[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +26,7 @@ export const useModels = (): {
 
       const rawList = (await openAI.models.list()).data.map((m) => {
         // @ts-ignore
-        const reasoning = m.supported_parameters.includes('reasoning');
+        const reasoning = m.supported_parameters.includes("reasoning");
         return {
           id: m.id,
           // @ts-ignore
@@ -43,9 +41,7 @@ export const useModels = (): {
       const storedModels = config.modelSelection;
 
       // Remove stored models that are no longer available
-      const models = storedModels.filter((m) =>
-        rawList.some((r) => r.id === m.id),
-      );
+      const models = storedModels.filter((m) => rawList.some((r) => r.id === m.id));
 
       // Add new models to the list
       rawList.forEach((m) => {
@@ -58,10 +54,7 @@ export const useModels = (): {
       // If no model is read from config, select one
       if (storedModels.length === 0) {
         storedModels.push(models[0]);
-        const { error } = await window.electron.fileOperations.setConfig(
-          'modelSelection',
-          [...storedModels],
-        );
+        const { error } = await window.electron.fileOperations.setConfig("modelSelection", [...storedModels]);
 
         if (error) throw new Error(error);
       }
@@ -90,13 +83,11 @@ export const useModels = (): {
   const select = useCallback(
     async (model: OpenRouterModel): Promise<{ error: string | null }> => {
       if (!modelSelection || !models) {
-        return { error: 'Model selection or models not loaded' };
+        return { error: "Model selection or models not loaded" };
       }
 
       // Remove model from current position if it exists
-      const modelSelectionIndex = modelSelection.findIndex(
-        (m) => m.id === model.id,
-      );
+      const modelSelectionIndex = modelSelection.findIndex((m) => m.id === model.id);
       const modelsIndex = models.findIndex((m) => m.id === model.id);
 
       if (modelSelectionIndex !== -1) {
@@ -118,10 +109,7 @@ export const useModels = (): {
       setModels([...models]);
 
       // Update config
-      const { error } = await window.electron.fileOperations.setConfig(
-        'modelSelection',
-        [...modelSelection],
-      );
+      const { error } = await window.electron.fileOperations.setConfig("modelSelection", [...modelSelection]);
 
       if (error) {
         return { error };
@@ -132,13 +120,13 @@ export const useModels = (): {
 
       return { error: null };
     },
-    [modelSelection, models],
+    [modelSelection, models]
   );
 
   const toggleReasoningPreference = useCallback(
     async (enabled: boolean): Promise<{ error: string | null }> => {
       if (!modelSelection || !models) {
-        return { error: 'Model selection or models not loaded' };
+        return { error: "Model selection or models not loaded" };
       }
 
       modelSelection[0].reasoning_preference = enabled;
@@ -146,10 +134,7 @@ export const useModels = (): {
 
       setModels([...models]);
 
-      const { error } = await window.electron.fileOperations.setConfig(
-        'modelSelection',
-        [...modelSelection],
-      );
+      const { error } = await window.electron.fileOperations.setConfig("modelSelection", [...modelSelection]);
 
       if (error) {
         return { error };
@@ -159,7 +144,7 @@ export const useModels = (): {
       setModelSelection([...modelSelection]);
       return { error: null };
     },
-    [modelSelection, models],
+    [modelSelection, models]
   );
 
   const controller: ModelsController = {

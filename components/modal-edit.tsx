@@ -1,20 +1,7 @@
-import {
-  useState,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-  useEffect,
-} from 'react';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/renderer/components/ui/dialog';
-import { Button } from './ui/button';
-import { TextareaWithContextMenu } from './textarea-context-menu';
+import { useState, useRef, forwardRef, useImperativeHandle, useEffect } from "react";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "./ui/button";
+import { TextareaWithContextMenu } from "./textarea-context-menu";
 
 export interface EditMessageModalRef {
   promptUser: (initialValue: string) => Promise<string | null>;
@@ -25,11 +12,11 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
   const resolveRef = useRef<(value: string | null) => void>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [textareaValue, setTextareValue] = useState('');
+  const [textareaValue, setTextareValue] = useState("");
 
   const autoHeight = () => {
     if (textareaRef.current === null) return;
-    textareaRef.current.style.height = 'auto';
+    textareaRef.current.style.height = "auto";
     textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
   };
 
@@ -43,10 +30,7 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
           textareaRef.current.focus();
 
           // Caret at end of text
-          textareaRef.current.setSelectionRange(
-            initialValue.length,
-            initialValue.length,
-          );
+          textareaRef.current.setSelectionRange(initialValue.length, initialValue.length);
 
           // Set initial height
           autoHeight();
@@ -87,10 +71,10 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
   useEffect(() => {
     if (isOpen) {
       requestAnimationFrame(() => {
-        document.body.style.pointerEvents = '';
+        document.body.style.pointerEvents = "";
       });
     }
-    document.body.style.pointerEvents = 'auto';
+    document.body.style.pointerEvents = "auto";
   }, [isOpen]);
 
   return (
@@ -114,7 +98,7 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
             }}
             ref={textareaRef}
             onKeyDown={(e) => {
-              if (e.ctrlKey && e.key === 'Enter') {
+              if (e.ctrlKey && e.key === "Enter") {
                 e.preventDefault();
                 handleConfirm();
               }
@@ -142,6 +126,6 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
   );
 });
 
-EditMessageModal.displayName = 'EditMessageModal';
+EditMessageModal.displayName = "EditMessageModal";
 
 export { EditMessageModal };

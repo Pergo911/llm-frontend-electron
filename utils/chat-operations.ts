@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
-import { RequestMessage, ResolvedChat, OpenRouterModel } from '@/common/types';
-import { OpenAIHandler } from './openai';
+import { RequestMessage, ResolvedChat, OpenRouterModel } from "@/utils/types";
+import { OpenAIHandler } from "./openai";
 
 /**
  * Converts chat messages into a format suitable for API requests
@@ -8,7 +8,7 @@ import { OpenAIHandler } from './openai';
  * @returns Promise containing either the formatted messages or an error
  */
 const buildRequestMessages = async (
-  messageData: ResolvedChat['messages'],
+  messageData: ResolvedChat["messages"]
 ): Promise<{
   resultMessages: RequestMessage[] | null;
   error: string | null;
@@ -16,26 +16,21 @@ const buildRequestMessages = async (
   try {
     // New role name for system messages for official OpenAI API is 'developer'
     // For legacy API, it's 'system'
-    const { useLegacyRoleNames } =
-      await window.electron.fileOperations.getConfig();
-    const systemRole = useLegacyRoleNames ? 'system' : 'developer';
+    const { useLegacyRoleNames } = await window.electron.fileOperations.getConfig();
+    const systemRole = useLegacyRoleNames ? "system" : "developer";
 
     const converted = messageData.map((m): RequestMessage | null => {
       const role =
         // eslint-disable-next-line no-nested-ternary
-        m.messageType === 'user' || m.messageType === 'assistant'
-          ? m.messageType
-          : m.messageType === 'user-prompt'
-            ? 'user'
-            : systemRole;
+        m.messageType === "user" || m.messageType === "assistant" ? m.messageType : m.messageType === "user-prompt" ? "user" : systemRole;
 
       let content: string;
       let reasoning_details: string | undefined;
 
-      if (m.messageType === 'assistant') {
+      if (m.messageType === "assistant") {
         content = m.choices[m.activeChoice].content;
         reasoning_details = m.choices[m.activeChoice].reasoning_details;
-      } else if (m.messageType === 'user') {
+      } else if (m.messageType === "user") {
         content = m.content;
       } else {
         if (!m.content) return null;
@@ -63,7 +58,7 @@ const buildRequestMessages = async (
       return acc;
     }, []);
 
-    if (resultMessages[resultMessages.length - 1].role === 'assistant') {
+    if (resultMessages[resultMessages.length - 1].role === "assistant") {
       throw new Error("Last message can't be an assistant message.");
     }
 
@@ -83,28 +78,16 @@ const buildRequestMessages = async (
 const streamingRequest = async (
   messages: RequestMessage[],
   onNewToken: (newToken?: string, newReasoningToken?: string) => void,
-  abortSignal?: AbortSignal,
+  abortSignal?: AbortSignal
 ): Promise<{
   finalMessage: string | null;
   finalReasoning: string | null;
-  finishReason:
-    | 'stop'
-    | 'length'
-    | 'tool_calls'
-    | 'content_filter'
-    | 'function_call'
-    | null;
+  finishReason: "stop" | "length" | "tool_calls" | "content_filter" | "function_call" | null;
   error: string | null;
 }> => {
-  let finalMessage = '';
-  let finalReasoning = '';
-  let finishReason:
-    | 'stop'
-    | 'length'
-    | 'tool_calls'
-    | 'content_filter'
-    | 'function_call'
-    | null = null;
+  let finalMessage = "";
+  let finalReasoning = "";
+  let finishReason: "stop" | "length" | "tool_calls" | "content_filter" | "function_call" | null = null;
 
   try {
     const config = await window.electron.fileOperations.getConfig();
@@ -125,13 +108,13 @@ const streamingRequest = async (
           enabled: config.modelSelection[0].reasoning_preference,
         },
       },
-      { signal: abortSignal },
+      { signal: abortSignal }
     );
 
     // eslint-disable-next-line no-restricted-syntax
     for await (const chunk of completion) {
-      let content = '';
-      let reasoning = '';
+      let content = "";
+      let reasoning = "";
 
       // @ts-ignore
       if (chunk.choices[0].delta.reasoning) {

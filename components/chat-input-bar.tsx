@@ -10,7 +10,7 @@ import {
   Square,
   User2,
 } from 'lucide-react';
-import { ChatInputBarActions } from '@/common/types';
+import { ChatInputBarActions } from '@/utils/types';
 import { Button } from './ui/button';
 import { TextareaWithContextMenu } from './textarea-context-menu';
 import { cn } from '../utils/utils';

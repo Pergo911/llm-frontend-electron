@@ -1,27 +1,11 @@
-import {
-  useState,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-  useEffect,
-} from 'react';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/renderer/components/ui/dialog';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { cn, isInvalid } from '../utils/utils';
+import { useState, useRef, forwardRef, useImperativeHandle, useEffect } from "react";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { cn, isInvalid } from "../utils/utils";
 
 export interface RenameModalRef {
-  promptUser: (
-    itemType: 'chat' | 'prompt' | 'folder',
-    initialValue: string,
-  ) => Promise<string | null>;
+  promptUser: (itemType: "chat" | "prompt" | "folder", initialValue: string) => Promise<string | null>;
 }
 
 const RenameModal = forwardRef<RenameModalRef>((_, ref) => {
@@ -29,26 +13,23 @@ const RenameModal = forwardRef<RenameModalRef>((_, ref) => {
   const resolveRef = useRef<(value: string | null) => void>();
   const textareaRef = useRef<HTMLInputElement>(null);
 
-  const [textareaValue, setTextareValue] = useState('');
-  const [headerText, setHeaderText] = useState('');
+  const [textareaValue, setTextareValue] = useState("");
+  const [headerText, setHeaderText] = useState("");
   const [invalid, setInvalid] = useState(false);
 
   useImperativeHandle(ref, () => ({
-    promptUser: (
-      itemType: 'chat' | 'prompt' | 'folder',
-      initialValue: string,
-    ) => {
+    promptUser: (itemType: "chat" | "prompt" | "folder", initialValue: string) => {
       setTextareValue(initialValue);
 
       switch (itemType) {
-        case 'chat':
-          setHeaderText('Edit chat name');
+        case "chat":
+          setHeaderText("Edit chat name");
           break;
-        case 'prompt':
-          setHeaderText('Edit prompt name');
+        case "prompt":
+          setHeaderText("Edit prompt name");
           break;
-        case 'folder':
-          setHeaderText('Edit folder name');
+        case "folder":
+          setHeaderText("Edit folder name");
           break;
 
         default:
@@ -98,10 +79,10 @@ const RenameModal = forwardRef<RenameModalRef>((_, ref) => {
   useEffect(() => {
     if (isOpen) {
       requestAnimationFrame(() => {
-        document.body.style.pointerEvents = '';
+        document.body.style.pointerEvents = "";
       });
     }
-    document.body.style.pointerEvents = 'auto';
+    document.body.style.pointerEvents = "auto";
   }, [isOpen]);
 
   return (
@@ -112,14 +93,14 @@ const RenameModal = forwardRef<RenameModalRef>((_, ref) => {
         </DialogHeader>
         <Input
           spellCheck="false"
-          className={cn(invalid && 'border-red-500 focus-visible:ring-red-500')}
+          className={cn(invalid && "border-red-500 focus-visible:ring-red-500")}
           value={textareaValue}
           onChange={(e) => {
             setTextareValue(e.target.value);
           }}
           ref={textareaRef}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') {
+            if (e.key === "Enter") {
               e.preventDefault();
               handleConfirm();
             }
@@ -140,6 +121,6 @@ const RenameModal = forwardRef<RenameModalRef>((_, ref) => {
   );
 });
 
-RenameModal.displayName = 'RenameModal';
+RenameModal.displayName = "RenameModal";
 
 export { RenameModal };

@@ -1,5 +1,5 @@
-import { Config } from '@/common/types';
-import OpenAI from 'openai';
+import { Config } from "@/utils/types";
+import OpenAI from "openai";
 
 let openAI: OpenAI | undefined;
 let config: Config | undefined;
@@ -13,12 +13,7 @@ export const OpenAIHandler = {
   get: async () => {
     const newConfig = await window.electron.fileOperations.getConfig();
 
-    if (
-      !openAI ||
-      !config ||
-      config.apiKey !== newConfig.apiKey ||
-      config.baseUrl !== newConfig.baseUrl
-    ) {
+    if (!openAI || !config || config.apiKey !== newConfig.apiKey || config.baseUrl !== newConfig.baseUrl) {
       config = newConfig;
       openAI = new OpenAI({
         baseURL: config.baseUrl,

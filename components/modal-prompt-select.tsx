@@ -1,45 +1,18 @@
 /* eslint-disable no-nested-ternary */
-import {
-  useState,
-  useRef,
-  forwardRef,
-  useImperativeHandle,
-  useEffect,
-} from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/renderer/components/ui/dialog';
-import {
-  Folder,
-  Minus,
-  Notebook,
-  Plus,
-  Search,
-  SquareTerminal,
-} from 'lucide-react';
-import { ResolvedFolder } from '@/common/types';
-import { Button } from './ui/button';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from './ui/collapsible';
-import {
-  SidebarMenuButton,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from './ui/sidebar';
-import { Input } from './ui/input';
-import { cn } from '../utils/utils';
+import { useState, useRef, forwardRef, useImperativeHandle, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Folder, Minus, Notebook, Plus, Search, SquareTerminal } from "lucide-react";
+import { ResolvedFolder } from "@/utils/types";
+import { Button } from "./ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { SidebarMenuButton, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem } from "./ui/sidebar";
+import { Input } from "./ui/input";
+import { cn } from "../utils/utils";
 
 export interface PromptSelectModalRef {
   promptUser: () => Promise<{
     id: string;
-    type: 'user-prompt' | 'system-prompt';
+    type: "user-prompt" | "system-prompt";
   } | null>;
 }
 
@@ -47,21 +20,13 @@ type PromptSelectModalProps = {
   folders: ResolvedFolder[];
 };
 
-const PromptSelectModal = forwardRef<
-  PromptSelectModalRef,
-  PromptSelectModalProps
->(({ folders }, ref) => {
+const PromptSelectModal = forwardRef<PromptSelectModalRef, PromptSelectModalProps>(({ folders }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchValue, setSearchValue] = useState<string>('');
+  const [searchValue, setSearchValue] = useState<string>("");
   const [foldersFiltered, setFoldersFiltered] = useState<ResolvedFolder[]>([]);
   const [hasResults, setHasResults] = useState(true);
 
-  const resolveRef =
-    useRef<
-      (
-        value: { id: string; type: 'user-prompt' | 'system-prompt' } | null,
-      ) => void
-    >();
+  const resolveRef = useRef<(value: { id: string; type: "user-prompt" | "system-prompt" } | null) => void>();
 
   useImperativeHandle(ref, () => ({
     promptUser: () => {
@@ -69,7 +34,7 @@ const PromptSelectModal = forwardRef<
 
       return new Promise<{
         id: string;
-        type: 'user-prompt' | 'system-prompt';
+        type: "user-prompt" | "system-prompt";
       } | null>((resolve) => {
         resolveRef.current = resolve;
       });
@@ -83,10 +48,8 @@ const PromptSelectModal = forwardRef<
     setFoldersFiltered(
       folders.map((f) => ({
         ...f,
-        items: f.items.filter((p) =>
-          p.title.toLocaleLowerCase().includes(searchValue.toLocaleLowerCase()),
-        ),
-      })),
+        items: f.items.filter((p) => p.title.toLocaleLowerCase().includes(searchValue.toLocaleLowerCase())),
+      }))
     );
   }, [folders, searchValue]);
 
@@ -101,7 +64,7 @@ const PromptSelectModal = forwardRef<
     resolveRef.current = undefined;
   };
 
-  const handleConfirm = (id: string, type: 'user-prompt' | 'system-prompt') => {
+  const handleConfirm = (id: string, type: "user-prompt" | "system-prompt") => {
     resolveRef.current?.({ id, type });
     setIsOpen(false);
     resolveRef.current = undefined;
@@ -118,10 +81,10 @@ const PromptSelectModal = forwardRef<
   useEffect(() => {
     if (isOpen) {
       requestAnimationFrame(() => {
-        document.body.style.pointerEvents = '';
+        document.body.style.pointerEvents = "";
       });
     }
-    document.body.style.pointerEvents = 'auto';
+    document.body.style.pointerEvents = "auto";
   }, [isOpen]);
 
   return (
@@ -144,14 +107,7 @@ const PromptSelectModal = forwardRef<
           <div className="flex h-[300px] flex-col gap-0.5 overflow-y-auto">
             {foldersFiltered.map((f) => {
               return (
-                <Collapsible
-                  key={f.id}
-                  className={cn(
-                    'group/collapsible',
-                    f.items.length === 0 ? 'hidden' : '',
-                  )}
-                  defaultOpen
-                >
+                <Collapsible key={f.id} className={cn("group/collapsible", f.items.length === 0 ? "hidden" : "")} defaultOpen>
                   <CollapsibleTrigger className="w-full" asChild>
                     <SidebarMenuButton>
                       <div className="flex items-center gap-2">
@@ -176,16 +132,10 @@ const PromptSelectModal = forwardRef<
                                 }}
                               >
                                 <div className="flex items-center text-sm">
-                                  {p.type === 'user-prompt' ? (
-                                    <Notebook className="mr-2 h-4 w-4" />
-                                  ) : (
-                                    <SquareTerminal className="mr-2 h-4 w-4" />
-                                  )}
+                                  {p.type === "user-prompt" ? <Notebook className="mr-2 h-4 w-4" /> : <SquareTerminal className="mr-2 h-4 w-4" />}
                                   {p.title}
                                 </div>
-                                <div className="hidden text-sm font-bold text-muted-foreground group-hover/sub:block group-focus/sub:block">
-                                  Add
-                                </div>
+                                <div className="hidden text-sm font-bold text-muted-foreground group-hover/sub:block group-focus/sub:block">Add</div>
                               </Button>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
@@ -198,15 +148,13 @@ const PromptSelectModal = forwardRef<
             })}
           </div>
         ) : (
-          <div className="flex h-[300px] items-center justify-center text-muted-foreground">
-            No prompts found
-          </div>
+          <div className="flex h-[300px] items-center justify-center text-muted-foreground">No prompts found</div>
         )}
       </DialogContent>
     </Dialog>
   );
 });
 
-PromptSelectModal.displayName = 'PromptSelectModal';
+PromptSelectModal.displayName = "PromptSelectModal";
 
 export { PromptSelectModal };

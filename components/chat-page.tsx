@@ -13,7 +13,7 @@ import {
   ResolvedFolder,
   ResolvedPrompt,
   SaveFileController,
-} from '@/common/types';
+} from '@/utils/types';
 import { ArrowDown } from 'lucide-react';
 import { toast } from 'sonner';
 import ChatInputBar from './chat-input-bar';

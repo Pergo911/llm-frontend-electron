@@ -9,37 +9,14 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-} from '@/renderer/components/ui/sidebar';
-import {
-  Minus,
-  Plus,
-  MessageCircle,
-  Notebook,
-  Folder,
-  SquareTerminal,
-  MoreHorizontal,
-  Trash2,
-  Edit2,
-  Copy,
-  Layers2,
-  Tag,
-} from 'lucide-react';
-import {
-  Chat,
-  ResolvedChat,
-  Folder as FolderType,
-  ResolvedFolder,
-  SaveFileController,
-} from '@/common/types';
-import { NavLink, useNavigate } from 'react-router-dom';
-import React, { useCallback, useRef } from 'react';
-import { toast } from 'sonner';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from './ui/collapsible';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
+} from "@/components/ui/sidebar";
+import { Minus, Plus, MessageCircle, Notebook, Folder, SquareTerminal, MoreHorizontal, Trash2, Edit2, Copy, Layers2, Tag } from "lucide-react";
+import { Chat, ResolvedChat, Folder as FolderType, ResolvedFolder, SaveFileController } from "@/utils/types";
+import { NavLink, useNavigate } from "react-router-dom";
+import React, { useCallback, useRef } from "react";
+import { toast } from "sonner";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -49,23 +26,15 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu';
-import { RenameModal, RenameModalRef } from './modal-rename';
-import { Button } from './ui/button';
-import { DeleteModal, DeleteModalRef } from './modal-delete';
-import { cn } from '../utils/utils';
+} from "./ui/dropdown-menu";
+import { RenameModal, RenameModalRef } from "./modal-rename";
+import { Button } from "./ui/button";
+import { DeleteModal, DeleteModalRef } from "./modal-delete";
+import { cn } from "../utils/utils";
 
 const TOOLTIP_DELAY = 700;
 
-export function ChatsSidebarContent({
-  chats,
-  controller,
-  disabled,
-}: {
-  chats: ResolvedChat[];
-  controller: SaveFileController;
-  disabled?: boolean;
-}) {
+export function ChatsSidebarContent({ chats, controller, disabled }: { chats: ResolvedChat[]; controller: SaveFileController; disabled?: boolean }) {
   const navigate = useNavigate();
   const handleNavClick = useCallback(
     (e: React.MouseEvent) => {
@@ -75,7 +44,7 @@ export function ChatsSidebarContent({
         toast.warning("Can't navigate while generating.");
       }
     },
-    [disabled],
+    [disabled]
   );
   const renameModalRef = useRef<RenameModalRef>(null);
   const deleteModalRef = useRef<DeleteModalRef>(null);
@@ -84,7 +53,7 @@ export function ChatsSidebarContent({
     async (id: string) => {
       if (disabled) return;
       if (!deleteModalRef.current) {
-        toast.error('Delete modal not found.');
+        toast.error("Delete modal not found.");
         return;
       }
 
@@ -97,25 +66,25 @@ export function ChatsSidebarContent({
       const { error } = controller.chats.delete(id);
       if (error) toast.error(error);
     },
-    [controller.chats, disabled],
+    [controller.chats, disabled]
   );
 
   const handleDeleteClick = useCallback(
     (id: string) => () => {
       handleDelete(id);
     },
-    [handleDelete],
+    [handleDelete]
   );
 
   const handleRename = useCallback(
     async (id: string, title: string) => {
       if (disabled) return;
       if (!renameModalRef.current) {
-        toast.error('Rename modal not found.');
+        toast.error("Rename modal not found.");
         return;
       }
 
-      const newName = await renameModalRef.current.promptUser('chat', title);
+      const newName = await renameModalRef.current.promptUser("chat", title);
 
       if (!newName) {
         return;
@@ -124,14 +93,14 @@ export function ChatsSidebarContent({
       const { error } = controller.chats.rename(id, newName);
       if (error) toast.error(error);
     },
-    [controller.chats, disabled],
+    [controller.chats, disabled]
   );
 
   const handleRenameClick = useCallback(
     (id: string, title: string) => () => {
       handleRename(id, title);
     },
-    [handleRename],
+    [handleRename]
   );
 
   const handleCopyID = useCallback(
@@ -139,14 +108,14 @@ export function ChatsSidebarContent({
       if (disabled) return;
       navigator.clipboard.writeText(id);
     },
-    [disabled],
+    [disabled]
   );
 
   const handleCopyIDClick = useCallback(
     (id: string) => () => {
       handleCopyID(id);
     },
-    [handleCopyID],
+    [handleCopyID]
   );
 
   const handleDuplicate = useCallback(
@@ -160,14 +129,14 @@ export function ChatsSidebarContent({
         navigate(`/c/${newId}`);
       }
     },
-    [controller.chats, navigate, disabled],
+    [controller.chats, navigate, disabled]
   );
 
   const handleDuplicateClick = useCallback(
     (id: string) => () => {
       handleDuplicate(id);
     },
-    [handleDuplicate],
+    [handleDuplicate]
   );
 
   return (
@@ -176,16 +145,9 @@ export function ChatsSidebarContent({
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {chats.length === 0 && (
-                <div className="text-center text-sm text-muted-foreground">
-                  No chats.
-                </div>
-              )}
+              {chats.length === 0 && <div className="text-center text-sm text-muted-foreground">No chats.</div>}
               {chats.map((item) => (
-                <SidebarMenuItem
-                  key={item.id}
-                  className="group/sidebarmenuitem"
-                >
+                <SidebarMenuItem key={item.id} className="group/sidebarmenuitem">
                   <Tooltip delayDuration={TOOLTIP_DELAY}>
                     <TooltipTrigger asChild className="w-full">
                       <NavLink to={`/c/${item.id}`} onClick={handleNavClick}>
@@ -207,8 +169,8 @@ export function ChatsSidebarContent({
                     <DropdownMenuTrigger asChild>
                       <SidebarMenuAction
                         className={cn(
-                          'invisible group-focus-within/sidebarmenuitem:visible group-hover/sidebarmenuitem:visible',
-                          disabled && 'pointer-events-none hidden',
+                          "invisible group-focus-within/sidebarmenuitem:visible group-hover/sidebarmenuitem:visible",
+                          disabled && "pointer-events-none hidden"
                         )}
                         disabled={disabled}
                         aria-disabled={disabled}
@@ -217,24 +179,15 @@ export function ChatsSidebarContent({
                       </SidebarMenuAction>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="right" align="start">
-                      <DropdownMenuItem
-                        onClick={handleRenameClick(item.id, item.title)}
-                        disabled={disabled}
-                      >
+                      <DropdownMenuItem onClick={handleRenameClick(item.id, item.title)} disabled={disabled}>
                         <Edit2 className="mr-2 h-4 w-4" />
                         Rename
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={handleDuplicateClick(item.id)}
-                        disabled={disabled}
-                      >
+                      <DropdownMenuItem onClick={handleDuplicateClick(item.id)} disabled={disabled}>
                         <Layers2 className="mr-2 h-4 w-4" />
                         Duplicate
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={handleCopyIDClick(item.id)}
-                        disabled={disabled}
-                      >
+                      <DropdownMenuItem onClick={handleCopyIDClick(item.id)} disabled={disabled}>
                         <Tag className="mr-2 h-4 w-4" />
                         Copy ID
                       </DropdownMenuItem>
@@ -278,16 +231,16 @@ export function PromptsSidebarContent({
         toast.warning("Can't navigate while generating.");
       }
     },
-    [disabled],
+    [disabled]
   );
   const renameModalRef = useRef<RenameModalRef>(null);
   const deleteModalRef = useRef<DeleteModalRef>(null);
 
   const handleDelete = useCallback(
-    async (type: 'prompt' | 'folder', id: string) => {
+    async (type: "prompt" | "folder", id: string) => {
       if (disabled) return;
       if (!deleteModalRef.current) {
-        toast.error('Delete modal not found.');
+        toast.error("Delete modal not found.");
         return;
       }
 
@@ -297,7 +250,7 @@ export function PromptsSidebarContent({
         return;
       }
 
-      if (type === 'prompt') {
+      if (type === "prompt") {
         const { error } = controller.prompts.delete(id);
         if (error) toast.error(error);
       } else {
@@ -305,21 +258,21 @@ export function PromptsSidebarContent({
         if (error) toast.error(error);
       }
     },
-    [controller.folders, controller.prompts, disabled],
+    [controller.folders, controller.prompts, disabled]
   );
 
   const handleDeleteClick = useCallback(
-    (type: 'prompt' | 'folder', id: string) => () => {
+    (type: "prompt" | "folder", id: string) => () => {
       handleDelete(type, id);
     },
-    [handleDelete],
+    [handleDelete]
   );
 
   const handleRename = useCallback(
-    async (type: 'prompt' | 'folder', id: string, title: string) => {
+    async (type: "prompt" | "folder", id: string, title: string) => {
       if (disabled) return;
       if (!renameModalRef.current) {
-        toast.error('Rename modal not found.');
+        toast.error("Rename modal not found.");
         return;
       }
 
@@ -329,7 +282,7 @@ export function PromptsSidebarContent({
         return;
       }
 
-      if (type === 'prompt') {
+      if (type === "prompt") {
         const { error } = controller.prompts.rename(id, newName);
         if (error) toast.error(error);
       } else {
@@ -337,14 +290,14 @@ export function PromptsSidebarContent({
         if (error) toast.error(error);
       }
     },
-    [controller.folders, controller.prompts, disabled],
+    [controller.folders, controller.prompts, disabled]
   );
 
   const handleRenameClick = useCallback(
-    (type: 'prompt' | 'folder', id: string, title: string) => () => {
+    (type: "prompt" | "folder", id: string, title: string) => () => {
       handleRename(type, id, title);
     },
-    [handleRename],
+    [handleRename]
   );
 
   const handleCopyID = useCallback(
@@ -352,14 +305,14 @@ export function PromptsSidebarContent({
       if (disabled) return;
       navigator.clipboard.writeText(id);
     },
-    [disabled],
+    [disabled]
   );
 
   const handleCopyIDClick = useCallback(
     (id: string) => () => {
       handleCopyID(id);
     },
-    [handleCopyID],
+    [handleCopyID]
   );
 
   const handleDuplicate = useCallback(
@@ -373,25 +326,21 @@ export function PromptsSidebarContent({
         navigate(`/p/${newId}`);
       }
     },
-    [controller.prompts, navigate, disabled],
+    [controller.prompts, navigate, disabled]
   );
 
   const handleDuplicateClick = useCallback(
     (id: string) => () => {
       handleDuplicate(id);
     },
-    [handleDuplicate],
+    [handleDuplicate]
   );
 
   return (
     <SidebarContent>
       <SidebarGroup>
         <SidebarMenu>
-          {folders.length === 0 && (
-            <div className="text-center text-sm text-muted-foreground">
-              No prompts.
-            </div>
-          )}
+          {folders.length === 0 && <div className="text-center text-sm text-muted-foreground">No prompts.</div>}
           {folders.map((folder) => (
             <Collapsible key={folder.name} className="group/collapsible">
               <SidebarMenuItem className="group/sidebarmenuitem">
@@ -410,48 +359,30 @@ export function PromptsSidebarContent({
                 </Tooltip>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {folder.items.length === 0 && (
-                      <div className="text-center text-sm text-muted-foreground">
-                        Empty folder.
-                      </div>
-                    )}
+                    {folder.items.length === 0 && <div className="text-center text-sm text-muted-foreground">Empty folder.</div>}
                     {folder.items.map((prompt) => (
-                      <SidebarMenuSubItem
-                        key={prompt.id}
-                        className="group/sidebarmenusubitem relative"
-                      >
+                      <SidebarMenuSubItem key={prompt.id} className="group/sidebarmenusubitem relative">
                         <Tooltip delayDuration={TOOLTIP_DELAY}>
                           <TooltipTrigger className="w-full" asChild>
-                            <NavLink
-                              to={`/p/${prompt.id}`}
-                              onClick={handleNavClick}
-                            >
+                            <NavLink to={`/p/${prompt.id}`} onClick={handleNavClick}>
                               {({ isActive }) => {
                                 return (
                                   <SidebarMenuSubButton isActive={isActive}>
-                                    {prompt.type === 'user-prompt' ? (
-                                      <Notebook className="mr-2" />
-                                    ) : (
-                                      <SquareTerminal className="mr-2" />
-                                    )}
-                                    <span className="mr-4 truncate">
-                                      {prompt.title}
-                                    </span>
+                                    {prompt.type === "user-prompt" ? <Notebook className="mr-2" /> : <SquareTerminal className="mr-2" />}
+                                    <span className="mr-4 truncate">{prompt.title}</span>
                                   </SidebarMenuSubButton>
                                 );
                               }}
                             </NavLink>
                           </TooltipTrigger>
-                          <TooltipContent side="right">
-                            {prompt.title}
-                          </TooltipContent>
+                          <TooltipContent side="right">{prompt.title}</TooltipContent>
                         </Tooltip>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <SidebarMenuAction
                               className={cn(
-                                'invisible group-focus-within/sidebarmenusubitem:visible group-hover/sidebarmenusubitem:visible',
-                                disabled && 'pointer-events-none hidden',
+                                "invisible group-focus-within/sidebarmenusubitem:visible group-hover/sidebarmenusubitem:visible",
+                                disabled && "pointer-events-none hidden"
                               )}
                               disabled={disabled}
                               aria-disabled={disabled}
@@ -460,34 +391,21 @@ export function PromptsSidebarContent({
                             </SidebarMenuAction>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent side="right" align="start">
-                            <DropdownMenuItem
-                              onClick={handleRenameClick(
-                                'prompt',
-                                prompt.id,
-                                prompt.title,
-                              )}
-                              disabled={disabled}
-                            >
+                            <DropdownMenuItem onClick={handleRenameClick("prompt", prompt.id, prompt.title)} disabled={disabled}>
                               <Edit2 className="mr-2 h-4 w-4" />
                               Rename
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={handleDuplicateClick(prompt.id)}
-                              disabled={disabled}
-                            >
+                            <DropdownMenuItem onClick={handleDuplicateClick(prompt.id)} disabled={disabled}>
                               <Layers2 className="mr-2 h-4 w-4" />
                               Duplicate
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={handleCopyIDClick(prompt.id)}
-                              disabled={disabled}
-                            >
+                            <DropdownMenuItem onClick={handleCopyIDClick(prompt.id)} disabled={disabled}>
                               <Tag className="mr-2 h-4 w-4" />
                               Copy ID
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
-                              onClick={handleDeleteClick('prompt', prompt.id)}
+                              onClick={handleDeleteClick("prompt", prompt.id)}
                               disabled={disabled}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
@@ -503,8 +421,8 @@ export function PromptsSidebarContent({
                   <DropdownMenuTrigger asChild>
                     <SidebarMenuAction
                       className={cn(
-                        'invisible group-focus-within/sidebarmenuitem:visible group-hover/sidebarmenuitem:visible',
-                        disabled && 'pointer-events-none hidden',
+                        "invisible group-focus-within/sidebarmenuitem:visible group-hover/sidebarmenuitem:visible",
+                        disabled && "pointer-events-none hidden"
                       )}
                       disabled={disabled}
                       aria-disabled={disabled}
@@ -513,27 +431,17 @@ export function PromptsSidebarContent({
                     </SidebarMenuAction>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent side="right" align="start">
-                    <DropdownMenuItem
-                      onClick={handleRenameClick(
-                        'folder',
-                        folder.id,
-                        folder.name,
-                      )}
-                      disabled={disabled}
-                    >
+                    <DropdownMenuItem onClick={handleRenameClick("folder", folder.id, folder.name)} disabled={disabled}>
                       <Edit2 className="mr-2 h-4 w-4" />
                       Rename
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={handleCopyIDClick(folder.id)}
-                      disabled={disabled}
-                    >
+                    <DropdownMenuItem onClick={handleCopyIDClick(folder.id)} disabled={disabled}>
                       <Tag className="mr-2 h-4 w-4" />
                       Copy ID
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
-                      onClick={handleDeleteClick('folder', folder.id)}
+                      onClick={handleDeleteClick("folder", folder.id)}
                       disabled={disabled}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />

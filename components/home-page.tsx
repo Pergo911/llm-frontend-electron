@@ -1,31 +1,21 @@
-import { useCallback, useEffect, useRef } from 'react';
-import {
-  ChatInputBarActions,
-  ResolvedFolder,
-  SaveFileController,
-} from '@/common/types';
-import { toast } from 'sonner';
-import { useNavigate } from 'react-router-dom';
-import { Button } from './ui/button';
-import { setWindowTitle } from '../utils/utils';
-import ChatInputBar from './chat-input-bar';
-import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
-import { NewModal, NewModalRef } from './modal-new';
+import { useCallback, useEffect, useRef } from "react";
+import { ChatInputBarActions, ResolvedFolder, SaveFileController } from "@/utils/types";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/button";
+import { setWindowTitle } from "../utils/utils";
+import ChatInputBar from "./chat-input-bar";
+import { PromptSelectModal, PromptSelectModalRef } from "./modal-prompt-select";
+import { NewModal, NewModalRef } from "./modal-new";
 
-export default function HomePage({
-  controller,
-  folders,
-}: {
-  controller: SaveFileController;
-  folders: ResolvedFolder[];
-}) {
+export default function HomePage({ controller, folders }: { controller: SaveFileController; folders: ResolvedFolder[] }) {
   const navigate = useNavigate();
 
   const inputRef = useRef<ChatInputBarActions>(null);
   const promptSelectModalRef = useRef<PromptSelectModalRef>(null);
   const newModalRef = useRef<NewModalRef>(null);
 
-  const input = useRef('');
+  const input = useRef("");
   const promptId = useRef<string | null>(null);
 
   useEffect(() => {
@@ -42,20 +32,16 @@ export default function HomePage({
     const message = input.current;
     const prompt = promptId.current;
 
-    const { error, newId } = controller.chats.add(
-      message ? message.substring(0, 25) : 'New chat',
-    );
+    const { error, newId } = controller.chats.add(message ? message.substring(0, 25) : "New chat");
 
     if (error || !newId) {
-      toast.error(error || 'Failed to create chat');
+      toast.error(error || "Failed to create chat");
       return;
     }
 
     const base = `/c/${newId}`;
-    const queryMessage = message
-      ? `?message=${encodeURIComponent(message)}`
-      : '';
-    const queryPrompt = prompt ? `?prompt=${prompt}` : '';
+    const queryMessage = message ? `?message=${encodeURIComponent(message)}` : "";
+    const queryPrompt = prompt ? `?prompt=${prompt}` : "";
 
     navigate(base + queryMessage + queryPrompt, { replace: true });
   }, [controller.chats, navigate]);
@@ -65,7 +51,7 @@ export default function HomePage({
       input.current = t;
       handleForward();
     },
-    [handleForward],
+    [handleForward]
   );
 
   const handleAddPrompt = useCallback(async () => {
