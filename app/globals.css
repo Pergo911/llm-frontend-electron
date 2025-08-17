@@ -1,8 +1,11 @@
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
   :root {
     --background: hsl(84, 0%, 96%);
     --background-dim: hsl(80, 0%, 92%);
@@ -56,12 +59,11 @@
     --selection: var(--primary-foreground);
     --selection-bg: var(--primary);
   }
-}
 
 @layer base {
   * {
     @apply border-border;
-    font-family: 'HostGrotesk';
+    font-family: "HostGrotesk";
     font-kerning: auto;
   }
   body {
@@ -69,17 +71,16 @@
   }
 
   @font-face {
-    font-family: 'HostGrotesk';
-    src: url('/assets/HostGrotesk-VariableFont_wght.ttf') format('truetype');
+    font-family: "HostGrotesk";
+    src: url("/HostGrotesk-VariableFont_wght.ttf") format("truetype");
     font-weight: 100 900;
     font-style: normal;
     font-display: swap;
   }
 
   @font-face {
-    font-family: 'HostGrotesk';
-    src: url('/assets/HostGrotesk-Italic-VariableFont_wght.ttf')
-      format('truetype');
+    font-family: "HostGrotesk";
+    src: url("/HostGrotesk-Italic-VariableFont_wght.ttf") format("truetype");
     font-weight: 100 900;
     font-style: italic;
     font-display: swap;
@@ -110,16 +111,6 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background-color: var(--scrollbar-hover);
-  }
-
-  .draggable {
-    app-region: drag;
-    -webkit-app-region: drag;
-  }
-
-  .non-draggable {
-    app-region: no-drag;
-    -webkit-app-region: no-drag;
   }
 
   .display-linebreak {
@@ -165,4 +156,34 @@
     background-color: var(--selection-bg);
     color: var(--selection);
   }
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-background-dim: var(--background-dim);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-card-hover: var(--card-hover);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted-hover: var(--muted-hover);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-border: var(--border);
+  --color-scrollbar: var(--scrollbar);
+  --color-scrollbar-hover: var(--scrollbar-hover);
+  --color-selection: var(--selection);
+  --color-selection-bg: var(--selection-bg);
 }

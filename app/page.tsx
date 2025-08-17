@@ -1,37 +1,16 @@
-import {
-  MemoryRouter,
-  Routes,
-  Route,
-  useNavigate,
-  useLocation,
-} from 'react-router-dom';
-import './App.global.css';
-import 'tailwindcss/tailwind.css';
-import { toast, Toaster } from 'sonner';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ModelsController,
-  OpenRouterModel,
-  ResolvedChat,
-  ResolvedFolder,
-  ResolvedPrompt,
-  SaveFileController,
-} from '@/common/types';
-import { LoaderCircle, LoaderIcon } from 'lucide-react';
-import { SidebarInset, SidebarProvider } from './components/ui/sidebar';
-import { AppSidebar } from './components/app-sidebar';
-import { ThemeProvider } from './components/theme-provider';
-import HomePage from './components/home-page';
-import ChatPage from './components/chat-page';
-import PromptPage from './components/prompt-page';
-import TitleBar from './components/title-bar';
-import { TooltipProvider } from './components/ui/tooltip';
+"use client";
 
-import useSaveFile from './hooks/use-savefile';
-import { Button } from './components/ui/button';
-import { useModels } from './hooks/use-models';
-import { Dialog, DialogTrigger } from './components/ui/dialog';
-import { SettingsModal } from './components/modal-settings';
+import { MemoryRouter, Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import "./globals.css";
+import "tailwindcss/tailwind.css";
+import { toast, Toaster } from "sonner";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ModelsController, OpenRouterModel, ResolvedChat, ResolvedFolder, ResolvedPrompt, SaveFileController } from "@/utils/types";
+import { LoaderCircle, LoaderIcon } from "lucide-react";
+import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 function AppRoutes({
   chats,
@@ -54,21 +33,15 @@ function AppRoutes({
 }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const id = pathname.split('/').pop();
+  const id = pathname.split("/").pop();
 
-  const chat = useMemo(
-    () => (id ? chats.find((c) => c.id === id) : undefined),
-    [id, chats],
-  );
-  const prompt = useMemo(
-    () => (id ? prompts.find((p) => p.id === id) : undefined),
-    [id, prompts],
-  );
+  const chat = useMemo(() => (id ? chats.find((c) => c.id === id) : undefined), [id, chats]);
+  const prompt = useMemo(() => (id ? prompts.find((p) => p.id === id) : undefined), [id, prompts]);
 
   useEffect(() => {
     if (!chat && !prompt) {
       // If no chat or prompt is found, navigate to home
-      navigate('/');
+      navigate("/");
     }
   }, [chat, prompt, navigate]);
 
@@ -77,7 +50,7 @@ function AppRoutes({
       // Handle Alt + Left/Right Arrow for navigation
       if (e.altKey) {
         switch (e.key) {
-          case 'ArrowLeft':
+          case "ArrowLeft":
             e.preventDefault();
             if (isStreaming) {
               toast.warning("Can't navigate while generating.");
@@ -85,7 +58,7 @@ function AppRoutes({
               navigate(-1);
             }
             break;
-          case 'ArrowRight':
+          case "ArrowRight":
             e.preventDefault();
             if (isStreaming) {
               toast.warning("Can't navigate while generating.");
@@ -117,35 +90,32 @@ function AppRoutes({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("mousedown", handleMouseDown);
 
     const nativeNavEvent = window.electron.onNavigateCommand((direction) => {
       if (isStreaming) {
         toast.warning("Can't navigate while generating.");
         return;
       }
-      if (direction === 'back') {
+      if (direction === "back") {
         // Use React Router's navigation
         navigate(-1);
-      } else if (direction === 'forward') {
+      } else if (direction === "forward") {
         navigate(1);
       }
     });
 
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("mousedown", handleMouseDown);
       nativeNavEvent();
     };
   }, [navigate, isStreaming]);
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={<HomePage controller={controller} folders={folders} />}
-      />
+      <Route path="/" element={<HomePage controller={controller} folders={folders} />} />
       <Route path="/c">
         <Route
           path=":id"
@@ -157,9 +127,7 @@ function AppRoutes({
                 folders={folders}
                 controller={controller}
                 modelSelection={modelSelection}
-                toggleReasoningPreference={
-                  modelsController.toggleReasoningPreference
-                }
+                toggleReasoningPreference={modelsController.toggleReasoningPreference}
                 isStreaming={isStreaming}
                 setIsStreaming={setIsStreaming}
               />
@@ -176,11 +144,7 @@ function AppRoutes({
           path=":id"
           element={
             prompt ? (
-              <PromptPage
-                prompt={prompt}
-                folders={folders}
-                controller={controller}
-              />
+              <PromptPage prompt={prompt} folders={folders} controller={controller} />
             ) : (
               <div className="flex h-full w-full items-center justify-center rounded-t-3xl bg-background">
                 <LoaderCircle className="animate-spin text-foreground" />
@@ -195,19 +159,12 @@ function AppRoutes({
 
 export default function App() {
   const { loading, chats, prompts, folders, controller, error } = useSaveFile();
-  const {
-    models,
-    modelSelection,
-    controller: modelsController,
-    error: modelsError,
-    loading: modelsLoading,
-  } = useModels();
+  const { models, modelSelection, controller: modelsController, error: modelsError, loading: modelsLoading } = useModels();
 
   // Global streaming state to disable sidebar actions during generation
   const [isStreaming, setIsStreaming] = useState(false);
 
-  const [welcomeScreenSettingsOpen, setWelcomeScreenSettingsOpen] =
-    useState(false);
+  const [welcomeScreenSettingsOpen, setWelcomeScreenSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (error) {
@@ -222,45 +179,35 @@ export default function App() {
     <MemoryRouter>
       <ThemeProvider>
         <TooltipProvider skipDelayDuration={0}>
-          {error || loading || saveFileMissing ? (
-            <>
-              {/* Temporary drag handle bar until real titlebar not shown */}
-              <div className="draggable pointer-events-auto fixed left-0 right-0 top-0 z-50 h-[48px] bg-transparent" />
-              {/* Welcome screen shown when saveFile is loading or errored out */}
-              <div className="fixed inset-0 z-50 flex items-center justify-around bg-background">
-                <div>
-                  {loading ? (
-                    <h2 className="animate-pulse text-3xl text-foreground">
-                      Loading your savefile...
-                    </h2>
-                  ) : (
-                    <>
-                      <h2 className="text-3xl font-bold text-foreground">
-                        Welcome!
-                      </h2>
-                      <p className="my-2">
-                        We couldn&apos;t load a savefile. Please check your
-                        settings.
-                      </p>
-                    </>
-                  )}
-                </div>
-                <Dialog
-                  open={welcomeScreenSettingsOpen}
-                  onOpenChange={setWelcomeScreenSettingsOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button size="lg">Open Settings</Button>
-                  </DialogTrigger>
-                  <SettingsModal
-                    triggerRefresh={controller.saveFile.reload}
-                    onSetOpen={setWelcomeScreenSettingsOpen}
-                    open={welcomeScreenSettingsOpen}
-                  />
-                </Dialog>
+          {/* {error || loading || saveFileMissing ? ( */}
+          <>
+            {/* Temporary drag handle bar until real titlebar not shown */}
+            <div className="draggable pointer-events-auto fixed left-0 right-0 top-0 z-50 h-[48px] bg-transparent" />
+            {/* Welcome screen shown when saveFile is loading or errored out */}
+            <div className="fixed inset-0 z-50 flex items-center justify-around bg-background">
+              <div>
+                {loading ? (
+                  <h2 className="animate-pulse text-3xl text-foreground">Loading your savefile...</h2>
+                ) : (
+                  <>
+                    <h2 className="text-3xl font-bold text-foreground">Welcome!</h2>
+                    <p className="my-2">We couldn&apos;t load a savefile. Please check your settings.</p>
+                  </>
+                )}
               </div>
-            </>
-          ) : (
+              <Dialog open={welcomeScreenSettingsOpen} onOpenChange={setWelcomeScreenSettingsOpen}>
+                <DialogTrigger asChild>
+                  <Button size="lg">Open Settings</Button>
+                </DialogTrigger>
+                {/* <SettingsModal
+                  triggerRefresh={controller.saveFile.reload}
+                  onSetOpen={setWelcomeScreenSettingsOpen}
+                  open={welcomeScreenSettingsOpen}
+                /> */}
+              </Dialog>
+            </div>
+          </>
+          {/* ) : (
             <SidebarProvider>
               <AppSidebar
                 chats={chats}
@@ -294,7 +241,7 @@ export default function App() {
                 />
               </SidebarInset>
             </SidebarProvider>
-          )}
+          )} */}
         </TooltipProvider>
         <Toaster position="bottom-center" />
       </ThemeProvider>
