@@ -40,6 +40,8 @@ function AppRoutes({
   controller,
   modelSelection,
   modelsController,
+  isStreaming,
+  setIsStreaming,
 }: {
   chats: ResolvedChat[];
   prompts: ResolvedPrompt[];
@@ -47,6 +49,8 @@ function AppRoutes({
   controller: SaveFileController;
   modelSelection: OpenRouterModel[] | null;
   modelsController: ModelsController;
+  isStreaming: boolean;
+  setIsStreaming: (v: boolean) => void;
 }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -75,11 +79,19 @@ function AppRoutes({
         switch (e.key) {
           case 'ArrowLeft':
             e.preventDefault();
-            navigate(-1);
+            if (isStreaming) {
+              toast.warning("Can't navigate while generating.");
+            } else {
+              navigate(-1);
+            }
             break;
           case 'ArrowRight':
             e.preventDefault();
-            navigate(1);
+            if (isStreaming) {
+              toast.warning("Can't navigate while generating.");
+            } else {
+              navigate(1);
+            }
             break;
           default:
             break;
@@ -92,7 +104,13 @@ function AppRoutes({
       if (e.button === 3 || e.button === 4) {
         e.preventDefault();
         if (e.button === 3) {
-          navigate(-1); // Back
+          if (isStreaming) {
+            toast.warning("Can't navigate while generating.");
+          } else {
+            navigate(-1); // Back
+          }
+        } else if (isStreaming) {
+          toast.warning("Can't navigate while generating.");
         } else {
           navigate(1); // Forward
         }
@@ -103,6 +121,10 @@ function AppRoutes({
     window.addEventListener('mousedown', handleMouseDown);
 
     const nativeNavEvent = window.electron.onNavigateCommand((direction) => {
+      if (isStreaming) {
+        toast.warning("Can't navigate while generating.");
+        return;
+      }
       if (direction === 'back') {
         // Use React Router's navigation
         navigate(-1);
@@ -116,7 +138,7 @@ function AppRoutes({
       window.removeEventListener('mousedown', handleMouseDown);
       nativeNavEvent();
     };
-  }, [navigate]);
+  }, [navigate, isStreaming]);
 
   return (
     <Routes>
@@ -138,6 +160,8 @@ function AppRoutes({
                 toggleReasoningPreference={
                   modelsController.toggleReasoningPreference
                 }
+                isStreaming={isStreaming}
+                setIsStreaming={setIsStreaming}
               />
             ) : (
               <div className="flex h-full w-full items-center justify-center rounded-t-3xl bg-background">
@@ -178,6 +202,9 @@ export default function App() {
     error: modelsError,
     loading: modelsLoading,
   } = useModels();
+
+  // Global streaming state to disable sidebar actions during generation
+  const [isStreaming, setIsStreaming] = useState(false);
 
   const [welcomeScreenSettingsOpen, setWelcomeScreenSettingsOpen] =
     useState(false);
@@ -241,6 +268,7 @@ export default function App() {
                 folders={folders}
                 controller={controller}
                 modelsController={modelsController}
+                isStreaming={isStreaming}
               />
               <SidebarInset className="min-w-0 bg-background-dim">
                 <TitleBar
@@ -252,6 +280,7 @@ export default function App() {
                   loading={modelsLoading}
                   modelsError={modelsError}
                   models={models}
+                  isStreaming={isStreaming}
                 />
                 <AppRoutes
                   chats={chats}
@@ -260,6 +289,8 @@ export default function App() {
                   folders={folders}
                   modelSelection={modelSelection}
                   modelsController={modelsController}
+                  isStreaming={isStreaming}
+                  setIsStreaming={setIsStreaming}
                 />
               </SidebarInset>
             </SidebarProvider>

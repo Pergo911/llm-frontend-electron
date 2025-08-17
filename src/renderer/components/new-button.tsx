@@ -14,17 +14,20 @@ const NewButton = ({
   controller,
   folders,
   sidebarPage,
+  disabled,
 }: {
   registerShortcut?: boolean;
   controller: SaveFileController;
   folders: ResolvedFolder[];
-  sidebarPage: 'chat' | 'prompt';
+  sidebarPage?: 'chat' | 'prompt';
+  disabled?: boolean;
 }) => {
   const newModalRef = useRef<NewModalRef>(null);
   const sidebarOpen = useSidebar().state === 'expanded';
   const navigate = useNavigate();
 
   const handleAdd = useCallback(async () => {
+    if (disabled) return;
     if (sidebarPage === 'chat' && sidebarOpen) {
       const { error, newId } = controller.chats.add('New chat');
       if (error) {
@@ -35,7 +38,7 @@ const NewButton = ({
     } else {
       newModalRef.current?.promptUser(sidebarPage, sidebarOpen);
     }
-  }, [controller.chats, navigate, sidebarOpen, sidebarPage]);
+  }, [controller.chats, disabled, navigate, sidebarOpen, sidebarPage]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -64,6 +67,8 @@ const NewButton = ({
               size="default"
               onClick={handleAdd}
               className="h-12"
+              disabled={disabled}
+              aria-disabled={disabled}
             >
               <Plus className="h-4 w-4 flex-shrink-0" />
             </Button>
@@ -82,7 +87,13 @@ const NewButton = ({
     <>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Button variant="ghost" size="sm" onClick={handleAdd}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleAdd}
+            disabled={disabled}
+            aria-disabled={disabled}
+          >
             <Plus className="h-4 w-4 flex-shrink-0" />
           </Button>
         </TooltipTrigger>

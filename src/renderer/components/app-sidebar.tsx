@@ -40,6 +40,8 @@ export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   controller: SaveFileController;
   // eslint-disable-next-line react/no-unused-prop-types
   modelsController: ModelsController;
+  // When streaming, disable sidebar actions
+  isStreaming?: boolean;
 }
 
 export const AppSidebar = React.memo(
@@ -49,6 +51,7 @@ export const AppSidebar = React.memo(
     folders,
     controller,
     modelsController,
+    isStreaming = false,
     ...props
   }: AppSidebarProps) => {
     const [page, setPage] = React.useState<'chat' | 'prompt'>('chat');
@@ -62,19 +65,22 @@ export const AppSidebar = React.memo(
       const handleRefreshShortcut = (e: KeyboardEvent) => {
         if ((e.ctrlKey && e.key.toLowerCase() === 'r') || e.key === 'F5') {
           e.preventDefault();
-          controller.saveFile.reload();
-          modelsController.reload();
+          if (!isStreaming) {
+            controller.saveFile.reload();
+            modelsController.reload();
+          }
         }
       };
 
       window.addEventListener('keydown', handleRefreshShortcut);
       return () => window.removeEventListener('keydown', handleRefreshShortcut);
-    }, [controller.saveFile, modelsController]);
+    }, [controller.saveFile, modelsController, isStreaming]);
 
     const handleRefresh = useCallback(() => {
+      if (isStreaming) return;
       controller.saveFile.reload();
       modelsController.reload();
-    }, [controller.saveFile, modelsController]);
+    }, [controller.saveFile, modelsController, isStreaming]);
 
     return (
       <Sidebar {...props}>
@@ -92,14 +98,23 @@ export const AppSidebar = React.memo(
                 controller={controller}
                 folders={folders}
                 sidebarPage={page}
+                disabled={isStreaming}
               />
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarHeader>
         {page === 'chat' ? (
-          <ChatsSidebarContent chats={chats} controller={controller} />
+          <ChatsSidebarContent
+            chats={chats}
+            controller={controller}
+            disabled={isStreaming}
+          />
         ) : (
-          <PromptsSidebarContent folders={folders} controller={controller} />
+          <PromptsSidebarContent
+            folders={folders}
+            controller={controller}
+            disabled={isStreaming}
+          />
         )}
         <SidebarGroup>
           <SidebarGroupContent>
@@ -107,7 +122,10 @@ export const AppSidebar = React.memo(
               <SidebarMenuItem className="flex-1">
                 <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
                   <DialogTrigger asChild>
-                    <SidebarMenuButton>
+                    <SidebarMenuButton
+                      disabled={isStreaming}
+                      aria-disabled={isStreaming}
+                    >
                       <Settings className="mr-2" />
                       Settings
                     </SidebarMenuButton>
@@ -120,7 +138,11 @@ export const AppSidebar = React.memo(
                 </Dialog>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleRefresh}>
+                <SidebarMenuButton
+                  onClick={handleRefresh}
+                  disabled={isStreaming}
+                  aria-disabled={isStreaming}
+                >
                   <RefreshCw className="h-4 w-4 flex-shrink-0" />
                 </SidebarMenuButton>
               </SidebarMenuItem>

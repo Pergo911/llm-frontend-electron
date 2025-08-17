@@ -584,6 +584,7 @@ type TitleBarProps = {
   modelsError: string | null;
   modelsController: ModelsController;
   saveFileController: SaveFileController;
+  isStreaming: boolean;
 };
 
 const TitleBar = memo(
@@ -596,6 +597,7 @@ const TitleBar = memo(
     models,
     loading,
     modelsError,
+    isStreaming,
   }: TitleBarProps) => {
     const navigation = useNavigate();
     const location = useLocation();
@@ -666,7 +668,7 @@ const TitleBar = memo(
               onClick={() => {
                 navigation(-1);
               }}
-              disabled={location.key === 'default'}
+              disabled={location.key === 'default' || isStreaming}
             >
               <ArrowLeft className="my-auto" />
             </Button>
@@ -674,7 +676,11 @@ const TitleBar = memo(
           <TooltipContent>Back</TooltipContent>
         </Tooltip>
         {sidebarClosed && (
-          <NewButton controller={saveFileController} folders={folders} />
+          <NewButton
+            controller={saveFileController}
+            folders={folders}
+            disabled={isStreaming}
+          />
         )}
         <Breadcrumb className="mx-2 min-w-0 flex-1">
           {breadcrumbType === 'home' ? (

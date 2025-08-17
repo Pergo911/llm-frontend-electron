@@ -71,6 +71,8 @@ export default function ChatPage({
   controller,
   folders,
   prompts,
+  isStreaming,
+  setIsStreaming,
 }: {
   chat: ResolvedChat;
   modelSelection: OpenRouterModel[] | null;
@@ -78,10 +80,11 @@ export default function ChatPage({
   controller: SaveFileController;
   folders: ResolvedFolder[];
   prompts: ResolvedPrompt[];
+  isStreaming: boolean;
+  setIsStreaming: (v: boolean) => void;
 }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
-  const [isStreaming, setIsStreaming] = useState(false);
   const messageBeingStreamed = useRef<string | null>(null); // null if we are not currently streaming
   const [streamingText, setStreamingText] = useState<string>('');
   const [streamingReasoningText, setStreamingReasoningText] =
@@ -338,6 +341,7 @@ export default function ChatPage({
       controller.chats.messages,
       modelSelection,
       scrollToBottomInstant,
+      setIsStreaming,
     ],
   );
 
@@ -452,7 +456,13 @@ export default function ChatPage({
           controller.chats.messages.setChoice(chat.id, id, activeChoice);
       }
     },
-    [chat.id, chat.messages, controller.chats.messages, modelSelection],
+    [
+      chat.id,
+      chat.messages,
+      controller.chats.messages,
+      modelSelection,
+      setIsStreaming,
+    ],
   );
 
   const handleOnMessageDelete = useCallback(
