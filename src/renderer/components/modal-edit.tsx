@@ -99,7 +99,7 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
         <DialogHeader>
           <DialogTitle>Edit message</DialogTitle>
         </DialogHeader>
-        <div className="flex overflow-hidden rounded-3xl bg-card text-card-foreground">
+        <div className="flex overflow-hidden rounded-3xl border border-border">
           <TextareaWithContextMenu
             className="max-h-[350px] min-h-0 resize-none overflow-y-auto border-none px-4 py-2 shadow-none focus:outline-none focus-visible:ring-0"
             spellCheck="false"

@@ -5,14 +5,14 @@
 @layer base {
   :root {
     --background: hsl(84, 0%, 96%);
-    --background-dim: hsl(80, 0%, 92%);
+    --background-dim: hsl(80, 0%, 90%);
     --acrylic: hsla(80, 0%, 92%, 0);
     --acrylic-hover: hsla(80, 0%, 0%, 0.06);
     --foreground: hsl(100, 0%, 10%);
     --secondary: hsl(111, 11%, 35%);
     --secondary-foreground: hsl(0, 0%, 100%);
     --secondary-hover: hsl(111, 9%, 43%);
-    --card: hsl(106, 0%, 90%);
+    --card: hsl(106, 0%, 92%);
     --card-foreground: hsl(116, 35%, 9%);
     --card-hover: hsl(80, 0%, 90%);
     --primary: hsl(119, 29%, 42%);
@@ -41,7 +41,7 @@
     --secondary: hsl(103, 20%, 75%);
     --secondary-foreground: hsl(113, 20%, 17%);
     --secondary-hover: hsl(103, 29%, 83%);
-    --card: hsl(113, 0%, 17%);
+    --card: hsl(113, 0%, 13%);
     --card-foreground: hsl(106, 0%, 86%);
     --card-hover: hsl(100, 0%, 16%);
     --primary: hsl(113, 39%, 72%);
