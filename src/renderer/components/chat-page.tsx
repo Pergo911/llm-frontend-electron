@@ -33,7 +33,7 @@ const ChatTitle = memo(
     return (
       <>
         <div className="m-auto flex max-w-[800px] flex-col items-start px-8 py-4">
-          <h1 className="text-3xl font-bold text-primary">{title}</h1>
+          <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-xs text-muted-foreground">
             Created{' '}
             <span className="font-bold">{formatTimestamp(created)}</span> •{' '}
@@ -650,8 +650,8 @@ export default function ChatPage({
   }, [handleOnAddPrompt]);
 
   return (
-    <div className="h-[calc(100vh-48px)]">
-      <div className="flex h-full flex-col overflow-hidden rounded-t-3xl bg-background">
+    <div className="h-[calc(100vh-48px-0.5rem)]">
+      <div className="m-2 mt-0 flex h-full flex-col overflow-hidden rounded-3xl bg-background">
         <div
           className="h-full overflow-y-auto"
           ref={scrollRef}

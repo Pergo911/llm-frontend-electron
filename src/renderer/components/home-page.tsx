@@ -79,7 +79,7 @@ export default function HomePage({
   }, [handleForward]);
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center rounded-t-3xl bg-background p-4">
+    <div className="m-2 mt-0 flex flex-1 flex-col items-center justify-center rounded-3xl bg-background p-4">
       <div className="flex w-fit items-center justify-center gap-2 text-muted-foreground">
         <span>
           <span className="font-bold">Start typing</span> or

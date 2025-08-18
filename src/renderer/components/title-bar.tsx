@@ -127,7 +127,7 @@ const ModelSelector = memo(
               <Button
                 aria-label="Model selector"
                 role="combobox"
-                className="group/button non-draggable justify-start"
+                className="group/button non-draggable hover:bg-background-acrylic-hover justify-start"
                 variant="ghost"
                 size="sm"
               >
@@ -378,7 +378,7 @@ const GenSettings = memo(() => {
           <PopoverTrigger asChild>
             <Button
               aria-label="Generation settings"
-              className="group/button non-draggable"
+              className="group/button non-draggable hover:bg-background-acrylic-hover"
               variant="ghost"
               size="sm"
             >
@@ -658,7 +658,7 @@ const TitleBar = memo(
     }, [location, chats, prompts]);
 
     return (
-      <div className="draggable flex h-[48px] items-center gap-0.5 bg-background-dim p-2 pr-[145px] @container/main">
+      <div className="draggable flex h-[48px] items-center gap-0.5 p-2 pr-[145px] @container/main">
         {sidebarClosed && <SidebarTrigger />}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -669,6 +669,7 @@ const TitleBar = memo(
                 navigation(-1);
               }}
               disabled={location.key === 'default' || isStreaming}
+              className="hover:bg-background-acrylic-hover"
             >
               <ArrowLeft className="my-auto" />
             </Button>

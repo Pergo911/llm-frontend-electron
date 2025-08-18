@@ -66,7 +66,7 @@ const NewButton = ({
               variant="ghost"
               size="default"
               onClick={handleAdd}
-              className="h-12"
+              className="hover:bg-background-acrylic-hover h-12"
               disabled={disabled}
               aria-disabled={disabled}
             >
@@ -93,6 +93,7 @@ const NewButton = ({
             onClick={handleAdd}
             disabled={disabled}
             aria-disabled={disabled}
+            className="hover:bg-background-acrylic-hover"
           >
             <Plus className="h-4 w-4 flex-shrink-0" />
           </Button>

@@ -13,6 +13,10 @@ module.exports = {
         background: {
           DEFAULT: 'var(--background)',
           dim: 'var(--background-dim)',
+          acrylic: {
+            DEFAULT: 'var(--acrylic)',
+            hover: 'var(--acrylic-hover)',
+          },
         },
         foreground: 'var(--foreground)',
         primary: {

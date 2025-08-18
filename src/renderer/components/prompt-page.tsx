@@ -148,7 +148,7 @@ export default function PromptPage({
   }, [handleSave]);
 
   return (
-    <div className="flex flex-1 flex-col items-center gap-4 rounded-t-3xl bg-background p-4">
+    <div className="m-2 mt-0 flex flex-1 flex-col items-center gap-4 rounded-3xl bg-background p-4">
       {/* Use this to adjust max width */}
       <div className="flex h-full w-full max-w-[800px] flex-col gap-4">
         <div className="flex items-center gap-2 px-4 text-sm text-muted-foreground @container">

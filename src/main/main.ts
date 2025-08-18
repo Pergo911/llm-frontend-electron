@@ -46,6 +46,7 @@ const createWindow = () => {
     height: 728,
     minWidth: 800,
     minHeight: 600,
+    backgroundMaterial: 'tabbed',
     icon: getAssetPath('icon.png'),
     titleBarStyle: 'hidden',
     titleBarOverlay: {
