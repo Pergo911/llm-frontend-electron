@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 import {
   ChatInputBarActions,
+  ModelsController,
+  OpenRouterModel,
   ResolvedFolder,
   SaveFileController,
 } from '@/common/types';
@@ -14,9 +16,13 @@ import { NewModal, NewModalRef } from './modal-new';
 
 export default function HomePage({
   controller,
+  modelSelection,
+  toggleReasoningPreference,
   folders,
 }: {
   controller: SaveFileController;
+  modelSelection: OpenRouterModel[] | null;
+  toggleReasoningPreference: ModelsController['toggleReasoningPreference'];
   folders: ResolvedFolder[];
 }) {
   const navigate = useNavigate();
@@ -78,6 +84,23 @@ export default function HomePage({
     handleForward();
   }, [handleForward]);
 
+  const handleReasoningToggle = useCallback(
+    async (enabled: boolean) => {
+      if (!modelSelection) {
+        return;
+      }
+
+      if (!modelSelection[0].reasoning) {
+        return;
+      }
+
+      const { error } = await toggleReasoningPreference(enabled);
+
+      if (error) toast.error(error);
+    },
+    [modelSelection, toggleReasoningPreference],
+  );
+
   return (
     <div className="m-2 mt-0 flex flex-1 flex-col items-center justify-center rounded-3xl bg-background p-4">
       <div className="flex w-fit items-center justify-center gap-2 text-muted-foreground">
@@ -106,8 +129,15 @@ export default function HomePage({
         onAbort={() => {}}
         overrideCanSend={false}
         noSendAs
-        reasoningSelect={null}
-        onReasoningToggle={() => {}}
+        reasoningSelect={
+          // eslint-disable-next-line no-nested-ternary
+          modelSelection && modelSelection.length > 0
+            ? modelSelection[0].reasoning
+              ? modelSelection[0].reasoning_preference
+              : null
+            : null
+        }
+        onReasoningToggle={handleReasoningToggle}
       />
       <PromptSelectModal ref={promptSelectModalRef} folders={folders} />
       <NewModal ref={newModalRef} controller={controller} folders={folders} />

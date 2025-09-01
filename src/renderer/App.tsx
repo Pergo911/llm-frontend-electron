@@ -144,7 +144,16 @@ function AppRoutes({
     <Routes>
       <Route
         path="/"
-        element={<HomePage controller={controller} folders={folders} />}
+        element={
+          <HomePage
+            controller={controller}
+            folders={folders}
+            modelSelection={modelSelection}
+            toggleReasoningPreference={
+              modelsController.toggleReasoningPreference
+            }
+          />
+        }
       />
       <Route path="/c">
         <Route
@@ -227,7 +236,7 @@ export default function App() {
               {/* Temporary drag handle bar until real titlebar not shown */}
               <div className="draggable pointer-events-auto fixed left-0 right-0 top-0 z-50 h-[48px] bg-transparent" />
               {/* Welcome screen shown when saveFile is loading or errored out */}
-              <div className="bg-background-acrylic fixed inset-0 z-50 flex items-center justify-around">
+              <div className="fixed inset-0 z-50 flex items-center justify-around bg-background-acrylic">
                 <div>
                   {loading ? (
                     <h2 className="animate-pulse text-3xl text-foreground">
@@ -270,7 +279,7 @@ export default function App() {
                 modelsController={modelsController}
                 isStreaming={isStreaming}
               />
-              <SidebarInset className="bg-background-acrylic min-w-0">
+              <SidebarInset className="min-w-0 bg-background-acrylic">
                 <TitleBar
                   chats={chats}
                   prompts={prompts}
