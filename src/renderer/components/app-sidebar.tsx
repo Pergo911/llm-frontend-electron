@@ -15,7 +15,7 @@ import {
   ChatsSidebarContent,
   PromptsSidebarContent,
 } from '@/renderer/components/sidebar-content';
-import { RefreshCw, Settings } from 'lucide-react';
+import { RefreshCw, Settings, Settings2 } from 'lucide-react';
 import { useCallback } from 'react';
 import {
   ModelsController,
@@ -28,6 +28,7 @@ import { SidebarToggle } from './sidebar-toggle';
 import { Dialog, DialogTrigger } from './ui/dialog';
 import { SettingsModal } from './modal-settings';
 import NewButton from './new-button';
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 
 export interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   // eslint-disable-next-line react/no-unused-prop-types
@@ -84,9 +85,46 @@ export const AppSidebar = React.memo(
 
     return (
       <Sidebar {...props}>
-        <SidebarGroup className="draggable m-0 p-0 pl-2">
+        <SidebarGroup className="m-0 p-0 pl-2">
           <SidebarGroupContent className="flex h-[48px] items-center gap-0.5">
             <SidebarTrigger />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <SidebarMenuButton
+                  onClick={handleRefresh}
+                  disabled={isStreaming}
+                  aria-disabled={isStreaming}
+                  className="flex w-auto items-center justify-center"
+                >
+                  <RefreshCw className="m-1 h-4 w-4 flex-shrink-0" />
+                </SidebarMenuButton>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Refresh (Ctrl+R)</TooltipContent>
+            </Tooltip>
+
+            <div className="draggable h-full flex-1" />
+            <Tooltip>
+              <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+                <DialogTrigger asChild>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton
+                      disabled={isStreaming}
+                      aria-disabled={isStreaming}
+                      className="flex w-auto items-center justify-center"
+                    >
+                      <Settings2 className="m-1 h-4 w-4 flex-shrink-0" />
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                </DialogTrigger>
+                <SettingsModal
+                  triggerRefresh={handleRefresh}
+                  onSetOpen={handleSettingsOpen}
+                  open={settingsOpen}
+                />
+              </Dialog>
+              <TooltipContent side="bottom">Settings</TooltipContent>
+            </Tooltip>
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarHeader className="m-0 p-0">
@@ -116,39 +154,6 @@ export const AppSidebar = React.memo(
             disabled={isStreaming}
           />
         )}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu className="flex-row">
-              <SidebarMenuItem className="flex-1">
-                <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
-                  <DialogTrigger asChild>
-                    <SidebarMenuButton
-                      disabled={isStreaming}
-                      aria-disabled={isStreaming}
-                    >
-                      <Settings className="mr-2" />
-                      Settings
-                    </SidebarMenuButton>
-                  </DialogTrigger>
-                  <SettingsModal
-                    triggerRefresh={handleRefresh}
-                    onSetOpen={handleSettingsOpen}
-                    open={settingsOpen}
-                  />
-                </Dialog>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={handleRefresh}
-                  disabled={isStreaming}
-                  aria-disabled={isStreaming}
-                >
-                  <RefreshCw className="h-4 w-4 flex-shrink-0" />
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </Sidebar>
     );
   },

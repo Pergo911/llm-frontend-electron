@@ -66,7 +66,7 @@ const NewButton = ({
               variant="ghost"
               size="default"
               onClick={handleAdd}
-              className="hover:bg-background-acrylic-hover h-12"
+              className="h-12 hover:bg-background-acrylic-hover"
               disabled={disabled}
               aria-disabled={disabled}
             >
@@ -74,7 +74,7 @@ const NewButton = ({
             </Button>
           </TooltipTrigger>
           <TooltipContent>
-            {sidebarPage === 'chat' ? 'New Chat' : 'New Prompt'}
+            {sidebarPage === 'chat' ? 'New Chat' : 'New Prompt'} (Ctrl+N)
           </TooltipContent>
         </Tooltip>
         <NewModal ref={newModalRef} controller={controller} folders={folders} />
@@ -98,7 +98,7 @@ const NewButton = ({
             <Plus className="h-4 w-4 flex-shrink-0" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent>New</TooltipContent>
+        <TooltipContent>New (Ctrl+N)</TooltipContent>
       </Tooltip>
       <NewModal ref={newModalRef} controller={controller} folders={folders} />
     </>

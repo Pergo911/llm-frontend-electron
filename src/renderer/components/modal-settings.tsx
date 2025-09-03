@@ -1,7 +1,14 @@
 import { useEffect, useRef, useState, memo, useCallback } from 'react';
 import { Config } from '@/common/types';
 import { toast } from 'sonner';
-import { FileJson, Monitor, Moon, SettingsIcon, Sun } from 'lucide-react';
+import {
+  FileJson,
+  Monitor,
+  Moon,
+  Settings2,
+  SettingsIcon,
+  Sun,
+} from 'lucide-react';
 import {
   DialogClose,
   DialogContent,
@@ -142,7 +149,7 @@ export const SettingsModal = memo(
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center">
-            <SettingsIcon className="mr-2" />
+            <Settings2 className="mr-2" />
             Settings
           </DialogTitle>
         </DialogHeader>

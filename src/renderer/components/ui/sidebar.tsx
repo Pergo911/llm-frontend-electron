@@ -202,7 +202,7 @@ const Sidebar = React.forwardRef<
           <SheetContent
             data-sidebar="sidebar"
             data-mobile="true"
-            className="bg-background-acrylic w-[--sidebar-width] p-0 text-foreground [&>button]:hidden"
+            className="w-[--sidebar-width] bg-background-acrylic p-0 text-foreground [&>button]:hidden"
             style={
               {
                 '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
@@ -257,7 +257,7 @@ const Sidebar = React.forwardRef<
         >
           <div
             data-sidebar="sidebar"
-            className="bg-background-acrylic flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-border group-data-[variant=floating]:shadow"
+            className="flex h-full w-full flex-col bg-background-acrylic group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:border-border group-data-[variant=floating]:shadow"
           >
             {children}
           </div>
@@ -294,7 +294,9 @@ const SidebarTrigger = React.forwardRef<
         </Button>
       </TooltipTrigger>
       <TooltipContent side="bottom" align="start">
-        {state === 'expanded' ? 'Collapse Sidebar' : 'Expand Sidebar'}
+        {state === 'expanded'
+          ? 'Collapse Sidebar (Ctrl+B)'
+          : 'Expand Sidebar (Ctrl+B)'}
       </TooltipContent>
     </Tooltip>
   );
@@ -477,7 +479,7 @@ const SidebarGroupAction = React.forwardRef<
       ref={ref}
       data-sidebar="group-action"
       className={cn(
-        'hover:bg-background-acrylic-hover absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-xl p-0 text-foreground outline-none ring-primary transition-transform hover:text-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
+        'absolute right-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-xl p-0 text-foreground outline-none ring-primary transition-transform hover:bg-background-acrylic-hover hover:text-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
         // Increases the hit area of the button on mobile.
         'after:absolute after:-inset-2 after:md:hidden',
         'group-data-[collapsible=icon]:hidden',
@@ -623,7 +625,7 @@ const SidebarMenuAction = React.forwardRef<
       ref={ref}
       data-sidebar="menu-action"
       className={cn(
-        'hover:bg-background-acrylic-hover absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-xl p-0 text-foreground outline-none ring-primary transition-transform hover:text-foreground focus-visible:ring-2 peer-hover/menu-button:text-foreground [&>svg]:size-4 [&>svg]:shrink-0',
+        'absolute right-1 top-1.5 flex aspect-square w-5 items-center justify-center rounded-xl p-0 text-foreground outline-none ring-primary transition-transform hover:bg-background-acrylic-hover hover:text-foreground focus-visible:ring-2 peer-hover/menu-button:text-foreground [&>svg]:size-4 [&>svg]:shrink-0',
         // Increases the hit area of the button on mobile.
         'after:absolute after:-inset-2 after:md:hidden',
         'peer-data-[size=sm]/menu-button:top-1',
@@ -739,7 +741,7 @@ const SidebarMenuSubButton = React.forwardRef<
       data-size={size}
       data-active={isActive}
       className={cn(
-        'hover:bg-background-acrylic-hover active:bg-background-acrylic-hover flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-xl px-2 text-foreground outline-none ring-primary hover:text-foreground focus-visible:ring-2 active:text-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-foreground',
+        'flex h-7 min-w-0 -translate-x-px items-center gap-2 overflow-hidden rounded-xl px-2 text-foreground outline-none ring-primary hover:bg-background-acrylic-hover hover:text-foreground focus-visible:ring-2 active:bg-background-acrylic-hover active:text-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-foreground',
         'data-[active=true]:bg-background-acrylic-hover data-[active=true]:text-foreground',
         size === 'sm' && 'text-xs',
         size === 'md' && 'text-sm',
