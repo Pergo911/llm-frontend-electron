@@ -19,6 +19,7 @@ import {
   Folder,
   Lightbulb,
   Loader2,
+  Menu,
   MessageCircle,
   Notebook,
   SlidersHorizontal,
@@ -58,8 +59,10 @@ import {
 import { cn } from '../utils/utils';
 import { Input } from './ui/input';
 import { Slider } from './ui/slider';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
+import { Separator } from './ui/separator';
 
-const ModelSelector = memo(
+const ModelSelectorGenSettingsComboPopover = memo(
   ({
     models,
     loading,
@@ -73,6 +76,18 @@ const ModelSelector = memo(
   }) => {
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isContentReady, setIsContentReady] = React.useState(false);
+    const [tab, setTab] = React.useState<'models' | 'generation'>('models');
+
+    const modelInputRef = React.useRef<HTMLInputElement>(null);
+
+    // Focus input when popover opens or tab changes to models
+    useEffect(() => {
+      if (isPopoverOpen && tab === 'models') {
+        setTimeout(() => {
+          modelInputRef.current?.focus();
+        }, 100);
+      }
+    }, [isPopoverOpen, tab]);
 
     const handleModelSelect = useCallback(
       async (modelId: string) => {
@@ -119,6 +134,119 @@ const ModelSelector = memo(
 
     const selectedModel = useMemo(() => (models ? models[0] : null), [models]);
 
+    // GenSettings state
+    const [max_tokens, setMaxTokens] = React.useState(4096);
+    const [max_tokensInvalid, setMaxTokensInvalid] = React.useState(false);
+    const [top_p, setTopP] = React.useState(0.9);
+    const [top_pInvalid, setTopPInvalid] = React.useState(false);
+    const [temperature, setTemperature] = React.useState(0.9);
+    const [temperatureInvalid, setTemperatureInvalid] = React.useState(false);
+    const [stop, setStop] = React.useState<string[] | null>(null);
+    const [stopInvalid, setStopInvalid] = React.useState(false);
+
+    const [stopRaw, setStopRaw] = React.useState<string>('');
+
+    const [genSettingsError, setGenSettingsError] = React.useState<
+      string | null
+    >(null);
+    const [genSettingsLoading, setGenSettingsLoading] = React.useState(true);
+
+    const invalid =
+      max_tokensInvalid || top_pInvalid || temperatureInvalid || stopInvalid;
+
+    useEffect(() => {
+      const loadSettings = async () => {
+        const config = await window.electron.fileOperations.getConfig();
+
+        const { genSettings } = config;
+
+        if (!genSettings) {
+          setGenSettingsError('Failed to load settings');
+          return;
+        }
+
+        setMaxTokens(genSettings.max_tokens);
+        setTopP(genSettings.top_p);
+        setTemperature(genSettings.temperature);
+        setStop(genSettings.stop);
+        setStopRaw(
+          genSettings.stop.length !== 0 ? JSON.stringify(genSettings.stop) : '',
+        );
+      };
+
+      if (genSettingsLoading)
+        loadSettings().then(() => setGenSettingsLoading(false));
+    }, [genSettingsLoading]);
+
+    useEffect(() => {
+      if (genSettingsError) {
+        toast.error(genSettingsError);
+        setGenSettingsError(null);
+      }
+    }, [genSettingsError]);
+
+    const validateInputs = useCallback(() => {
+      // Max tokens validation
+      setMaxTokensInvalid(max_tokens < 1 || !Number.isInteger(max_tokens));
+
+      // Temperature validation
+      setTemperatureInvalid(temperature < 0 || temperature > 5);
+
+      // Top P validation
+      setTopPInvalid(top_p < 0 || top_p > 1);
+
+      // Stop sequences validation
+      try {
+        if (stopRaw.trim() === '') {
+          setStop(null);
+          setStopInvalid(false);
+        } else {
+          const parsed = JSON.parse(stopRaw);
+          const isValid =
+            Array.isArray(parsed) &&
+            parsed.length <= 4 &&
+            parsed.every((item) => typeof item === 'string');
+          setStopInvalid(!isValid);
+          if (isValid) {
+            setStop(parsed);
+          }
+        }
+      } catch {
+        setStopInvalid(true);
+      }
+    }, [max_tokens, temperature, top_p, stopRaw]);
+
+    useEffect(() => {
+      validateInputs();
+    }, [max_tokens, temperature, top_p, stopRaw, validateInputs]);
+
+    useEffect(() => {
+      // Don't auto-save if loading hasn't finished yet.
+      if (genSettingsLoading) return;
+
+      // Don't auto-save if there are any invalid values.
+      if (invalid) return;
+
+      const debounceTimer = setTimeout(() => {
+        window.electron.fileOperations
+          .setConfig('genSettings', {
+            max_tokens,
+            top_p,
+            temperature,
+            stop: stop ?? [],
+          })
+          .then(({ error }) => {
+            if (error) {
+              toast.error(error);
+            }
+          });
+      }, 1000); // 1000ms debounce
+
+      // eslint-disable-next-line consistent-return
+      return () => clearTimeout(debounceTimer);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [invalid, max_tokens, top_p, temperature, stop]);
+
     return (
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
         <Tooltip>
@@ -127,7 +255,7 @@ const ModelSelector = memo(
               <Button
                 aria-label="Model selector"
                 role="combobox"
-                className="group/button non-draggable hover:bg-background-acrylic-hover justify-start"
+                className="group/button non-draggable justify-start hover:bg-background-acrylic-hover"
                 variant="ghost"
                 size="sm"
               >
@@ -145,7 +273,7 @@ const ModelSelector = memo(
                     {error ? (
                       <CircleAlert className="text-red-600 dark:text-red-400" />
                     ) : (
-                      <Brain />
+                      <Menu />
                     )}
                   </div>
                 )}
@@ -178,338 +306,224 @@ const ModelSelector = memo(
           side="bottom"
           align="end"
         >
-          <Command>
-            <CommandInput
-              placeholder="Search models..."
-              disabled={!!error}
-              onRefreshClick={handleRefresh}
-            />
-            <CommandList className="flex h-[300px] flex-col">
-              {!isContentReady ? (
-                <div className="flex h-[300px] items-center justify-center">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              ) : (
-                <>
-                  <CommandEmpty className="flex h-[300px] flex-col items-center justify-center text-muted-foreground">
-                    {error ? (
-                      <>
-                        <div className="p-4 text-center leading-loose text-red-600 dark:text-red-400">
-                          <CircleAlert className="inline" />
-                          <br />
-                          {error}
-                          <br />
-                        </div>
-                        <span className="text-xs">
-                          Check settings for insufficient configuration.
-                        </span>
-                      </>
-                    ) : loading ? (
+          <Tabs
+            defaultValue="models"
+            className="flex flex-col"
+            onValueChange={(v) => setTab(v as 'models' | 'generation')}
+            value={tab}
+          >
+            <TabsList className="m-2">
+              <TabsTrigger value="models" className="w-full">
+                <Brain className="mr-2 h-4 w-4 flex-shrink-0" />
+                Models
+              </TabsTrigger>
+              <TabsTrigger value="generation" className="w-full">
+                <SlidersHorizontal className="mr-2 h-4 w-4 flex-shrink-0" />
+                Generation
+              </TabsTrigger>
+            </TabsList>
+            <Separator className="m-0 p-0" />
+            <TabsContent value="models" className="m-0 h-[300px] p-0">
+              <Command className="h-full">
+                <CommandInput
+                  placeholder="Search models..."
+                  disabled={!!error}
+                  onRefreshClick={handleRefresh}
+                  ref={modelInputRef}
+                />
+                <CommandList className="h-full max-h-none min-h-0 overflow-y-auto">
+                  {!isContentReady ? (
+                    <div className="flex h-full items-center justify-center p-4">
                       <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                    ) : (
-                      <span className="text-xs">No models found.</span>
-                    )}
-                  </CommandEmpty>
-                  {models && (
-                    <CommandGroup>
-                      {models.map((model) => {
-                        return (
-                          <CommandItem
-                            key={model.id}
-                            value={model.id}
-                            onSelect={handleModelSelect}
-                            className="py-2"
-                          >
-                            {loading ? (
-                              <Loader2
-                                className={cn(
-                                  'invisible mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-muted-foreground',
-                                  model.id === selectedModel?.id && 'visible',
-                                )}
-                              />
-                            ) : (
-                              <Check
-                                className={cn(
-                                  'invisible mt-0.5 h-4 w-4 flex-shrink-0',
-                                  model.id === selectedModel?.id && 'visible',
-                                )}
-                              />
-                            )}
-                            <span
-                              className={cn(
-                                model.id === selectedModel?.id && 'font-bold',
-                                'w-full truncate',
-                              )}
-                            >
-                              {model.name}
+                    </div>
+                  ) : (
+                    <>
+                      <CommandEmpty className="flex h-full flex-col items-center justify-center p-4 text-muted-foreground">
+                        {error ? (
+                          <>
+                            <div className="p-4 text-center leading-loose text-red-600 dark:text-red-400">
+                              <CircleAlert className="inline" />
+                              <br />
+                              {error}
+                              <br />
+                            </div>
+                            <span className="text-xs">
+                              Check settings for insufficient configuration.
                             </span>
-                            {model.reasoning && (
-                              <Lightbulb className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                            )}
-                          </CommandItem>
-                        );
-                      })}
-                    </CommandGroup>
+                          </>
+                        ) : loading ? (
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                        ) : (
+                          <span className="text-xs">No models found.</span>
+                        )}
+                      </CommandEmpty>
+                      {models && (
+                        <CommandGroup>
+                          {models.map((model) => {
+                            return (
+                              <CommandItem
+                                key={model.id}
+                                value={model.id}
+                                onSelect={handleModelSelect}
+                                className="py-2"
+                              >
+                                {loading ? (
+                                  <Loader2
+                                    className={cn(
+                                      'invisible mt-0.5 h-4 w-4 flex-shrink-0 animate-spin text-muted-foreground',
+                                      model.id === selectedModel?.id &&
+                                        'visible',
+                                    )}
+                                  />
+                                ) : (
+                                  <Check
+                                    className={cn(
+                                      'invisible mt-0.5 h-4 w-4 flex-shrink-0',
+                                      model.id === selectedModel?.id &&
+                                        'visible',
+                                    )}
+                                  />
+                                )}
+                                <span
+                                  className={cn(
+                                    model.id === selectedModel?.id &&
+                                      'font-bold',
+                                    'w-full truncate',
+                                  )}
+                                >
+                                  {model.name}
+                                </span>
+                                {model.reasoning && (
+                                  <Lightbulb className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                )}
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      )}
+                    </>
                   )}
-                </>
-              )}
-            </CommandList>
-          </Command>
+                </CommandList>
+              </Command>
+            </TabsContent>
+            <TabsContent value="generation" className="m-0 h-[300px] p-0">
+              <div className="m-4 mt-2 flex flex-col gap-2">
+                {/* Max tokens: int, default: 4096, min: 1 */}
+                <div className="text-sm font-bold">
+                  Max new tokens{' '}
+                  <span className="font-normal text-muted-foreground">
+                    (1{'<'})
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    className={cn(
+                      'flex-[2]',
+                      max_tokensInvalid &&
+                        'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+                    )}
+                    value={max_tokens}
+                    onChange={(e) => setMaxTokens(Number(e.target.value))}
+                    step={1}
+                    min={1}
+                  />
+                </div>
+
+                {/* Temperature: float, default: 0.9, min: 0, max: 5 */}
+                <div className="text-sm font-bold">
+                  Temperature{' '}
+                  <span className="font-normal text-muted-foreground">
+                    (0-5)
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    className={cn(
+                      'flex-[2]',
+                      temperatureInvalid &&
+                        'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+                    )}
+                    value={temperature}
+                    onChange={(e) => setTemperature(Number(e.target.value))}
+                    min={0}
+                    max={5}
+                    step={0.1}
+                  />
+                  <Slider
+                    className={cn(
+                      'flex-[8]',
+                      temperatureInvalid && 'text-red-600 dark:text-red-400',
+                    )}
+                    min={0}
+                    max={2}
+                    step={0.1}
+                    value={[temperature]}
+                    onValueChange={(value) => setTemperature(value[0])}
+                  />
+                </div>
+
+                {/* Top P: float, default: 0.9, min: 0, max: 1 */}
+                <div className="text-sm font-bold">
+                  Top P{' '}
+                  <span className="font-normal text-muted-foreground">
+                    (0-1)
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    className={cn(
+                      'flex-[2]',
+                      top_pInvalid &&
+                        'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+                    )}
+                    min={0}
+                    max={1}
+                    value={top_p}
+                    onChange={(e) => setTopP(Number(e.target.value))}
+                    step={0.1}
+                  />
+                  <Slider
+                    className={cn(
+                      'flex-[8]',
+                      top_pInvalid && 'text-red-600 dark:text-red-400',
+                    )}
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    value={[top_p]}
+                    onValueChange={(value) => setTopP(value[0])}
+                  />
+                </div>
+
+                {/* Stop sequences: string[]; up to 4 items */}
+                <div className="text-sm font-bold">
+                  Stop sequences{' '}
+                  <span className="font-normal text-muted-foreground">
+                    (max 4)
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder='["\n", "You:"]'
+                    value={stopRaw}
+                    onChange={(e) => setStopRaw(e.target.value)}
+                    className={cn(
+                      stopInvalid &&
+                        'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
+                    )}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </PopoverContent>
       </Popover>
     );
   },
 );
-
-const GenSettings = memo(() => {
-  const [max_tokens, setMaxTokens] = React.useState(4096);
-  const [max_tokensInvalid, setMaxTokensInvalid] = React.useState(false);
-  const [top_p, setTopP] = React.useState(0.9);
-  const [top_pInvalid, setTopPInvalid] = React.useState(false);
-  const [temperature, setTemperature] = React.useState(0.9);
-  const [temperatureInvalid, setTemperatureInvalid] = React.useState(false);
-  const [stop, setStop] = React.useState<string[] | null>(null);
-  const [stopInvalid, setStopInvalid] = React.useState(false);
-
-  const [stopRaw, setStopRaw] = React.useState<string>('');
-
-  const [error, setError] = React.useState<string | null>(null);
-  const [loading, setLoading] = React.useState(true);
-
-  const invalid =
-    max_tokensInvalid || top_pInvalid || temperatureInvalid || stopInvalid;
-
-  useEffect(() => {
-    const loadSettings = async () => {
-      const config = await window.electron.fileOperations.getConfig();
-
-      const { genSettings } = config;
-
-      if (!genSettings) {
-        setError('Failed to load settings');
-        return;
-      }
-
-      setMaxTokens(genSettings.max_tokens);
-      setTopP(genSettings.top_p);
-      setTemperature(genSettings.temperature);
-      setStop(genSettings.stop);
-      setStopRaw(
-        genSettings.stop.length !== 0 ? JSON.stringify(genSettings.stop) : '',
-      );
-    };
-
-    if (loading) loadSettings().then(() => setLoading(false));
-  }, [loading]);
-
-  useEffect(() => {
-    if (error) {
-      toast.error(error);
-      setError(null);
-    }
-  }, [error]);
-
-  const validateInputs = useCallback(() => {
-    // Max tokens validation
-    setMaxTokensInvalid(max_tokens < 1 || !Number.isInteger(max_tokens));
-
-    // Temperature validation
-    setTemperatureInvalid(temperature < 0 || temperature > 5);
-
-    // Top P validation
-    setTopPInvalid(top_p < 0 || top_p > 1);
-
-    // Stop sequences validation
-    try {
-      if (stopRaw.trim() === '') {
-        setStop(null);
-        setStopInvalid(false);
-      } else {
-        const parsed = JSON.parse(stopRaw);
-        const isValid =
-          Array.isArray(parsed) &&
-          parsed.length <= 4 &&
-          parsed.every((item) => typeof item === 'string');
-        setStopInvalid(!isValid);
-        if (isValid) {
-          setStop(parsed);
-        }
-      }
-    } catch {
-      setStopInvalid(true);
-    }
-  }, [max_tokens, temperature, top_p, stopRaw]);
-
-  useEffect(() => {
-    validateInputs();
-  }, [max_tokens, temperature, top_p, stopRaw, validateInputs]);
-
-  useEffect(() => {
-    // Don't auto-save if loading hasn't finished yet.
-    if (loading) return;
-
-    // Don't auto-save if there are any invalid values.
-    if (invalid) return;
-
-    const debounceTimer = setTimeout(() => {
-      window.electron.fileOperations
-        .setConfig('genSettings', {
-          max_tokens,
-          top_p,
-          temperature,
-          stop: stop ?? [],
-        })
-        .then(({ error }) => {
-          if (error) {
-            toast.error(error);
-          }
-        });
-    }, 1000); // 1000ms debounce
-
-    // eslint-disable-next-line consistent-return
-    return () => clearTimeout(debounceTimer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [invalid, max_tokens, top_p, temperature, stop]);
-
-  return (
-    <Popover>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              aria-label="Generation settings"
-              className="group/button non-draggable hover:bg-background-acrylic-hover"
-              variant="ghost"
-              size="sm"
-            >
-              <div className="relative">
-                {invalid && (
-                  <>
-                    <div className="absolute right-0 top-0 h-2 w-2 animate-pulse rounded-full bg-red-500" />
-                    <div className="absolute right-0 top-0 h-2 w-2 animate-ping rounded-full bg-red-500" />
-                  </>
-                )}
-                <SlidersHorizontal />
-              </div>
-              <ChevronDown className="ml-auto text-muted-foreground transition-transform duration-100 ease-in-out group-hover/button:text-foreground group-focus/button:text-foreground" />
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" align="end">
-          {invalid ? `Invalid generation settings!` : 'Generation settings'}
-        </TooltipContent>
-      </Tooltip>
-      <PopoverContent
-        className="non-draggable w-[300px] p-0"
-        side="bottom"
-        align="end"
-      >
-        <div className="flex flex-col gap-2 p-4">
-          {/* Max tokens: int, default: 4096, min: 1 */}
-          <div className="text-sm font-bold">
-            Max new tokens{' '}
-            <span className="font-normal text-muted-foreground">(1{'<'})</span>
-          </div>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              className={cn(
-                'flex-[2]',
-                max_tokensInvalid &&
-                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
-              )}
-              value={max_tokens}
-              onChange={(e) => setMaxTokens(Number(e.target.value))}
-              step={1}
-              min={1}
-            />
-          </div>
-
-          {/* Temperature: float, default: 0.9, min: 0, max: 5 */}
-          <div className="text-sm font-bold">
-            Temperature{' '}
-            <span className="font-normal text-muted-foreground">(0-5)</span>
-          </div>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              className={cn(
-                'flex-[2]',
-                temperatureInvalid &&
-                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
-              )}
-              value={temperature}
-              onChange={(e) => setTemperature(Number(e.target.value))}
-              min={0}
-              max={5}
-              step={0.1}
-            />
-            <Slider
-              className={cn(
-                'flex-[8]',
-                temperatureInvalid && 'text-red-600 dark:text-red-400',
-              )}
-              min={0}
-              max={2}
-              step={0.1}
-              value={[temperature]}
-              onValueChange={(value) => setTemperature(value[0])}
-            />
-          </div>
-
-          {/* Top P: float, default: 0.9, min: 0, max: 1 */}
-          <div className="text-sm font-bold">
-            Top P{' '}
-            <span className="font-normal text-muted-foreground">(0-1)</span>
-          </div>
-          <div className="flex gap-2">
-            <Input
-              type="number"
-              className={cn(
-                'flex-[2]',
-                top_pInvalid &&
-                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
-              )}
-              min={0}
-              max={1}
-              value={top_p}
-              onChange={(e) => setTopP(Number(e.target.value))}
-              step={0.1}
-            />
-            <Slider
-              className={cn(
-                'flex-[8]',
-                top_pInvalid && 'text-red-600 dark:text-red-400',
-              )}
-              min={0}
-              max={1}
-              step={0.1}
-              value={[top_p]}
-              onValueChange={(value) => setTopP(value[0])}
-            />
-          </div>
-
-          {/* Stop sequences: string[]; up to 4 items */}
-          <div className="text-sm font-bold">
-            Stop sequences{' '}
-            <span className="font-normal text-muted-foreground">(max 4)</span>
-          </div>
-          <div className="flex gap-2">
-            <Input
-              placeholder='["\n", "You:"]'
-              value={stopRaw}
-              onChange={(e) => setStopRaw(e.target.value)}
-              className={cn(
-                stopInvalid &&
-                  'border-red-600 focus-visible:ring-red-600 dark:border-red-400 dark:focus-visible:ring-red-400',
-              )}
-            />
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-});
 
 // Used to display home icon, kept for consistency
 const HomeBreadcrumb = () => {
@@ -694,13 +708,12 @@ const TitleBar = memo(
             <ErrorOrLoadingBreadcrumb error={error} />
           )}
         </Breadcrumb>
-        <ModelSelector
+        <ModelSelectorGenSettingsComboPopover
           controller={modelsController}
           error={modelsError}
           loading={loading}
           models={models}
         />
-        <GenSettings />
       </div>
     );
   },
