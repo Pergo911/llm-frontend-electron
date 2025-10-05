@@ -651,43 +651,46 @@ export default function ChatPage({
   return (
     <div className="h-[calc(100vh-48px-0.5rem)]">
       <div className="m-2 mt-0 flex h-full flex-col overflow-hidden rounded-3xl bg-background">
-        <div
-          className="h-full overflow-y-auto"
-          ref={scrollRef}
-          style={{ scrollbarGutter: 'stable' }}
-        >
-          <ChatTitle chat={chat} onPromptAdd={handleOnAddPrompt} />
-          <Messages
-            messages={chat.messages}
-            onMessageEdit={handleOnMessageEdit}
-            onSwapPrompt={handleOnSwapPrompt}
-            onMessageDelete={handleOnMessageDelete}
-            onSetActiveChoice={handleOnSetActiveChoice}
-            onMessageRegen={handleOnMessageRegen}
-            isStreaming={isStreaming}
-            messageBeingStreamed={messageBeingStreamed.current}
-            streamingText={streamingText}
-            streamingReasoningText={streamingReasoningText}
-          />
-        </div>
-
-        {/* Scroll to Bottom Button */}
-        <div
-          className={`absolute bottom-36 right-1/2 translate-x-1/2 text-muted-foreground transition-all duration-300 ease-in-out ${
-            showScrollButton
-              ? 'pointer-events-auto translate-y-0 opacity-100'
-              : 'pointer-events-none translate-y-2 opacity-0'
-          }`}
-        >
-          <Button
-            variant="outline"
-            onClick={scrollToBottom}
-            className="h-8 rounded-full border border-border bg-background-dim text-xs font-bold opacity-80 shadow-lg transition-shadow duration-200 hover:shadow-xl"
-            aria-label="Scroll to bottom"
+        {/* Added an additional div here to allow "scroll to bottom" positioning based on input bar height */}
+        <div className="relative h-full overflow-hidden">
+          <div
+            className="h-full overflow-y-auto"
+            ref={scrollRef}
+            style={{ scrollbarGutter: 'stable' }}
           >
-            Scroll down
-            <ArrowDown className="h-4 w-4" />
-          </Button>
+            <ChatTitle chat={chat} onPromptAdd={handleOnAddPrompt} />
+            <Messages
+              messages={chat.messages}
+              onMessageEdit={handleOnMessageEdit}
+              onSwapPrompt={handleOnSwapPrompt}
+              onMessageDelete={handleOnMessageDelete}
+              onSetActiveChoice={handleOnSetActiveChoice}
+              onMessageRegen={handleOnMessageRegen}
+              isStreaming={isStreaming}
+              messageBeingStreamed={messageBeingStreamed.current}
+              streamingText={streamingText}
+              streamingReasoningText={streamingReasoningText}
+            />
+          </div>
+
+          {/* Scroll to Bottom Button */}
+          <div
+            className={`absolute bottom-2 right-1/2 translate-x-1/2 text-muted-foreground transition-all duration-300 ease-in-out ${
+              showScrollButton
+                ? 'pointer-events-auto translate-y-0 opacity-100'
+                : 'pointer-events-none translate-y-2 opacity-0'
+            }`}
+          >
+            <Button
+              variant="outline"
+              onClick={scrollToBottom}
+              className="h-8 rounded-full border border-border bg-background-dim text-xs font-bold opacity-80 shadow-lg transition-shadow duration-200 hover:shadow-xl"
+              aria-label="Scroll to bottom"
+            >
+              Scroll down
+              <ArrowDown className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <ChatInputBar
