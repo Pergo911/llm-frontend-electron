@@ -94,8 +94,15 @@ const EditMessageModal = forwardRef<EditMessageModalRef>((_, ref) => {
   }, [isOpen]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleDismiss()}>
-      <DialogContent className="max-w-[780px]">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => !open && handleDismiss()}
+      modal
+    >
+      <DialogContent
+        className="max-w-[780px]"
+        onPointerDownOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Edit message</DialogTitle>
         </DialogHeader>
