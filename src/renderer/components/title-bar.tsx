@@ -298,11 +298,12 @@ const ModelSelectorGenSettingsComboPopover = memo(
                   <span className="w-2" />
                   <span className="font-bold">{selectedModel.name}</span>
                 </div>
-                <div className="flex justify-between text-xs">
+                {/* TODO: IMPLEMENT BALANCE */}
+                {/* <div className="flex justify-between text-xs">
                   <span className="text-muted-foreground">Current balance</span>
                   <span className="w-2" />
                   <span className="font-bold">$3.22</span>
-                </div>
+                </div> */}
               </>
             ) : (
               'No model selected!'
@@ -527,12 +528,13 @@ const ModelSelectorGenSettingsComboPopover = memo(
               </div>
             </TabsContent>
           </Tabs>
-          <Separator className="m-0 p-0" />
+          {/* TODO: IMPLEMENT BALANCE */}
+          {/* <Separator className="m-0 p-0" />
           <div className="flex justify-between p-4 text-sm">
             <span className="text-muted-foreground">Current balance</span>
             <span className="w-2" />
             <span className="font-bold">$3.22</span>
-          </div>
+          </div> */}
         </PopoverContent>
       </Popover>
     );
