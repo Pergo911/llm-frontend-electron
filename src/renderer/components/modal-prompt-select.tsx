@@ -65,6 +65,7 @@ const PromptSelectModal = forwardRef<
 
   useImperativeHandle(ref, () => ({
     promptUser: () => {
+      setSearchValue('');
       setIsOpen(true);
 
       return new Promise<{
