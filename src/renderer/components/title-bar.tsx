@@ -293,8 +293,16 @@ const ModelSelectorGenSettingsComboPopover = memo(
           <TooltipContent side="bottom" align="end">
             {selectedModel ? (
               <>
-                <span>Using model: </span>
-                <span className="font-bold">{selectedModel.name}</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Using model</span>
+                  <span className="w-2" />
+                  <span className="font-bold">{selectedModel.name}</span>
+                </div>
+                <div className="flex justify-between text-xs">
+                  <span className="text-muted-foreground">Current balance</span>
+                  <span className="w-2" />
+                  <span className="font-bold">$3.22</span>
+                </div>
               </>
             ) : (
               'No model selected!'
@@ -519,6 +527,12 @@ const ModelSelectorGenSettingsComboPopover = memo(
               </div>
             </TabsContent>
           </Tabs>
+          <Separator className="m-0 p-0" />
+          <div className="flex justify-between p-4 text-sm">
+            <span className="text-muted-foreground">Current balance</span>
+            <span className="w-2" />
+            <span className="font-bold">$3.22</span>
+          </div>
         </PopoverContent>
       </Popover>
     );
