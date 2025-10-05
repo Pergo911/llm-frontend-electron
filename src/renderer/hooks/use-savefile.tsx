@@ -44,6 +44,45 @@ const useSaveFile = (): {
   const [loading, setLoading] = useState(true);
   const debounceTimerRef = useRef<number | null>(null);
 
+  /**
+   * Takes the current saveFile state and writes it to disk
+   * @returns {Object} An object with error field, which is null if successful
+   */
+  const write = useCallback(async () => {
+    if (!saveFile) {
+      return { error: 'No save file loaded' };
+    }
+
+    const { error } =
+      await window.electron.fileOperations.setSaveFile(saveFile);
+
+    if (error) {
+      return { error };
+    }
+
+    return { error: null };
+  }, [saveFile]);
+
+  /**
+   * Debounced write handler that delays writing for 2 seconds
+   * Can be called frequently but will only write if nothing happens for 2 seconds
+   */
+  const handleWrite = useCallback(() => {
+    // Clear any existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set a new timer for 2 seconds
+    debounceTimerRef.current = window.setTimeout(async () => {
+      const { error } = await write();
+      if (error) {
+        toast.error(`Failed to save: ${error}`);
+        toast.warning('Warning: Unsaved changes!');
+      }
+    }, 2000);
+  }, [write]);
+
   const resolvePromptMessage = useCallback(
     (message: PromptMessage, saveFile: SaveFile): ResolvedPromptMessage => {
       // Find prompt
@@ -124,14 +163,32 @@ const useSaveFile = (): {
           title: chat.title,
           // Only messages need to be resolved
           messages: chat.messages.map((message) => {
-            // If it's not a prompt message there's no further processing
-            if (
-              message.messageType === 'user' ||
-              message.messageType === 'assistant'
-            )
-              return message;
+            // For user messages, no further processing
+            if (message.messageType === 'user') return message;
 
-            // If it is a prompt message, resolve it
+            // For assistant messages, validate activeChoice
+            if (message.messageType === 'assistant') {
+              const showToast = () => {
+                toast.info(
+                  `Error corrected an invalid message choice. Message ID: ${message.id}`,
+                );
+              };
+
+              if (message.activeChoice < 0) {
+                message.activeChoice = 0;
+                showToast();
+              }
+              if (message.activeChoice >= message.choices.length) {
+                message.activeChoice = message.choices.length - 1;
+                showToast();
+              }
+
+              write();
+
+              return message;
+            }
+
+            // For prompt message, run resolve
             return resolvePromptMessage(message, saveFile);
           }),
         };
@@ -151,7 +208,7 @@ const useSaveFile = (): {
 
       return res;
     },
-    [resolveFolder, resolvePrompt, resolvePromptMessage],
+    [resolveFolder, resolvePrompt, resolvePromptMessage, write],
   );
 
   /**
@@ -175,45 +232,6 @@ const useSaveFile = (): {
     setSaveFile(readSaveFile);
     setResolvedSaveFile(resolveSaveFile(readSaveFile));
   }, [error, loading, resolveSaveFile, resolvedSaveFile, saveFile]);
-
-  /**
-   * Takes the current saveFile state and writes it to disk
-   * @returns {Object} An object with error field, which is null if successful
-   */
-  const write = useCallback(async () => {
-    if (!saveFile) {
-      return { error: 'No save file loaded' };
-    }
-
-    const { error } =
-      await window.electron.fileOperations.setSaveFile(saveFile);
-
-    if (error) {
-      return { error };
-    }
-
-    return { error: null };
-  }, [saveFile]);
-
-  /**
-   * Debounced write handler that delays writing for 2 seconds
-   * Can be called frequently but will only write if nothing happens for 2 seconds
-   */
-  const handleWrite = useCallback(() => {
-    // Clear any existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Set a new timer for 2 seconds
-    debounceTimerRef.current = window.setTimeout(async () => {
-      const { error } = await write();
-      if (error) {
-        toast.error(`Failed to save: ${error}`);
-        toast.warning('Warning: Unsaved changes!');
-      }
-    }, 2000);
-  }, [write]);
 
   const addMessage = useCallback(
     (
