@@ -682,7 +682,7 @@ export default function ChatPage({
           <Button
             variant="outline"
             onClick={scrollToBottom}
-            className="rounded-full border border-border bg-background-dim text-xs font-bold opacity-80 shadow-lg transition-shadow duration-200 hover:shadow-xl"
+            className="h-8 rounded-full border border-border bg-background-dim text-xs font-bold opacity-80 shadow-lg transition-shadow duration-200 hover:shadow-xl"
             aria-label="Scroll to bottom"
           >
             Scroll down
