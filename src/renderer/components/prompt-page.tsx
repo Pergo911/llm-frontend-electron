@@ -54,7 +54,6 @@ export default function PromptPage({
 
   // Runs on nav
   useEffect(() => {
-    setWindowTitle(prompt.title);
     setContent(prompt.content);
     setIsSaved(true);
   }, [prompt]);

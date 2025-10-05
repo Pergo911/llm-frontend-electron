@@ -35,7 +35,6 @@ export default function HomePage({
   const promptId = useRef<string | null>(null);
 
   useEffect(() => {
-    setWindowTitle();
     inputRef.current?.focus();
   }, []);
 

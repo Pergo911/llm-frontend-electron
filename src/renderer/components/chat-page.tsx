@@ -138,10 +138,9 @@ export default function ChatPage({
   };
 
   useEffect(() => {
-    setWindowTitle(chat.title);
     handleInputFocus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [chat.id]);
 
   useEffect(() => {
     if (error) {

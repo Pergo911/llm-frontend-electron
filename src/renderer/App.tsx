@@ -32,6 +32,7 @@ import { Button } from './components/ui/button';
 import { useModels } from './hooks/use-models';
 import { Dialog, DialogTrigger } from './components/ui/dialog';
 import { SettingsModal } from './components/modal-settings';
+import { setWindowTitle } from './utils/utils';
 
 function AppRoutes({
   chats,
@@ -70,6 +71,10 @@ function AppRoutes({
       // If no chat or prompt is found, navigate to home
       navigate('/');
     }
+
+    // Window title logic lifted here
+    // eslint-disable-next-line no-nested-ternary
+    setWindowTitle(chat ? chat.title : prompt ? prompt.title : undefined);
   }, [chat, prompt, navigate]);
 
   useEffect(() => {
