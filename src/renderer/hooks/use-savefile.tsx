@@ -177,13 +177,13 @@ const useSaveFile = (): {
               if (message.activeChoice < 0) {
                 message.activeChoice = 0;
                 showToast();
+                handleWrite();
               }
               if (message.activeChoice >= message.choices.length) {
                 message.activeChoice = message.choices.length - 1;
                 showToast();
+                handleWrite();
               }
-
-              write();
 
               return message;
             }
@@ -208,7 +208,7 @@ const useSaveFile = (): {
 
       return res;
     },
-    [resolveFolder, resolvePrompt, resolvePromptMessage, write],
+    [handleWrite, resolveFolder, resolvePrompt, resolvePromptMessage],
   );
 
   /**
