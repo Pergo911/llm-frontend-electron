@@ -14,7 +14,7 @@
     --secondary-hover: hsl(111, 9%, 43%);
     --card: hsl(106, 0%, 92%);
     --card-foreground: hsl(116, 35%, 9%);
-    --card-hover: hsl(80, 0%, 90%);
+    --card-hover: hsl(80, 0%, 85%);
     --primary: hsl(119, 29%, 42%);
     --primary-foreground: hsl(0, 0%, 100%);
     --primary-hover: hsl(119, 23%, 40%);
@@ -34,7 +34,7 @@
 
   .dark {
     --background: hsl(108, 0%, 7%);
-    --background-dim: hsl(100, 0%, 12%);
+    --background-dim: hsl(100, 0%, 10%);
     --acrylic: hsla(100, 0%, 12%, 0.6);
     --acrylic-hover: hsla(100, 0%, 100%, 0.06);
     --foreground: hsl(87, 0%, 88%);

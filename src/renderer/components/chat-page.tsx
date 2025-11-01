@@ -1,7 +1,7 @@
 /* eslint-disable promise/always-return */
 /* eslint-disable promise/catch-or-return */
 /* eslint-disable no-nested-ternary */
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect, useCallback, memo, useRef } from 'react';
 import {
   Chat,
@@ -14,15 +14,18 @@ import {
   ResolvedPrompt,
   SaveFileController,
 } from '@/common/types';
-import { ArrowDown } from 'lucide-react';
+import { ArrowDown, Edit2, Layers2, Tag, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ChatInputBar from './chat-input-bar';
 import Messages from './messages';
 import { formatTimestamp, setWindowTitle } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
 import { EditMessageModal, EditMessageModalRef } from './modal-edit';
+import { RenameModal, RenameModalRef } from './modal-rename';
+import { DeleteModal, DeleteModalRef } from './modal-delete';
 import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
 import { Button } from './ui/button';
+import { Separator } from './ui/separator';
 
 const ChatTitle = memo(
   ({ chat, onPromptAdd }: { chat: Chat; onPromptAdd: () => void }) => {
@@ -32,14 +35,9 @@ const ChatTitle = memo(
 
     return (
       <>
-        <div className="m-auto flex max-w-[800px] flex-col items-start px-8 py-4">
+        <div className="m-auto mx-8 my-4 flex max-w-[800px] flex-col items-start gap-2 rounded-2xl bg-background-dim px-6 py-4 shadow-sm">
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-xs text-muted-foreground">
-            Created{' '}
-            <span className="font-bold">{formatTimestamp(created)}</span> •{' '}
-            Modified{' '}
-            <span className="font-bold">{formatTimestamp(modified)}</span>
-            <br />
             {messageNum > 0 ? (
               <>
                 <span className="font-bold">{messageNum}</span> message
@@ -48,6 +46,11 @@ const ChatTitle = memo(
             ) : (
               'No messages'
             )}
+            <br />
+            Created{' '}
+            <span className="font-bold">{formatTimestamp(created)}</span> •{' '}
+            Modified{' '}
+            <span className="font-bold">{formatTimestamp(modified)}</span>
           </p>
         </div>
 
@@ -83,6 +86,7 @@ export default function ChatPage({
   isStreaming: boolean;
   setIsStreaming: (v: boolean) => void;
 }) {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const messageBeingStreamed = useRef<string | null>(null); // null if we are not currently streaming
@@ -94,6 +98,8 @@ export default function ChatPage({
   const chatInputBarActionRef = useRef<ChatInputBarActions>(null);
   const editMessageModalRef = useRef<EditMessageModalRef>(null);
   const promptSelectModalRef = useRef<PromptSelectModalRef>(null);
+  const renameModalRef = useRef<RenameModalRef>(null);
+  const deleteModalRef = useRef<DeleteModalRef>(null);
   const abortRequestRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -562,6 +568,65 @@ export default function ChatPage({
     [chat.id, controller.chats.messages],
   );
 
+  // Chat-level actions (header buttons)
+  const handleRenameChat = useCallback(async () => {
+    if (abortRequestRef.current) {
+      setError("Can't rename while generating.");
+      return;
+    }
+    if (!renameModalRef.current) {
+      setError('Rename modal not found.');
+      return;
+    }
+
+    const newName = await renameModalRef.current.promptUser('chat', chat.title);
+    if (!newName) return;
+
+    const { error: renameError } = controller.chats.rename(chat.id, newName);
+    if (renameError) setError(renameError);
+  }, [chat.id, chat.title, controller.chats]);
+
+  const handleDuplicateChat = useCallback(() => {
+    if (abortRequestRef.current) {
+      setError('Already generating.');
+      return;
+    }
+
+    const { error: dupError, newId } = controller.chats.duplicate(chat.id);
+    if (dupError) {
+      setError(`Error duplicating chat: ${dupError}`);
+      return;
+    }
+    if (newId) navigate(`/c/${newId}`);
+  }, [chat.id, controller.chats, navigate]);
+
+  const handleCopyChatId = useCallback(() => {
+    // Copying is safe during streaming
+    navigator.clipboard.writeText(chat.id);
+    toast.success('Chat ID copied');
+  }, [chat.id]);
+
+  const handleDeleteChat = useCallback(async () => {
+    if (abortRequestRef.current) {
+      setError("Can't delete while generating.");
+      return;
+    }
+    if (!deleteModalRef.current) {
+      setError('Delete modal not found.');
+      return;
+    }
+
+    const confirmed = await deleteModalRef.current.promptUser();
+    if (!confirmed) return;
+
+    const { error: delError } = controller.chats.delete(chat.id);
+    if (delError) {
+      setError(delError);
+      return;
+    }
+    navigate('/');
+  }, [chat.id, controller.chats, navigate]);
+
   const handleReasoningToggle = useCallback(
     async (enabled: boolean) => {
       if (!modelSelection) {
@@ -659,6 +724,44 @@ export default function ChatPage({
             style={{ scrollbarGutter: 'stable' }}
           >
             <ChatTitle chat={chat} onPromptAdd={handleOnAddPrompt} />
+            <div className="m-auto flex max-w-[800px] items-center gap-2 px-8 py-0">
+              <Button
+                variant="actionButtonLarge"
+                className="h-16 w-24"
+                onClick={handleRenameChat}
+                disabled={!!abortRequestRef.current}
+              >
+                <Edit2 className="flex-shrink-0" />
+                Rename
+              </Button>
+              <Button
+                variant="actionButtonLarge"
+                className="h-16 w-24"
+                onClick={handleDuplicateChat}
+                disabled={!!abortRequestRef.current}
+              >
+                <Layers2 className="flex-shrink-0" />
+                Duplicate
+              </Button>
+              <Button
+                variant="actionButtonLarge"
+                className="h-16 w-24"
+                onClick={handleCopyChatId}
+              >
+                <Tag className="flex-shrink-0" />
+                Copy ID
+              </Button>
+              <Separator orientation="vertical" className="h-12" />
+              <Button
+                variant="actionButtonLarge"
+                className="h-16 w-24 text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
+                onClick={handleDeleteChat}
+                disabled={!!abortRequestRef.current}
+              >
+                <Trash2 className="flex-shrink-0" />
+                Delete
+              </Button>
+            </div>
             <Messages
               messages={chat.messages}
               onMessageEdit={handleOnMessageEdit}
@@ -711,6 +814,8 @@ export default function ChatPage({
         />
         <EditMessageModal ref={editMessageModalRef} />
         <PromptSelectModal ref={promptSelectModalRef} folders={folders} />
+        <RenameModal ref={renameModalRef} />
+        <DeleteModal ref={deleteModalRef} />
       </div>
     </div>
   );

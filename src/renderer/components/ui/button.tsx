@@ -19,6 +19,8 @@ const buttonVariants = cva(
           'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary-hover',
         ghost: 'hover:bg-card-hover hover:text-foreground',
         actionButton: 'hover:text-foreground focus:text-foreground',
+        actionButtonLarge:
+          'shadow-sm hover:text-foreground focus:text-foreground bg-background-dim hover:bg-card-hover focus:bg-card-hover rounded-2xl flex-col gap-1.5 p-6',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
