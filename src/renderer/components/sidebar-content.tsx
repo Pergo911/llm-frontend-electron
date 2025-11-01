@@ -138,6 +138,7 @@ export function ChatsSidebarContent({
     (id: string) => {
       if (disabled) return;
       navigator.clipboard.writeText(id);
+      toast.success('ID copied');
     },
     [disabled],
   );
@@ -351,6 +352,7 @@ export function PromptsSidebarContent({
     (id: string) => {
       if (disabled) return;
       navigator.clipboard.writeText(id);
+      toast.success('ID copied');
     },
     [disabled],
   );

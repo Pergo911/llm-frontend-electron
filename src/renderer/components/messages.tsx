@@ -38,6 +38,7 @@ import ReactMarkdown from 'react-markdown';
 import { Link, useNavigate } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
+import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { cn, formatTimestamp } from '../utils/utils';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
@@ -77,6 +78,7 @@ const deleteDescription = (
 const useCopyIdHandler = (id: string) =>
   React.useCallback(() => {
     navigator.clipboard.writeText(id);
+    toast.success('ID copied');
   }, [id]);
 
 const getSelectedTextWithin = (el: HTMLElement | null): string | null => {
@@ -139,6 +141,7 @@ const UserMessageComponent = React.memo<{
 
     const handleCopyMessage = React.useCallback(() => {
       navigator.clipboard.writeText(m.content);
+      toast.success('Message copied');
     }, [m.content]);
 
     return (
@@ -253,6 +256,7 @@ const UserMessageComponent = React.memo<{
               <ContextMenuWithBarItem
                 onClick={() => {
                   navigator.clipboard.writeText(m.id);
+                  toast.success('ID copied');
                 }}
               >
                 <Tag className="mr-2 h-4 w-4" />
@@ -347,6 +351,7 @@ const AssistantMessageComponent = React.memo(
           ? streamingText || ''
           : m.choices[m.activeChoice].content;
       navigator.clipboard.writeText(baseContent);
+      toast.success('Message copied');
     }, [streamingText, streamingReasoningText, m.choices, m.activeChoice]);
 
     const shouldShowSpinner =
@@ -438,6 +443,7 @@ const AssistantMessageComponent = React.memo(
             <ContextMenuWithBarItem
               onClick={() => {
                 navigator.clipboard.writeText(m.id);
+                toast.success('ID copied');
               }}
             >
               <Tag className="mr-2 h-4 w-4" />
@@ -759,6 +765,7 @@ const PromptMessageComponent = React.memo(
                 <ContextMenuWithBarItem
                   onClick={() => {
                     navigator.clipboard.writeText(m.id);
+                    toast.success('ID copied');
                   }}
                 >
                   <Tag className="mr-2 h-4 w-4" />

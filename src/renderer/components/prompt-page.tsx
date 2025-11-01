@@ -241,6 +241,7 @@ export default function PromptPage({
                 size="icon"
                 onClick={(e) => {
                   navigator.clipboard.writeText(prompt.id);
+                  toast.success('Prompt ID copied');
                   e.currentTarget.blur();
                 }}
               >
