@@ -12,6 +12,7 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain, nativeTheme } from 'electron';
 import { resolveHtmlPath } from './util';
 import { registerFileOperations } from './file-operations';
+const windowStateKeeper = require('electron-window-state');
 
 let mainWindow: BrowserWindow | null = null;
 let titleBarColors = {
@@ -40,10 +41,17 @@ const createWindow = () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
+  let mainWindowState = windowStateKeeper({
+    defaultWidth: 1024,
+    defaultHeight: 728,
+  });
+
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
+    x: mainWindowState.x,
+    y: mainWindowState.y,
+    width: mainWindowState.width,
+    height: mainWindowState.height,
     minWidth: 800,
     minHeight: 600,
     backgroundMaterial: 'tabbed',
@@ -64,6 +72,8 @@ const createWindow = () => {
       navigateOnDragDrop: false,
     },
   });
+
+  mainWindowState.manage(mainWindow);
 
   mainWindow.webContents.on('will-navigate', (event, url) => {
     const parsedUrl = new URL(url);
