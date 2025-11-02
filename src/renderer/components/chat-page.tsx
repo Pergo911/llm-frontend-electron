@@ -35,7 +35,7 @@ const ChatTitle = memo(
 
     return (
       <>
-        <div className="m-auto mx-8 my-4 flex max-w-[800px] flex-col items-start gap-2 rounded-2xl bg-background-dim px-6 py-4 shadow-sm">
+        <div className="mx-4 my-4 flex flex-col items-start gap-2 rounded-2xl bg-background-dim px-6 py-4 shadow-sm">
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-xs text-muted-foreground">
             {messageNum > 0 ? (
@@ -724,7 +724,7 @@ export default function ChatPage({
             style={{ scrollbarGutter: 'stable' }}
           >
             <ChatTitle chat={chat} onPromptAdd={handleOnAddPrompt} />
-            <div className="m-auto flex max-w-[800px] items-center gap-2 px-8 py-0">
+            <div className="mx-4 my-4 flex items-center gap-2">
               <Button
                 variant="actionButtonLarge"
                 className="h-16 w-24"
