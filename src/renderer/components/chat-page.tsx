@@ -102,17 +102,9 @@ export default function ChatPage({
   const deleteModalRef = useRef<DeleteModalRef>(null);
   const abortRequestRef = useRef<AbortController | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = useCallback(() => {
-    requestAnimationFrame(() => {
-      scrollRef.current?.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
-    });
-  }, []);
-
-  const scrollToBottomInstant = useCallback(() => {
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({
         top: scrollRef.current.scrollHeight,
@@ -121,7 +113,7 @@ export default function ChatPage({
     });
   }, []);
 
-  const scrollToTopInstant = useCallback(() => {
+  const scrollToTop = useCallback(() => {
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({
         top: 0,
@@ -138,6 +130,28 @@ export default function ChatPage({
 
     setShowScrollButton(!isNearBottom);
   }, []);
+
+  // Recompute scroll button visibility when the scroll container or its content size changes
+  // (e.g., window resize, input bar height change, or messages stream in/out)
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    const contentEl = contentRef.current;
+    if (!scrollEl && !contentEl) return undefined;
+
+    const ro = new ResizeObserver(() => {
+      handleScroll();
+    });
+
+    if (scrollEl) ro.observe(scrollEl);
+    if (contentEl) ro.observe(contentEl);
+
+    // Ensure initial state is correct after attaching observer
+    handleScroll();
+
+    return () => {
+      ro.disconnect();
+    };
+  }, [handleScroll]);
 
   const handleInputFocus = () => {
     chatInputBarActionRef.current?.focus();
@@ -188,7 +202,7 @@ export default function ChatPage({
   // On navigation,
   useEffect(() => {
     // reset scroll to top
-    scrollToTopInstant();
+    scrollToTop();
     // and update button visibility if needed
     handleScroll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -237,7 +251,7 @@ export default function ChatPage({
         }
 
         // If we added a message, scroll to the bottom
-        scrollToBottomInstant();
+        scrollToBottom();
       }
 
       // User manually adds an assistant message, don't proceed with generation
@@ -269,7 +283,7 @@ export default function ChatPage({
         return;
       }
 
-      scrollToBottomInstant();
+      scrollToBottom();
 
       setIsStreaming(true);
       messageBeingStreamed.current = messageId;
@@ -345,7 +359,7 @@ export default function ChatPage({
       chat.messages,
       controller.chats.messages,
       modelSelection,
-      scrollToBottomInstant,
+      scrollToBottom,
       setIsStreaming,
     ],
   );
@@ -538,8 +552,8 @@ export default function ChatPage({
     }
 
     // If we added a prompt, scroll to the bottom
-    scrollToBottomInstant();
-  }, [chat.id, controller.chats.messages, scrollToBottomInstant]);
+    scrollToBottom();
+  }, [chat.id, controller.chats.messages, scrollToBottom]);
 
   const handleOnSwapPrompt = useCallback(
     async (oldId: string) => {
@@ -723,57 +737,59 @@ export default function ChatPage({
             ref={scrollRef}
             style={{ scrollbarGutter: 'stable' }}
           >
-            <ChatTitle chat={chat} onPromptAdd={handleOnAddPrompt} />
-            <div className="mx-4 my-4 flex items-center gap-2">
-              <Button
-                variant="actionButtonLarge"
-                className="h-16 w-24"
-                onClick={handleRenameChat}
-                disabled={!!abortRequestRef.current}
-              >
-                <Edit2 className="flex-shrink-0" />
-                Rename
-              </Button>
-              <Button
-                variant="actionButtonLarge"
-                className="h-16 w-24"
-                onClick={handleDuplicateChat}
-                disabled={!!abortRequestRef.current}
-              >
-                <Layers2 className="flex-shrink-0" />
-                Duplicate
-              </Button>
-              <Button
-                variant="actionButtonLarge"
-                className="h-16 w-24"
-                onClick={handleCopyChatId}
-              >
-                <Tag className="flex-shrink-0" />
-                Copy ID
-              </Button>
-              <Separator orientation="vertical" className="h-12" />
-              <Button
-                variant="actionButtonLarge"
-                className="h-16 w-24 text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
-                onClick={handleDeleteChat}
-                disabled={!!abortRequestRef.current}
-              >
-                <Trash2 className="flex-shrink-0" />
-                Delete
-              </Button>
+            <div ref={contentRef}>
+              <ChatTitle chat={chat} onPromptAdd={handleOnAddPrompt} />
+              <div className="mx-4 my-4 flex items-center gap-2">
+                <Button
+                  variant="actionButtonLarge"
+                  className="h-16 w-24"
+                  onClick={handleRenameChat}
+                  disabled={!!abortRequestRef.current}
+                >
+                  <Edit2 className="flex-shrink-0" />
+                  Rename
+                </Button>
+                <Button
+                  variant="actionButtonLarge"
+                  className="h-16 w-24"
+                  onClick={handleDuplicateChat}
+                  disabled={!!abortRequestRef.current}
+                >
+                  <Layers2 className="flex-shrink-0" />
+                  Duplicate
+                </Button>
+                <Button
+                  variant="actionButtonLarge"
+                  className="h-16 w-24"
+                  onClick={handleCopyChatId}
+                >
+                  <Tag className="flex-shrink-0" />
+                  Copy ID
+                </Button>
+                <Separator orientation="vertical" className="h-12" />
+                <Button
+                  variant="actionButtonLarge"
+                  className="h-16 w-24 text-red-500 hover:bg-destructive hover:text-destructive-foreground focus:bg-destructive focus:text-destructive-foreground"
+                  onClick={handleDeleteChat}
+                  disabled={!!abortRequestRef.current}
+                >
+                  <Trash2 className="flex-shrink-0" />
+                  Delete
+                </Button>
+              </div>
+              <Messages
+                messages={chat.messages}
+                onMessageEdit={handleOnMessageEdit}
+                onSwapPrompt={handleOnSwapPrompt}
+                onMessageDelete={handleOnMessageDelete}
+                onSetActiveChoice={handleOnSetActiveChoice}
+                onMessageRegen={handleOnMessageRegen}
+                isStreaming={isStreaming}
+                messageBeingStreamed={messageBeingStreamed.current}
+                streamingText={streamingText}
+                streamingReasoningText={streamingReasoningText}
+              />
             </div>
-            <Messages
-              messages={chat.messages}
-              onMessageEdit={handleOnMessageEdit}
-              onSwapPrompt={handleOnSwapPrompt}
-              onMessageDelete={handleOnMessageDelete}
-              onSetActiveChoice={handleOnSetActiveChoice}
-              onMessageRegen={handleOnMessageRegen}
-              isStreaming={isStreaming}
-              messageBeingStreamed={messageBeingStreamed.current}
-              streamingText={streamingText}
-              streamingReasoningText={streamingReasoningText}
-            />
           </div>
 
           {/* Scroll to Bottom Button */}
