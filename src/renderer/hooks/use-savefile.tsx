@@ -19,10 +19,8 @@ import { generateUUID } from '@/common/uuid';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-// Deep clone helper replacing repeated JSON.parse(JSON.stringify(...)) usages
 const deepClone = <T,>(value: T): T => {
   try {
-    // structuredClone is available in modern Electron (Chromium) environments
     return structuredClone(value);
   } catch {
     return JSON.parse(JSON.stringify(value));
@@ -556,6 +554,7 @@ const useSaveFile = (): {
       messageId: string,
       content: string,
       reasoning?: string,
+      dontUpdateModified?: boolean,
     ) => {
       if (!saveFile || !resolvedSaveFile) {
         return {
@@ -585,7 +584,7 @@ const useSaveFile = (): {
 
       if (message.messageType === 'user') {
         message.content = content;
-        message.modified = Date.now();
+        if (!dontUpdateModified) message.modified = Date.now();
 
         // @ts-ignore
         resolvedMessage.content = content;
@@ -597,7 +596,8 @@ const useSaveFile = (): {
         if (reasoning !== undefined)
           message.choices[message.activeChoice].reasoning_details = reasoning;
 
-        message.choices[message.activeChoice].modified = Date.now();
+        if (!dontUpdateModified)
+          message.choices[message.activeChoice].modified = Date.now();
 
         // @ts-ignore
         resolvedMessage.choices[resolvedMessage.activeChoice].content = content;
@@ -618,7 +618,10 @@ const useSaveFile = (): {
       }
 
       // Update the chat's modified timestamp
-      chat.modified = Date.now();
+      if (!dontUpdateModified) {
+        chat.modified = Date.now();
+      }
+
       resolvedChat.modified = chat.modified;
 
       setSaveFile(deepClone(saveFile));

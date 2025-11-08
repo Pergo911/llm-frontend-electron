@@ -235,7 +235,7 @@ export default function App() {
   return (
     <MemoryRouter>
       <ThemeProvider>
-        <TooltipProvider skipDelayDuration={0}>
+        <TooltipProvider skipDelayDuration={0} disableHoverableContent>
           {error || loading || saveFileMissing ? (
             <>
               {/* Temporary drag handle bar until real titlebar not shown */}

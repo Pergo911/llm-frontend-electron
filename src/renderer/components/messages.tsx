@@ -40,7 +40,7 @@ import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
-import { cn, formatTimestamp } from '../utils/utils';
+import { cn, formatTimestamp, formatTimestampRelative } from '../utils/utils';
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import ReasoningBlock from './reasoning-block';
 import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
@@ -201,8 +201,18 @@ const UserMessageComponent = React.memo<{
                 </Button>
               }
               rows={[
-                { label: 'Sent', value: formatTimestamp(m.created) },
-                { label: 'Modified', value: formatTimestamp(m.modified) },
+                {
+                  label: 'Sent',
+                  value: formatTimestamp(m.created),
+                },
+                ...(m.modified > m.created
+                  ? [
+                      {
+                        label: 'Modified',
+                        value: formatTimestamp(m.modified),
+                      },
+                    ]
+                  : []),
               ]}
             />
           </div>
@@ -274,6 +284,13 @@ const UserMessageComponent = React.memo<{
                   </>
                 }
               />
+              <ContextMenuSeparator className="my-1" />
+              <div className="mx-2 py-2 text-center text-xs text-muted-foreground">
+                {m.modified > m.created ? 'Modified' : 'Sent'}{' '}
+                <span className="font-bold">
+                  {formatTimestampRelative(m.modified)}
+                </span>
+              </div>
             </ContextMenuWithBarContent>
           </ContextMenu>
         </div>
@@ -307,7 +324,6 @@ const AssistantMessageComponent = React.memo(
     const [infoOpen, setInfoOpen] = useState(false);
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [contextDeleteOpen, setContextDeleteOpen] = useState(false);
-    const shouldUnfocusInfo = React.useRef(false);
     const [hasSelection, setHasSelection] = useState(false);
     const contentRef = React.useRef<HTMLDivElement>(null);
 
@@ -487,6 +503,16 @@ const AssistantMessageComponent = React.memo(
                 </div>
               </>
             )}
+            <ContextMenuSeparator className="my-1" />
+            <div className="mx-2 py-2 text-center text-xs text-muted-foreground">
+              {m.choices[m.activeChoice].modified >
+              m.choices[m.activeChoice].created
+                ? 'Modified'
+                : 'Sent'}{' '}
+              <span className="font-bold">
+                {formatTimestampRelative(m.choices[m.activeChoice].modified)}
+              </span>
+            </div>
           </ContextMenuWithBarContent>
         </ContextMenu>
         {/* Action buttons */}
@@ -521,57 +547,40 @@ const AssistantMessageComponent = React.memo(
             </Button>
           </div>
           <div className="flex items-center">
-            <Popover open={infoOpen} onOpenChange={setInfoOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="actionButton"
-                  size="icon"
-                  onMouseLeave={() => {
-                    setInfoOpen(false);
-                  }}
-                  onMouseUp={(e) => {
-                    shouldUnfocusInfo.current = true;
-                    e.currentTarget.blur();
-                  }}
-                >
+            <InfoPopover
+              open={infoOpen}
+              onOpenChange={setInfoOpen}
+              trigger={
+                <Button variant="actionButton" size="icon">
                   <Info className="h-4 w-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="top"
-                className="w-fit border-[0.5px] border-border bg-background-dim p-2 text-xs drop-shadow-md"
-                onCloseAutoFocus={(e) => {
-                  if (shouldUnfocusInfo.current) {
-                    e.preventDefault();
-                    shouldUnfocusInfo.current = false;
-                  }
-                }}
-              >
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sent</span>
-                  <span className="w-2" />
-                  <span>
-                    {formatTimestamp(m.choices[m.activeChoice].created)}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Modified</span>
-                  <span className="w-2" />
-                  <span>
-                    {formatTimestamp(m.choices[m.activeChoice].modified)}
-                  </span>
-                </div>
-                {m.choices[m.activeChoice].generated_with && (
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">
-                      Generated with
-                    </span>
-                    <span className="w-2" />
-                    <span>{m.choices[m.activeChoice].generated_with}</span>
-                  </div>
-                )}
-              </PopoverContent>
-            </Popover>
+              }
+              rows={[
+                {
+                  label: 'Sent',
+                  value: formatTimestamp(m.choices[m.activeChoice].created),
+                },
+                ...(m.choices[m.activeChoice].modified >
+                m.choices[m.activeChoice].created
+                  ? [
+                      {
+                        label: 'Modified',
+                        value: formatTimestamp(
+                          m.choices[m.activeChoice].modified,
+                        ),
+                      },
+                    ]
+                  : []),
+                ...(m.choices[m.activeChoice].generated_with
+                  ? [
+                      {
+                        label: 'Generated with',
+                        value: m.choices[m.activeChoice].generated_with,
+                      },
+                    ]
+                  : []),
+              ]}
+            />
             <Button variant="actionButton" size="icon" onClick={handleRegen}>
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -593,6 +602,12 @@ const AssistantMessageComponent = React.memo(
               }
               description={deleteDescription('assistant', m.choices.length > 1)}
             />
+            <span className="mx-2 text-xs text-muted-foreground">
+              {formatTimestampRelative(
+                m.choices[m.activeChoice].modified,
+                true,
+              )}
+            </span>
           </div>
         </div>
       </div>
@@ -708,8 +723,18 @@ const PromptMessageComponent = React.memo(
                       ? 'User Prompt'
                       : 'System Prompt',
                 },
-                { label: 'Sent', value: formatTimestamp(m.created) },
-                { label: 'Modified', value: formatTimestamp(m.modified) },
+                {
+                  label: 'Sent',
+                  value: formatTimestamp(m.created),
+                },
+                ...(m.modified > m.created
+                  ? [
+                      {
+                        label: 'Modified',
+                        value: formatTimestamp(m.modified),
+                      },
+                    ]
+                  : []),
               ]}
             />
           </div>
@@ -783,6 +808,13 @@ const PromptMessageComponent = React.memo(
                     </>
                   }
                 />
+                <ContextMenuSeparator className="my-1" />
+                <div className="mx-2 py-2 text-center text-xs text-muted-foreground">
+                  {m.modified > m.created ? 'Modified' : 'Sent'}{' '}
+                  <span className="font-bold">
+                    {formatTimestampRelative(m.modified)}
+                  </span>
+                </div>
               </ContextMenuWithBarContent>
             </ContextMenu>
             <Paperclip className="mr-2 h-4 w-4" />

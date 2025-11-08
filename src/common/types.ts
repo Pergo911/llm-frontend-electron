@@ -247,6 +247,7 @@ export type SaveFileController = {
         messageId: string,
         content: string,
         reasoning?: string,
+        dontUpdateModified?: boolean,
       ) => { error: string | null };
     };
 

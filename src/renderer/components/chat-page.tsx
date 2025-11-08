@@ -18,7 +18,7 @@ import { ArrowDown, Edit2, Layers2, Tag, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ChatInputBar from './chat-input-bar';
 import Messages from './messages';
-import { formatTimestamp, setWindowTitle } from '../utils/utils';
+import { formatTimestamp, formatTimestampRelative } from '../utils/utils';
 import { ChatOperations } from '../utils/chat-operations';
 import { EditMessageModal, EditMessageModalRef } from './modal-edit';
 import { RenameModal, RenameModalRef } from './modal-rename';
@@ -26,12 +26,25 @@ import { DeleteModal, DeleteModalRef } from './modal-delete';
 import { PromptSelectModal, PromptSelectModalRef } from './modal-prompt-select';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
+import { Tooltip, TooltipTrigger, TooltipContent } from './ui/tooltip';
 
 const ChatTitle = memo(
   ({ chat, onPromptAdd }: { chat: Chat; onPromptAdd: () => void }) => {
     const { title, created, modified } = chat;
 
-    const messageNum = chat.messages.length;
+    let userMessageNum = 0;
+    let assistantMessageNum = 0;
+    let promptMessageNum = 0;
+    chat.messages.forEach((m) => {
+      if (m.messageType === 'user') userMessageNum += 1;
+      else if (m.messageType === 'assistant') assistantMessageNum += 1;
+      else if (
+        m.messageType === 'user-prompt' ||
+        m.messageType === 'system-prompt'
+      )
+        promptMessageNum += 1;
+    });
+    const messageNum = userMessageNum + assistantMessageNum + promptMessageNum;
 
     return (
       <>
@@ -39,18 +52,56 @@ const ChatTitle = memo(
           <h1 className="text-3xl font-bold">{title}</h1>
           <p className="text-xs text-muted-foreground">
             {messageNum > 0 ? (
-              <>
-                <span className="font-bold">{messageNum}</span> message
-                {messageNum > 1 ? 's' : ''}
-              </>
+              <Tooltip>
+                <TooltipTrigger>
+                  <span className="font-bold">{messageNum}</span> message
+                  {messageNum > 1 ? 's' : ''}
+                </TooltipTrigger>
+                <TooltipContent>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">User</span>
+                    <span className="w-2" />
+                    <span>{userMessageNum}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Assistant</span>
+                    <span className="w-2" />
+                    <span>{assistantMessageNum}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Prompt</span>
+                    <span className="w-2" />
+                    <span>{promptMessageNum}</span>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             ) : (
               'No messages'
+            )}{' '}
+            •{' '}
+            <Tooltip>
+              <TooltipTrigger>
+                Created{' '}
+                <span className="font-bold">
+                  {formatTimestampRelative(created)}
+                </span>
+                <TooltipContent>{formatTimestamp(created)}</TooltipContent>
+              </TooltipTrigger>{' '}
+            </Tooltip>{' '}
+            {modified > created && (
+              <>
+                •{' '}
+                <Tooltip>
+                  <TooltipTrigger>
+                    Modified{' '}
+                    <span className="font-bold">
+                      {formatTimestampRelative(modified)}
+                    </span>
+                    <TooltipContent>{formatTimestamp(modified)}</TooltipContent>
+                  </TooltipTrigger>
+                </Tooltip>
+              </>
             )}
-            <br />
-            Created{' '}
-            <span className="font-bold">{formatTimestamp(created)}</span> •{' '}
-            Modified{' '}
-            <span className="font-bold">{formatTimestamp(modified)}</span>
           </p>
         </div>
 
@@ -321,11 +372,14 @@ export default function ChatPage({
       }
 
       if (finalMessage || finalReasoning) {
+        // Fill in empty message with the final text
+        // `dontUpdateModified = true` since this shouldn't count as a 'modification'
         const { error: finalChatError } = controller.chats.messages.modify(
           chat.id,
           messageId,
           finalMessage ?? '',
           finalReasoning ?? undefined,
+          true,
         );
 
         if (finalChatError) {
@@ -447,11 +501,14 @@ export default function ChatPage({
       }
 
       if (finalMessage) {
+        // Fill in empty message with the final text
+        // `dontUpdateModified = true` since this shouldn't count as a 'modification'
         const { error: finalChatError } = controller.chats.messages.modify(
           chat.id,
           id,
           finalMessage,
           finalReasoning ?? undefined,
+          true,
         );
 
         if (finalChatError) {
